@@ -20,6 +20,11 @@
 # removed at exit, and the image it builds is removed too; the daemon's build cache is left alone, because pruning
 # it would prune every project's.
 #
+# A cancelled GitRiver job is removed at once (SIGKILL): no trap of this script runs, and the second container, a
+# sibling on the Docker host, would run on with its workspace deleted under it. So beside it this starts a reaper, a
+# container that waits while this job's container runs, then sends every process of the second container SIGTERM,
+# which runs their traps (the kind cluster's deletion, the tests' containers), stops it, and removes the image.
+#
 # Why it starts a second container rather than running `make image-ci` where it is. A job container is a sibling
 # of the containers it starts, on Docker's default bridge, and the tests talk to them the way a deployment does:
 # - image/test.sh and tests/oracle/image-scenarios.sh publish the service on `127.0.0.1::8080` and curl
@@ -86,6 +91,8 @@ if [ "${1:-}" = host ]; then
 	WS=$PWD
 	HOST_SOCK=$SOCK
 	JOB=${GITHUB_RUN_ID:-$$}-${GITHUB_RUN_ATTEMPT:-1}-$(uname -m)
+	# The runner's VM goes with a cancelled job, and every container on it: no reaper.
+	OWNER=""
 	limits=""
 else
 	[ -S "$SOCK" ] || {
@@ -113,6 +120,7 @@ else
 	MEMORY=$(docker inspect --type container -f '{{.HostConfig.Memory}}' "$SELF")
 	CGROUP=$(docker inspect --type container -f '{{.HostConfig.CgroupParent}}' "$SELF")
 	JOB=${CI_JOB_ID:-$SELF}
+	OWNER=$SELF
 
 	limits=""
 	[ "$MEMORY" = 0 ] || limits="--memory $MEMORY --memory-swap $MEMORY"
@@ -121,12 +129,29 @@ fi
 IMAGE=${IMAGE:-docx-to-pdf-ci:$JOB}
 NAME=docx-to-pdf-ci-image-$JOB
 
-# A cancelled job stops this script, not the container it started: remove it, and the image, on the way out.
+REAPER=$NAME-reaper
+
+# The container this starts outlives this script: on the way out, by an exit or a signal, remove it and the image.
 cleanup() {
 	docker rm -f -v "$NAME" > /dev/null 2>&1 || true
 	docker image rm -f "$IMAGE" > /dev/null 2>&1 || true
+	[ -z "$OWNER" ] || docker rm -f -v "$REAPER" > /dev/null 2>&1 || true
 }
 trap cleanup EXIT INT TERM
+
+if [ -n "$OWNER" ]; then
+	# The reaper's image: the Docker CLI, the pinned `docker-cli` stage of tools/lint/images.Dockerfile.
+	CLI_IMAGE=$(awk '$1 == "FROM" && $3 == "AS" && $4 == "docker-cli" { print $2 }' tools/lint/images.Dockerfile)
+	sh tools/ci/pull.sh "$CLI_IMAGE" || exit 1
+	# `kill -s TERM -- -1` in the second container signals every process there but its init, so each shell's
+	# trap runs; `docker stop` then waits for it to exit, two minutes at most before it kills what is left.
+	# shellcheck disable=SC2016 # the reaper's shell expands these
+	docker run -d --rm --name "$REAPER" -v "$HOST_SOCK:$SOCK" "$CLI_IMAGE" sh -c '
+		while [ "$(docker inspect -f "{{.State.Running}}" "$0" 2> /dev/null)" = true ]; do sleep 5; done
+		docker exec "$1" sh -c "kill -s TERM -- -1" 2> /dev/null
+		docker stop -t 120 "$1" > /dev/null 2>&1
+		docker image rm -f "$2" > /dev/null 2>&1' "$OWNER" "$NAME" "$IMAGE" > /dev/null
+fi
 
 echo "image job: $IMAGE in $NAME ($JOB_IMAGE, workspace $WS, limits:${limits:- none})"
 # shellcheck disable=SC2086 # $limits is a list of options

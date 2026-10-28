@@ -102,13 +102,19 @@ export KUBECONFIG
 # holds on the host network too, where the hostname is the host's).
 SELF=$(sed -n 's|.*/containers/\([0-9a-f]\{64\}\)/hostname .*|\1|p' /proc/self/mountinfo 2> /dev/null | head -1)
 REAPER=$CLUSTER-reaper
+# shellcheck disable=SC2329 # run by cleanup, the trap below
+nodes() { docker ps -aq --filter "label=io.x-k8s.kind.cluster=$CLUSTER"; }
 # shellcheck disable=SC2329 # run by the trap below
 cleanup() {
+	# kind itself can be gone by now: a cancelled CI job's workspace, where the pinned binary lives, is deleted under
+	# the job's containers. The nodes are plain containers, which the Docker CLI removes without it.
 	"$KIND" delete cluster --name "$CLUSTER" > "$OUT/delete.log" 2>&1 || {
-		echo "FAIL    kind delete cluster $CLUSTER: $(tail -1 "$OUT/delete.log")"
+		nodes | xargs -r docker rm -f -v > /dev/null 2>&1
+		echo "FAIL    kind delete cluster $CLUSTER: $(tail -1 "$OUT/delete.log") (its nodes removed with docker rm)"
 		FAILED=1
 	}
-	[ -z "$SELF" ] || docker rm -f -v "$REAPER" > /dev/null 2>&1
+	# The reaper goes only once no node of the cluster is left; otherwise it removes them when this container is gone.
+	[ -z "$SELF" ] || [ -n "$(nodes)" ] || docker rm -f -v "$REAPER" > /dev/null 2>&1
 	rm -rf "$OUT"
 	[ "$FAILED" = 0 ] || exit 1
 }
