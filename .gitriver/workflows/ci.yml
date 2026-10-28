@@ -201,12 +201,37 @@ jobs:
 
   lint-commits:
     # The commit messages: the gate's own fixtures, then every commit after the base (tools/lint/commits.py). The
-    # runner clones `--depth=1`; the gate deepens the clone when the base is not in it. The image has no make; the
-    # gate installs git itself.
+    # runner clones `--depth=1` (it has no setting for more), so the gate deepens the clone from `origin`. But
+    # `origin` is the forge's loopback name, which inside a job container is the job itself, and a job reaches the
+    # forge only at the Docker host's address. The first step points `origin` there and hands that address the
+    # job's own read credential: the one the runner stored for `origin`, else CI_JOB_TOKEN (which reads this
+    # repository and no other). Without a remote (`make ci-job`'s snapshot) it does nothing; a fetch that still
+    # fails is the gate's exit 2 with git's error. The image has no make or git.
     image: python:3.14.8-alpine@sha256:f6a589d43c42b9e7f7dc67a12d37132491f362859a5d750607710cc56da3bc72
     timeout: 5m
     steps:
-      - run: apk add --no-cache make
+      - run: apk add --no-cache make git
+      - run: |
+          set -eu
+          git config --global --add safe.directory "$PWD"
+          if ! origin=$(git remote get-url origin 2> /dev/null); then
+            echo "commits: no origin, nothing to deepen from"
+            exit 0
+          fi
+          scheme=${origin%%://*}
+          rest=${origin#*://}
+          forge=http://host.docker.internal
+          git config "url.$forge/.insteadOf" "$scheme://${rest%%/*}/"
+          store="$(git rev-parse --absolute-git-dir)/forge-credentials"
+          git config "credential.$forge.helper" "store --file=$store"
+          cred=$(printf 'url=%s\n\n' "$origin" | GIT_TERMINAL_PROMPT=0 git credential fill 2> /dev/null |
+            grep -E '^(username|password)=' || true)
+          if [ -z "$cred" ] && [ -n "${CI_JOB_TOKEN:-}" ]; then
+            cred=$(printf 'username=gitriver-ci\npassword=%s' "$CI_JOB_TOKEN")
+            echo "commits: fetching as CI_JOB_TOKEN"
+          fi
+          printf 'protocol=http\nhost=host.docker.internal\n%s\n\n' "$cred" | git credential-store --file="$store" store
+          echo "commits: origin's history comes through $forge"
       - run: make lint-run GATE=commits
 
   lint-workflows:

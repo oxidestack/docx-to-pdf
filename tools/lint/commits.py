@@ -34,7 +34,7 @@ the reviewer's to judge; no rule here guesses at them.
 The base: COMMITS_BASE, else BASE below: the commit the rule starts from (the public history's root commit, or a pull
 request's base). BASE is empty until the public history starts, and empty (or COMMITS_BASE=none) checks the fixtures
 alone: every commit before it keeps its own style. A base with no parent (a root commit) is checked too. A shallow
-clone that lacks the base is deepened once.
+clone that lacks the base is deepened once from its default remote; a deepening that fails is exit 2 with git's error.
 
 Fixtures: tools/lint/commits/pass/*.txt pass; tools/lint/commits/fail/<rule>[.<n>].txt fail with that rule and no
 other. A new rule comes with both.
@@ -276,7 +276,14 @@ def resolve_base(base):
     if git("cat-file", "-e", f"{base}^{{commit}}", check=False).returncode != 0:
         if git("rev-parse", "--is-shallow-repository").stdout.strip() == "true":
             print("commits: a shallow clone without the base; fetching the history", file=sys.stderr)
-            git("fetch", "--quiet", "--unshallow", check=False)
+            # A fetch that fails says why (an unreachable remote, a missing credential): the base being missing
+            # alone would hide it.
+            fetch = git("fetch", "--quiet", "--unshallow", check=False)
+            if fetch.returncode != 0:
+                raise Unusable(
+                    f"commits: the base `{base}` is not in this shallow clone, and `git fetch --unshallow` failed"
+                    f" (exit {fetch.returncode}): {fetch.stderr.strip()}"
+                )
     r = git("rev-parse", "--verify", "-q", f"{base}^{{commit}}", check=False)
     if r.returncode != 0:
         raise Unusable(f"commits: the base `{base}` (COMMITS_BASE) is no commit of this clone")

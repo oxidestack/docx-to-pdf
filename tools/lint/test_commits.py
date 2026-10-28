@@ -102,11 +102,16 @@ class Repository(unittest.TestCase):
         self.git("commit", "-q", "--allow-empty", "--cleanup=verbatim", "-m", message)
         return self.git("rev-parse", "HEAD")
 
-    def gate(self, *args, base=None, stdin=""):
+    def gate(self, *args, base=None, stdin="", cwd=None):
         env = {k: v for k, v in os.environ.items() if not k.startswith(("COMMITS_", "GIT_"))}
         env["COMMITS_BASE"] = base or "none"
         return subprocess.run(
-            [sys.executable, str(SCRIPT), *args], cwd=self.dir, env=env, input=stdin, capture_output=True, text=True
+            [sys.executable, str(SCRIPT), *args],
+            cwd=cwd or self.dir,
+            env=env,
+            input=stdin,
+            capture_output=True,
+            text=True,
         )
 
     def test_no_base_checks_the_fixtures_alone(self):
@@ -148,6 +153,36 @@ class Repository(unittest.TestCase):
     def test_an_unknown_base_is_a_usage_error(self):
         r = self.gate(base="0123456789abcdef0123456789abcdef01234567")
         self.assertEqual(r.returncode, 2)
+
+    def shallow_clone(self):
+        """A `--depth=1` clone of this history, as a CI runner makes one: the base is not in it."""
+        clone = tempfile.TemporaryDirectory()
+        self.addCleanup(clone.cleanup)
+        subprocess.run(
+            ["git", "clone", "-q", "--depth=1", f"file://{self.dir}", clone.name], capture_output=True, check=True
+        )
+        return clone.name
+
+    def test_a_shallow_clone_is_deepened_to_reach_the_base(self):
+        base = self.commit(GOOD)
+        self.commit(GOOD)
+        self.commit(GOOD)
+        clone = self.shallow_clone()
+        r = self.gate(base=base, cwd=clone)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertIn("2 commits after", r.stderr)
+
+    def test_a_failed_deepening_says_why(self):
+        base = self.commit(GOOD)
+        self.commit(GOOD)
+        clone = self.shallow_clone()
+        gone = os.path.join(self.dir, "gone")
+        subprocess.run(["git", "remote", "set-url", "origin", f"file://{gone}"], cwd=clone, check=True)
+        r = self.gate(base=base, cwd=clone)
+        self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
+        # git's own reason, not only that the base is missing.
+        self.assertIn("gone", r.stderr)
+        self.assertIn("fetch", r.stderr)
 
     def test_pre_push_checks_the_pushed_commits_after_the_base(self):
         base = self.commit(GOOD)
