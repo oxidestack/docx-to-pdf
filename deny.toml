@@ -1,0 +1,89 @@
+# cargo-deny's policy: the `deny` gate runs `cargo deny check` on the service and on fuzz/, a workspace
+# of its own (tools/lint/lint.sh). Every section fails the gate on a finding; an accepted one is an entry here with
+# its reason, and an advisory ignored is one that cannot be fixed from here, with the date to look again.
+
+[graph]
+# The service ships on Linux (arm64 and amd64) and is developed on macOS; other targets' crates are not ours to vet.
+targets = [
+    "aarch64-unknown-linux-gnu",
+    "x86_64-unknown-linux-gnu",
+    "aarch64-apple-darwin",
+]
+
+[advisories]
+# RustSec: a vulnerability, an unsound crate, an unmaintained crate or a yanked version fails the gate.
+unmaintained = "all"
+yanked = "deny"
+ignore = []
+
+[licenses]
+# The CNCF allowlist, since the project is built to apply to the CNCF Sandbox (cncf/foundation
+# policies-guidance/allowed-third-party-license-policy.md, read 2026-10-27 at f196b95), and Apache-2.0, which needs no
+# review: a crate passes when its licence expression is satisfiable from these alone (`MIT OR Apache-2.0`,
+# `Apache-2.0 OR BSL-1.0`). The list's one non-SPDX entry, Go's patent grant, has no Rust counterpart. Nothing joins
+# this list that the CNCF's does not carry: a crate that needs another licence is an exception below, scoped to that
+# crate, with its CNCF exception status.
+# `cargo deny list -l license` shows which crate brings which.
+allow = [
+    "0BSD",
+    "Apache-2.0",
+    "BSD-2-Clause",
+    "BSD-2-Clause-FreeBSD",
+    "BSD-3-Clause",
+    "ISC",
+    "MIT",
+    "MIT-0",
+    "OpenSSL",
+    "OpenSSL-standalone",
+    "PostgreSQL",
+    "PSF-2.0",
+    "Python-2.0",
+    "Python-2.0.1",
+    "SSLeay-standalone",
+    "UPL-1.0",
+    "X11",
+    "Zlib",
+]
+# The list is the CNCF's, not the graph's: an entry no crate uses today is not a finding.
+unused-allowed-license = "allow"
+confidence-threshold = 0.93
+exceptions = [
+    # Not distributed, no exception needed: libFuzzer (LLVM's, NCSA) is linked into the fuzz targets only, which are
+    # internal tooling in the CNCF glossary's sense — never built into the service, the image or a release.
+    { allow = ["NCSA"], crate = "libfuzzer-sys" },
+    # Unicode-3.0 — NOT on the allowlist, and no CNCF exception exists (exceptions.cncf.io, 2026-09-07); requests by
+    # wasmCloud (cncf/foundation#1581) and OpenShell (#1517, #1518) are open, needs-review. Our request is drafted, not
+    # filed. unicode-ident is build-time only (proc-macro2, in the proc macros), never linked into the service. The
+    # ICU4X crates (Unicode-3.0 too) are out of the graph: Cargo.toml holds idna_adapter at 1.0, IDNA ASCII-only.
+    { allow = ["Unicode-3.0"], crate = "unicode-ident" },
+]
+
+[bans]
+# One version of each crate; a duplicate the graph cannot avoid yet is a `skip` below, with who pulls each version.
+multiple-versions = "deny"
+wildcards = "deny"
+# The path dependency of fuzz/ on the service carries no version: it is this tree, never a registry crate.
+allow-wildcard-paths = true
+deny = [
+    # TLS is not the service's business (the OTLP exporter speaks plain gRPC/HTTP to a collector beside it); a crate
+    # that brings OpenSSL in brings a C library and its CVEs into the image.
+    { name = "openssl" },
+    { name = "openssl-sys" },
+]
+skip = [
+    # The OTLP exporter's tonic and prost stack is a major behind hyper-util and the service on each of these; each
+    # entry names the older version, which goes when that stack catches up (`cargo deny check bans` shows the trees).
+    { crate = "base64@0.22.1", reason = "tonic 0.14 and opentelemetry-proto; hyper-util and reqwest are on 0.23" },
+    { crate = "syn@2.0.119", reason = "prost-derive and pin-project-internal; the newer proc macros are on syn 3" },
+    { crate = "thiserror@1.0.69", reason = "protobuf 3 under prometheus 0.14; the OpenTelemetry crates are on 2" },
+    { crate = "thiserror-impl@1.0.69", reason = "thiserror 1.0.69's derive, above" },
+    { crate = "getrandom@0.3.4", reason = "rand_core 0.9 under opentelemetry_sdk; tempfile is on 0.4" },
+    # png 0.18 still uses miniz_oxide 0.8; flate2 and the service's own inflater are on 0.9.
+    { crate = "miniz_oxide@0.8.9", reason = "png 0.18; flate2 and the service are on 0.9" },
+]
+
+[sources]
+# crates.io only: no git dependency, no other registry.
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]

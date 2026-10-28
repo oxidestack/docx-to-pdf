@@ -1,0 +1,29 @@
+name: Feature request
+description: Something docx-to-pdf does not do yet.
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        Not sure yet what you need, or how it should work? Start in
+        [Ideas](https://github.com/oxidestack/docx-to-pdf/discussions/categories/ideas).
+  - type: textarea
+    id: problem
+    attributes:
+      label: What you are trying to do
+      description: The task, and what stops you today.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would help
+      description: A route, a setting, a chart value, a format, a metric — whatever you have in mind.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What you tried instead
+      description: A workaround, or how another tool does it.

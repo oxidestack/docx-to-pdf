@@ -1,0 +1,16 @@
+{
+  "description": "The upload sent with Transfer-Encoding: chunked, no Content-Length, converts.",
+  "steps": [
+    {
+      "method": "POST",
+      "path": "/pdf",
+      "multipart": [
+        {
+          "name": "document",
+          "file": "upstream/docx-to-pdf/examples/ex1/input.docx"
+        }
+      ],
+      "chunked": true
+    }
+  ]
+}

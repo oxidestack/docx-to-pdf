@@ -1,0 +1,20 @@
+{{- if .Values.podDisruptionBudget.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "docx-to-pdf.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "docx-to-pdf.labels" . | nindent 4 }}
+spec:
+  {{- if not (eq (toString .Values.podDisruptionBudget.minAvailable) "") }}
+  minAvailable: {{ .Values.podDisruptionBudget.minAvailable }}
+  {{- else }}
+  maxUnavailable: {{ .Values.podDisruptionBudget.maxUnavailable }}
+  {{- end }}
+  # A pod that is not ready protects nothing; a drain may evict it even when the budget is spent.
+  unhealthyPodEvictionPolicy: AlwaysAllow
+  selector:
+    matchLabels:
+      {{- include "docx-to-pdf.selectorLabels" . | nindent 6 }}
+{{- end }}

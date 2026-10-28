@@ -1,0 +1,4 @@
+# hadolint (`make lint ONLY=hadolint`). Every rule is on, and any finding fails the gate, style and
+# info included. An accepted finding is an inline `# hadolint ignore=<rule>` on the one instruction it concerns,
+# with the reason on the line above it; nothing is ignored here, for every file.
+failure-threshold: info

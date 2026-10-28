@@ -1,0 +1,21 @@
+{
+  "description": "A conversion at /pdf from a browser origin carries Access-Control-Allow-Origin: *.",
+  "steps": [
+    {
+      "method": "POST",
+      "path": "/pdf",
+      "headers": [
+        ["Origin", "http://a.example"]
+      ],
+      "multipart": [
+        {
+          "name": "document",
+          "file": "upstream/docx-to-pdf/examples/ex1/input.docx"
+        }
+      ],
+      "compare": [
+        "access-control-allow-origin"
+      ]
+    }
+  ]
+}

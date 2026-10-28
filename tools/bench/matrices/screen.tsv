@@ -1,0 +1,19 @@
+# Screening: 2^4 full factorial (document: the two kinds installations send, pool, tracing, /tmp), closed load at pool + 2
+# clients, 5 minutes each; run with --reps 3. Allocation of variation (effects.png) says which factors to sweep.
+cell	docs	pool	cpus	tracing	tmp	mode	duration	memory
+report-text-5p-p1-off-disk	report-text-5p	1	1	off	disk	closed	5m	16g
+report-text-5p-p1-off-tmpfs	report-text-5p	1	1	off	tmpfs	closed	5m	16g
+report-text-5p-p1-on-disk	report-text-5p	1	1	on	disk	closed	5m	16g
+report-text-5p-p1-on-tmpfs	report-text-5p	1	1	on	tmpfs	closed	5m	16g
+report-text-5p-p4-off-disk	report-text-5p	4	4	off	disk	closed	5m	16g
+report-text-5p-p4-off-tmpfs	report-text-5p	4	4	off	tmpfs	closed	5m	16g
+report-text-5p-p4-on-disk	report-text-5p	4	4	on	disk	closed	5m	16g
+report-text-5p-p4-on-tmpfs	report-text-5p	4	4	on	tmpfs	closed	5m	16g
+report-img45-12mb-p1-off-disk	report-img45-12mb	1	1	off	disk	closed	5m	16g
+report-img45-12mb-p1-off-tmpfs	report-img45-12mb	1	1	off	tmpfs	closed	5m	16g
+report-img45-12mb-p1-on-disk	report-img45-12mb	1	1	on	disk	closed	5m	16g
+report-img45-12mb-p1-on-tmpfs	report-img45-12mb	1	1	on	tmpfs	closed	5m	16g
+report-img45-12mb-p4-off-disk	report-img45-12mb	4	4	off	disk	closed	5m	16g
+report-img45-12mb-p4-off-tmpfs	report-img45-12mb	4	4	off	tmpfs	closed	5m	16g
+report-img45-12mb-p4-on-disk	report-img45-12mb	4	4	on	disk	closed	5m	16g
+report-img45-12mb-p4-on-tmpfs	report-img45-12mb	4	4	on	tmpfs	closed	5m	16g

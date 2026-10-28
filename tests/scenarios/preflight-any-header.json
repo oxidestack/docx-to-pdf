@@ -1,0 +1,20 @@
+{
+  "description": "Any requested header is echoed in Access-Control-Allow-Headers, traceparent included.",
+  "steps": [
+    {
+      "method": "OPTIONS",
+      "path": "/pdf",
+      "headers": [
+        ["Origin", "http://a.example"],
+        ["Access-Control-Request-Method", "POST"],
+        ["Access-Control-Request-Headers", "x-foo, traceparent"]
+      ],
+      "compare": [
+        "access-control-allow-origin",
+        "access-control-allow-methods",
+        "access-control-allow-headers",
+        "access-control-max-age"
+      ]
+    }
+  ]
+}

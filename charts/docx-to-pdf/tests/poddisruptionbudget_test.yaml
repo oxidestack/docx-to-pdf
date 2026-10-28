@@ -1,0 +1,23 @@
+suite: poddisruptionbudget
+templates:
+  - templates/poddisruptionbudget.yaml
+tests:
+  - it: lets one pod go by default, so a single replica's node can drain
+    asserts:
+      - equal: {path: "spec.maxUnavailable", value: 1}
+      - notExists: {path: "spec.minAvailable"}
+
+  - it: takes minAvailable in place of maxUnavailable when set
+    set: {podDisruptionBudget: {minAvailable: 2}}
+    asserts:
+      - equal: {path: "spec.minAvailable", value: 2}
+      - notExists: {path: "spec.maxUnavailable"}
+
+  - it: is left out when disabled
+    set: {podDisruptionBudget: {enabled: false}}
+    asserts:
+      - hasDocuments: {count: 0}
+
+  - it: lets a drain evict a pod that is not ready, whatever the budget
+    asserts:
+      - equal: {path: spec.unhealthyPodEvictionPolicy, value: AlwaysAllow}

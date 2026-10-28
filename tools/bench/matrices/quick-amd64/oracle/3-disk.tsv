@@ -1,0 +1,6 @@
+# Quick plan on amd64, moalhaddar/docx-to-pdf, step 3: as ours/3-disk.tsv at 4 vCPU, pool 4, its step-1 peak + 25 %
+# (2538m; the tmpfs cell adds its 256m). No tracing cell: moalhaddar/docx-to-pdf has none. --reps 2.
+cell	docs	cpus	pool	memory	tmp	tmpfs_size	io_bps	io_device	mode	conversions	warmup_per_instance	cooldown
+disk	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	4	4	2538m	disk				closed	200	1	15
+disk120	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	4	4	2538m	disk		120mb	/dev/sda	closed	200	1	15
+tmpfs	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	4	4	2794m	tmpfs	256m			closed	200	1	15

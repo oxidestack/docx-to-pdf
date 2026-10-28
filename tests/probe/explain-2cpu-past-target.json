@@ -1,0 +1,122 @@
+{
+ "platform": {
+  "name": "golden",
+  "measured": "sizing.explain",
+  "cpus_probed": 2
+ },
+ "parameters": {
+  "s1": {
+   "value": 9.0,
+   "unit": "s",
+   "meaning": "a conversion's mean time with nothing else running, the service's HTTP work around it included and the client's transfer not: the CPU's speed for this workload (lower is faster; 0.94 on a Xeon Gold 6248R vCPU)"
+  },
+  "contention": {
+   "value": 1.2,
+   "unit": "ratio",
+   "meaning": "how much slower a conversion runs with every vCPU converting at once: the memory bus and the caches (1.10 on the M1, 1.18 on the Xeon)"
+  },
+  "disk_mbps": {
+   "value": null,
+   "unit": "MB/s",
+   "meaning": "the disk's sustained write rate under /tmp, 1 MiB direct writes; null if not measured (IOPS do not matter: a conversion writes ~50 writes of ~0.9 MB)"
+  }
+ },
+ "workload": {
+  "name": "report",
+  "documents": [
+   "report-img30-10mb",
+   "report-img45-12mb",
+   "report-img60-15mb",
+   "report-img60-20mb"
+  ],
+  "meaning": "what this document mix costs on any hardware (measured equal on arm64 and amd64)",
+  "memory_service_mib": 256,
+  "memory_per_instance_mib": 256,
+  "memory_headroom": 0.25,
+  "written_mb_per_conversion": 28.2,
+  "disk_share": 0.459,
+  "tmpfs_per_pool_slot_mib": 64.0,
+  "time_quantiles_over_mean": {
+   "p50": 1.021,
+   "p95": 1.305,
+   "p99": 1.403
+  },
+  "service_time_cv2": 0.039
+ },
+ "limits": {
+  "meaning": "what bounds a conversion whatever the document: the hard memory limit an instance is killed above, how far past it one 100 ms read lets it get, and what a conversion leaves in /tmp",
+  "hard_memory_mib": 2048,
+  "hard_memory_overshoot_mib": 256,
+  "tmp_documents_per_conversion": 3,
+  "tmp_long_layout_mib": 256,
+  "profile_mib": 0.35
+ },
+ "formulas": [
+  {
+   "what": "pool size",
+   "formula": "POOL_SIZE = vCPU",
+   "why": "one conversion uses one core; a larger pool adds no throughput and slows each conversion, a smaller one leaves cores idle",
+   "here": "2 vCPU → POOL_SIZE = 2"
+  },
+  {
+   "what": "a conversion's time with every instance busy",
+   "formula": "S_sat = contention × s1",
+   "here": "1.2 × 9 = 10.80 s"
+  },
+  {
+   "what": "throughput, CPU-bound",
+   "formula": "X_cpu = min(POOL_SIZE, vCPU) / S_sat conversions/s (× 60 a minute)",
+   "here": "2 / 10.80 = 0.19/s = 11/min"
+  },
+  {
+   "what": "throughput, disk-bound (/tmp on disk; none on a tmpfs)",
+   "formula": "X_disk = disk_share × disk_mbps / written_mb_per_conversion",
+   "here": "0.459 × B / 28.2: e.g. a 120 MB/s SATA SSD gives 1.96/s"
+  },
+  {
+   "what": "throughput of a pod",
+   "formula": "X = min(X_cpu, X_disk)",
+   "here": "0.19/s"
+  },
+  {
+   "what": "a conversion's time: the floor (alone) and at saturation",
+   "formula": "p_q = s1 × time_quantiles_over_mean[q] alone, S_sat × time_quantiles_over_mean[q] busy",
+   "here": "alone p50 9.2 s, p95 11.7 s, p99 12.6 s; busy p50 11.0 s, p95 14.1 s, p99 15.1 s; no hardware beats the floor"
+  },
+  {
+   "what": "memory limit (= request)",
+   "formula": "memory_service_mib + POOL_SIZE × (hard_memory_mib + hard_memory_overshoot_mib) + tmpfs MiB, tmpfs = the /tmp size below if /tmp is a tmpfs, else 0: every instance at the hard limit at once, so no document mix can OOM the pod; set hard_memory_mib to DOCX_TO_PDF_INSTANCE_HARD_MEMORY if it is not the default",
+   "here": "256 + 2 × (2048 + 256) = 4864 MiB on disk, 5442 MiB with a tmpfs of 578 MiB"
+  },
+  {
+   "what": "memory limit for the typical mix only (a named option)",
+   "formula": "(1 + memory_headroom) × (memory_service_mib + memory_per_instance_mib × POOL_SIZE + tmpfs) MiB, tmpfs = tmpfs_per_pool_slot_mib × POOL_SIZE if /tmp is a tmpfs, else 0: fitted on the workload's documents; a heavier document (many tables, gigapixel pictures) can OOM the pod, and with memory.oom.group the OOM kills every conversion in it",
+   "here": "1.25 × (256 + 256 × 2) = 960 MiB on disk, 1120 MiB with a tmpfs of 128 MiB"
+  },
+  {
+   "what": "the pool a memory limit R MiB allows",
+   "formula": "floor((R - memory_service_mib - tmpfs) / (hard_memory_mib + hard_memory_overshoot_mib)); for the typical mix floor((R / (1 + memory_headroom) - memory_service_mib - tmpfs) / memory_per_instance_mib)",
+   "here": "8 GiB → 3; typical mix 24"
+  },
+  {
+   "what": "/tmp size (an emptyDir sizeLimit, or the tmpfs)",
+   "formula": "(POOL_SIZE + 1) × profile_mib + POOL_MAX_WAITING × D + POOL_SIZE × max(tmp_documents_per_conversion × D, tmp_long_layout_mib) MiB, rounded up, D = DOCX_TO_PDF_MAX_DOCUMENT_SIZE in MiB; a deflate bomb is refused once its parts inflate past DOCX_TO_PDF_MAX_INFLATED_SIZE, max(3 × D, 256 MiB) by default",
+   "here": "(2 + 1) × 0.35 + 2 × 32 + 2 × max(3 × 32, 256) = 578 MiB"
+  },
+  {
+   "what": "timeouts and the queue",
+   "formula": "POOL_MAX_WAITING = POOL_SIZE; CONVERSION_TIMEOUT = max(180 s, 4 × busy p99); POOL_WAIT_TIMEOUT = max(30 s, 1.5 × (POOL_MAX_WAITING / POOL_SIZE + 1) × busy p99), both rounded up to 10 s",
+   "here": "DOCX_TO_PDF_POOL_SIZE=2, DOCX_TO_PDF_POOL_MAX_WAITING=2, DOCX_TO_PDF_CONVERSION_TIMEOUT=180s, DOCX_TO_PDF_POOL_WAIT_TIMEOUT=50s, DOCX_TO_PDF_INSTANCE_MAX_MEMORY=1024MiB, DOCX_TO_PDF_INSTANCE_HARD_MEMORY=2048MiB, DOCX_TO_PDF_MAX_DOCUMENT_SIZE=32MiB"
+  },
+  {
+   "what": "response time at an open rate λ requests/s on one pod (an M/G/c queue)",
+   "formula": "ρ = λ × s1 / (POOL_SIZE - λ × (S_sat - s1)); E[S] = s1 + (S_sat - s1) × ρ; a = λ × E[S] (must stay below POOL_SIZE); P_wait = Erlang C(POOL_SIZE, a) = (a^c / c!) × c / (c - a) / (Σ_{i<c} a^i / i! + (a^c / c!) × c / (c - a)), c = POOL_SIZE; the wait is P_wait × an exponential of rate θ = (POOL_SIZE / E[S] - λ) × 2 / (c_a² + service_time_cv2), c_a² = 1 for independent clients; response = wait + E[S] × time_quantiles_over_mean, its quantile solved numerically (bench.py size target)",
+   "here": "λ = 0.13/s (70 % of X): p50 12.4 s, p95 28.8 s, p99 41.3 s"
+  },
+  {
+   "what": "pods for a rate R and a response-time target",
+   "formula": "pods = ceil(R / (0.85 × X)), then one more while the target quantile at R / pods exceeds the target; add one for N+1",
+   "here": "R = 60/min, p95 ≤ 10 s: None pod(s) of 2 vCPU"
+  }
+ ]
+}

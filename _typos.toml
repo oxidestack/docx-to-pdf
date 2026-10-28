@@ -1,0 +1,47 @@
+# typos (the `typos` gate): what in the tree is not a misspelling. A word is accepted here with where it
+# comes from; a file is excluded only when its content is not ours to spell (test data, vendored code, recordings).
+
+[files]
+extend-exclude = [
+    # moalhaddar/docx-to-pdf, read-only.
+    "upstream/",
+    # Recorded answers, documents and PDFs: bytes from LibreOffice and moalhaddar/docx-to-pdf, not prose.
+    "tests/corpus/",
+    "tests/scenarios/",
+    "fuzz/corpus/",
+    "fuzz/artifacts/",
+    # The GitRiver workflow lint, vendored and never edited here.
+    "tools/ci/lint-gitriver-workflows",
+]
+
+[default]
+extend-ignore-re = [
+    # Commit hashes, digests, trace and span ids: hex runs of 7 or more.
+    "\\b[0-9a-f]{7,64}\\b",
+]
+
+[default.extend-words]
+# LibreOfficeKit, as the code and the docs abbreviate it.
+lok = "lok"
+# OpenDocument Format.
+odf = "odf"
+# ICU4X's writeable crate: no longer a dependency, but the licence notes still name it.
+writeable = "writeable"
+# JPEG's names (Pn, a component's precision) and PNG's plural split by the tokenizer (PNGs).
+pn = "pn"
+# OOXML's chart series element, <c:ser>.
+ser = "ser"
+# Tools and crates: wrk (the HTTP benchmark), flate2.
+wrk = "wrk"
+flate = "flate"
+# "look-alikes".
+alikes = "alikes"
+# LibreOffice's own test documents: tableCurrupt.odt, tdf114734_commentFormating.docx.
+currupt = "currupt"
+formating = "formating"
+
+[default.extend-identifiers]
+# The chart's unit test sets a misspelt value on purpose: the schema must refuse it.
+poolSzie = "poolSzie"
+# JODConverter, a Java library that drives LibreOffice.
+JODConverter = "JODConverter"

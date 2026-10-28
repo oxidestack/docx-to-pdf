@@ -1,0 +1,116 @@
+# OpenSSF Security Insights (https://github.com/ossf/security-insights), schema 2.2.0: what the project says about
+# its own security, for tools and people who assess it (CLOMonitor reads it from this path).
+header:
+  schema-version: 2.2.0
+  last-updated: "2026-10-28"
+  last-reviewed: "2026-10-28"
+  url: https://raw.githubusercontent.com/oxidestack/docx-to-pdf/main/security-insights.yml
+
+project:
+  name: docx-to-pdf
+  homepage: https://oxidestack.github.io/docx-to-pdf/
+  roadmap: https://github.com/oxidestack/docx-to-pdf/blob/main/ROADMAP.md
+  administrators:
+    - name: Vitaly Kustov
+      email: kustov.vitalik@gmail.com
+      social: https://github.com/kustov-vitalik
+      primary: true
+  repositories:
+    - name: docx-to-pdf
+      url: https://github.com/oxidestack/docx-to-pdf
+      comment: The service, its container image, its Helm chart and its documentation.
+  vulnerability-reporting:
+    reports-accepted: true
+    bug-bounty-available: false
+    policy: https://github.com/oxidestack/docx-to-pdf/blob/main/SECURITY.md
+    contact:
+      name: Vitaly Kustov
+      email: kustov.vitalik@gmail.com
+      social: https://github.com/kustov-vitalik
+      primary: true
+    comment: >-
+      Report a vulnerability through GitHub's private vulnerability reporting, on the repository's Security tab, never
+      in a public issue. Fixes go into the latest release.
+    in-scope:
+      - The service's HTTP interface, its limits and time limits, how it runs and replaces LibreOffice.
+      - The container image and the Helm chart as published.
+    out-of-scope:
+      - A vulnerability in LibreOffice itself, which belongs to the LibreOffice project.
+  documentation:
+    quickstart-guide: https://github.com/oxidestack/docx-to-pdf#quick-start
+    detailed-guide: https://oxidestack.github.io/docx-to-pdf/
+    code-of-conduct: https://github.com/oxidestack/docx-to-pdf/blob/main/CODE_OF_CONDUCT.md
+    support-policy: https://github.com/oxidestack/docx-to-pdf/blob/main/SECURITY.md#supported-versions
+
+repository:
+  url: https://github.com/oxidestack/docx-to-pdf
+  # repostatus.org: in development, no release yet.
+  status: WIP
+  accepts-change-request: true
+  accepts-automated-change-request: false
+  bug-fixes-only: false
+  no-third-party-packages: false
+  core-team:
+    - name: Vitaly Kustov
+      email: kustov.vitalik@gmail.com
+      social: https://github.com/kustov-vitalik
+      primary: true
+  license:
+    url: https://github.com/oxidestack/docx-to-pdf/blob/main/LICENSE
+    expression: Apache-2.0 AND CC-BY-4.0
+  documentation:
+    contributing-guide: https://github.com/oxidestack/docx-to-pdf/blob/main/CONTRIBUTING.md
+    dependency-management-policy: https://github.com/oxidestack/docx-to-pdf/blob/main/GOVERNANCE.md#dependencies
+    governance: https://github.com/oxidestack/docx-to-pdf/blob/main/GOVERNANCE.md
+    review-policy: https://github.com/oxidestack/docx-to-pdf/blob/main/GOVERNANCE.md#how-decisions-are-made
+    security-policy: https://github.com/oxidestack/docx-to-pdf/blob/main/SECURITY.md
+  security:
+    assessments:
+      self:
+        comment: No self-assessment has been published yet.
+    champions:
+      - name: Vitaly Kustov
+        email: kustov.vitalik@gmail.com
+        social: https://github.com/kustov-vitalik
+        primary: true
+    tools:
+      - name: cargo-deny
+        type: SCA
+        comment: Licences against the CNCF allowlist, advisories, yanked and unmaintained crates, crate sources.
+        rulesets:
+          - deny.toml
+        integration:
+          adhoc: false
+          ci: true
+          release: false
+        results: {}
+      - name: Trivy
+        type: container
+        comment: Known vulnerabilities in the container image.
+        rulesets:
+          - default
+        integration:
+          adhoc: false
+          ci: true
+          release: false
+        results: {}
+      - name: Gitleaks
+        type: secret
+        comment: Credentials in the tracked files.
+        rulesets:
+          - .gitleaks.toml
+        integration:
+          adhoc: false
+          ci: true
+          release: false
+        results: {}
+      - name: cargo-fuzz
+        type: fuzzing
+        comment: Every pull request replays the fuzz targets' committed seeds; longer runs are made by hand.
+        rulesets:
+          - default
+        integration:
+          adhoc: true
+          ci: true
+          release: false
+        results: {}

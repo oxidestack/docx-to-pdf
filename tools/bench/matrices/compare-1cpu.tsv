@@ -1,0 +1,12 @@
+# oxidestack/docx-to-pdf against moalhaddar/docx-to-pdf and gotenberg/gotenberg 8.38.1 on one vCPU and one pool slot
+# each: CPU, disk, memory, latency and throughput. Quick plan step 1's cell c1-p1: the typical workload, a closed load
+# of 3 clients, 16 GiB, /tmp on the VM disk, tracing off, 52 conversions. gotenberg as shipped restarts LibreOffice
+# every 10 conversions; g-norestart turns that off (LIBREOFFICE_RESTART_AFTER=0), as oxidestack/docx-to-pdf recycles
+# only on its own limits. moalhaddar/docx-to-pdf as bench.py runs it (oracle.env's image). Four services in the
+# comparison, ours on arm64 and on amd64, moalhaddar/docx-to-pdf and gotenberg: amd64 natively, arm64 only for ours and
+# gotenberg, since moalhaddar/docx-to-pdf is amd64 only.
+cell	subject	image	docs	cpus	pool	memory	mode	conversions	warmup_per_instance	cooldown	env
+ours	ours		report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	1	1	16g	closed	52	1	15	
+gotenberg	gotenberg		report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	1	1	16g	closed	52	1	15	
+g-norestart	gotenberg		report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	1	1	16g	closed	52	1	15	LIBREOFFICE_RESTART_AFTER=0
+oracle	oracle		report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	1	1	16g	closed	52	1	15	

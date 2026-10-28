@@ -1,0 +1,5 @@
+# Soak (soak.png): an hour at a steady 70 % of the saturation rate on the approved corpus, recycling off and at
+# its default, to see a leak and what recycling costs. The rate is a placeholder until usl.tsv has run. --reps 1.
+cell	docs	pool	cpus	mode	rate	duration	memory	env
+soak-norecycle	class:objects	4	4	open	2	60m	16g	DOCX_TO_PDF_INSTANCE_MAX_CONVERSIONS=0;DOCX_TO_PDF_INSTANCE_MAX_MEMORY=0
+soak-recycle200	class:objects	4	4	open	2	60m	16g	DOCX_TO_PDF_INSTANCE_MAX_CONVERSIONS=200

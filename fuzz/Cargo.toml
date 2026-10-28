@@ -1,0 +1,35 @@
+# Coverage-guided fuzzing of the picture downscales, which read hostile input from any upload and must refuse it,
+# never panic (`cargo fuzz run <target>` on nightly, README.md). Its own workspace: libfuzzer-sys and nightly stay
+# out of the service's graph. The named seeds in `seeds/<target>/` (committed) replay through these targets on
+# stable on every push, `make lint ONLY=fuzz`; the grown pool in `corpus/` is not committed. The short stable
+# mutation run that `cargo test` makes is `tests/pictures_fuzz.rs`. The first soak ran each target about 7 minutes
+# on one core (`-timeout=10 -rss_limit_mb=2048 -max_len=300000`): no crash, no timeout.
+[workspace]
+
+[package]
+name = "docx-to-pdf-fuzz"
+version = "0.0.0"
+edition = "2024"
+publish = false
+license = "Apache-2.0"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4.10"
+docx-to-pdf = { path = ".." }
+
+[[bin]]
+name = "jpeg_downscale"
+path = "fuzz_targets/jpeg_downscale.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "png_downscale"
+path = "fuzz_targets/png_downscale.rs"
+test = false
+doc = false
+bench = false

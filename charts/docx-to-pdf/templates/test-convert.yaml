@@ -1,0 +1,54 @@
+{{- /*
+`helm test` (and chart-testing's `ct install`): a pod that converts a small RTF document through the release's
+Service and fails unless a PDF comes back. It writes nothing to disk, so it runs under the chart's own security context.
+*/ -}}
+{{- if .Values.test.enabled }}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "docx-to-pdf.fullname" . }}-test-convert
+  namespace: {{ .Release.Namespace }}
+  # Not the selector labels: neither the Service nor the NetworkPolicy, whose egress would refuse the Service's
+  # port, selects the test pod.
+  labels:
+    helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
+    app.kubernetes.io/part-of: {{ include "docx-to-pdf.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: test
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  annotations:
+    helm.sh/hook: test
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+    ignore-check.kube-linter.io/no-liveness-probe: "A test pod runs one request and exits"
+    ignore-check.kube-linter.io/no-readiness-probe: "A test pod serves nothing"
+    ignore-check.kube-linter.io/restart-policy: "A test that fails must stay failed, not restart"
+    ignore-check.kube-linter.io/non-isolated-pod: "A test pod serves nothing and lives for one request under helm test"
+spec:
+  restartPolicy: Never
+  automountServiceAccountToken: false
+  enableServiceLinks: false
+  securityContext:
+    {{- toYaml .Values.podSecurityContext | nindent 4 }}
+  containers:
+    - name: convert
+      image: {{ .Values.test.image | quote }}
+      imagePullPolicy: IfNotPresent
+      securityContext:
+        {{- toYaml .Values.securityContext | nindent 8 }}
+      command:
+        - sh
+        - -c
+        - |
+          set -eu
+          url=http://{{ include "docx-to-pdf.fullname" . }}.{{ .Release.Namespace }}.svc:{{ .Values.service.port }}/pdf
+          head=$(printf '{\\rtf1\\ansi helm test\\par}' \
+            | curl -fsS --max-time 120 -F 'document=@-;filename=test.rtf' "$url" | head -c 5)
+          [ "$head" = "%PDF-" ] || { echo "POST $url did not answer with a PDF (starts: $head)"; exit 1; }
+          echo "POST $url: a PDF"
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+        limits:
+          memory: 64Mi
+{{- end }}

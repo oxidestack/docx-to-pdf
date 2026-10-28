@@ -1,0 +1,3 @@
+Revert "perf(pictures): decode JPEGs at the target scale"
+
+Refs: 1a2b3c4

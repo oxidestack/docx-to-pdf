@@ -1,0 +1,8 @@
+{
+  "Disable": {
+    "IndentSize": true
+  },
+  "Exclude": [
+    "^fuzz/seeds/"
+  ]
+}

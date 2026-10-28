@@ -1,0 +1,3 @@
+docs(chart): describe the values.
+
+Signed-off-by: Jane Doe <jane@example.org>

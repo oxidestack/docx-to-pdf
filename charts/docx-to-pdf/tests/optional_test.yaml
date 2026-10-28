@@ -1,0 +1,26 @@
+# The resources that exist only when a value asks for them.
+suite: optional resources
+templates:
+  - templates/servicemonitor.yaml
+  - templates/serviceaccount.yaml
+tests:
+  - it: creates neither a ServiceMonitor nor a ServiceAccount by default
+    asserts:
+      - hasDocuments: {count: 0}
+
+  - it: scrapes /metrics through the Service's http port
+    template: templates/servicemonitor.yaml
+    set: {serviceMonitor: {enabled: true, labels: {release: prometheus}}}
+    asserts:
+      - isKind: {of: ServiceMonitor}
+      - equal: {path: "spec.endpoints[0].path", value: /metrics}
+      - equal: {path: "spec.endpoints[0].port", value: http}
+      - equal: {path: "metadata.labels.release", value: prometheus}
+
+  - it: names a created ServiceAccount after the release, with no token mounted
+    template: templates/serviceaccount.yaml
+    release: {name: conv}
+    set: {serviceAccount: {create: true}}
+    asserts:
+      - equal: {path: "metadata.name", value: conv-docx-to-pdf}
+      - equal: {path: "automountServiceAccountToken", value: false}

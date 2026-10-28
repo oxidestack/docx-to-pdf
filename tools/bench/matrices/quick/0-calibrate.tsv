@@ -1,0 +1,6 @@
+# Quick plan, step 0: how long a cell must run. Two 10-minute runs of the typical workload (1 and 4 vCPU at pool
+# = vCPU); the report's precision_by_conversions says how much throughput and p95 vary between batches of 20 to
+# 480 conversions: the smallest N whose rsd is under 2.5 % measures to ±5 %, and sets N in step 1. ≈ 22 min.
+cell	docs	cpus	pool	memory	mode	duration	cooldown
+calibrate-c1	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	1	1	16g	closed	10m	15
+calibrate-c4	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	4	4	16g	closed	10m	15

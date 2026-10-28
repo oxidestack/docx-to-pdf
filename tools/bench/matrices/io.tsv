@@ -1,0 +1,9 @@
+# Disk against tmpfs where it can matter: large documents, the VM disk capped at the SATA SSD of the worked
+# example (120 MB/s) or uncapped, against /tmp on tmpfs. Closed load, pool 2. --reps 3.
+cell	docs	pool	cpus	tmp	tmpfs_size	io_bps	mode	duration	memory
+mix-50mb-disk	mix-50mb	2	2	disk			closed	5m	16g
+mix-50mb-disk120	mix-50mb	2	2	disk		120mb	closed	5m	16g
+mix-50mb-tmpfs	mix-50mb	2	2	tmpfs	4g		closed	5m	16g
+bytes-100mb-disk	bytes-100mb	2	2	disk			closed	5m	16g
+bytes-100mb-disk120	bytes-100mb	2	2	disk		120mb	closed	5m	16g
+bytes-100mb-tmpfs	bytes-100mb	2	2	tmpfs	4g		closed	5m	16g

@@ -1,0 +1,7 @@
+feat(chart): add a priorityClassName value
+
+```release-note
+The chart takes `priorityClassName` for the pods.
+```
+
+Signed-off-by: Jane Doe <jane@example.org>

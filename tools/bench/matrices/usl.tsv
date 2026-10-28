@@ -1,0 +1,20 @@
+# Scaling: saturation throughput against pool size under a closed load (pool + 2 clients),
+# the cpuset equal to the pool (the USL fit) and fixed at 2 (oversubscribed), per document class: the maximum
+# sustainable throughput of each combination. The installation workloads are in grid.tsv. Needs 8 cpus. --reps 3.
+cell	docs	pool	cpus	mode	duration	memory
+text-10p-p1-c1	text-10p	1	1	closed	5m	16g
+text-10p-p2-c2	text-10p	2	2	closed	5m	16g
+text-10p-p3-c3	text-10p	3	3	closed	5m	16g
+text-10p-p4-c4	text-10p	4	4	closed	5m	16g
+text-10p-p5-c5	text-10p	5	5	closed	5m	16g
+text-10p-p6-c6	text-10p	6	6	closed	5m	16g
+text-10p-p4-c2	text-10p	4	2	closed	5m	16g
+text-10p-p6-c2	text-10p	6	2	closed	5m	16g
+mix-50mb-p1-c1	mix-50mb	1	1	closed	5m	16g
+mix-50mb-p2-c2	mix-50mb	2	2	closed	5m	16g
+mix-50mb-p3-c3	mix-50mb	3	3	closed	5m	16g
+mix-50mb-p4-c4	mix-50mb	4	4	closed	5m	16g
+mix-50mb-p5-c5	mix-50mb	5	5	closed	5m	16g
+mix-50mb-p6-c6	mix-50mb	6	6	closed	5m	16g
+mix-50mb-p4-c2	mix-50mb	4	2	closed	5m	16g
+mix-50mb-p6-c2	mix-50mb	6	2	closed	5m	16g

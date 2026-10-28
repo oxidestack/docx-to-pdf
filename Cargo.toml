@@ -1,0 +1,122 @@
+[package]
+name = "docx-to-pdf"
+version = "0.1.0"
+edition = "2024"
+default-run = "docx-to-pdf"
+license = "Apache-2.0"
+# The oldest toolchain that builds the crate: tonic and zopfli ask for 1.88, and the `msrv` gate
+# (tools/lint/lint.sh) checks every target on exactly that toolchain. Raising it is a decision, not a side effect.
+rust-version = "1.88"
+description = "Office documents to PDF with LibreOffice over HTTP: the interface of moalhaddar/docx-to-pdf 2.1.0-13, reliably and without its bugs"
+
+# The lints every target is held to. The `clippy` gate runs with `-D warnings`, so a `warn` here fails
+# it; `cargo build` and `cargo test` only warn. A lint turned off is turned off here with its reason; a single accepted
+# site is an `#[allow(<lint>, reason = "…")]` on that item.
+[lints.rust]
+# Unsafe code belongs in the LibreOfficeKit FFI (src/instance/lok.rs). Elsewhere it is a libc call std has no safe
+# form of (kill, getrusage, statfs, dup), a test's counting allocator, or edition 2024's unsafe `set_var` in a test,
+# each allowed on its item with the reason.
+unsafe_code = "deny"
+missing_docs = "warn"
+
+[lints.rustdoc]
+# The `doc` gate documents private items too, so a public item's link to a private one resolves where it is read.
+private_intra_doc_links = "allow"
+
+[lints.clippy]
+undocumented_unsafe_blocks = "deny"
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+# The cast lints are on, so bounded arithmetic is marked where it is checked: a lossless conversion where one exists,
+# `src/num.rs`'s named conversions for the rest, and an item-level `#[expect]` with its bound where a cast is the
+# arithmetic.
+# Off, each for its reason:
+# - every pure function would carry `#[must_use]`; the ones whose result is the point (builders) keep
+#   `return_self_not_must_use`.
+must_use_candidate = "allow"
+# - the error of each fallible function is its own type, documented where it is defined.
+missing_errors_doc = "allow"
+# - the project's doc comments open with a sentence that says what the item is for, often longer than one line.
+too_long_first_doc_paragraph = "allow"
+# - the `expect`s it finds state invariants that hold by construction (a lease holds its instance): a panic there is a
+#   bug, not part of the function's contract.
+missing_panics_doc = "allow"
+# - a const or helper declared inside a function, next to its only use, is local to it on purpose.
+items_after_statements = "allow"
+# - the tests compare metric values that are exact in an f64 (counts, whole seconds, set by the test).
+float_cmp = "allow"
+# - `const fn` is a promise to callers; no caller here evaluates these at compile time.
+missing_const_for_fn = "allow"
+# - `mul_add` rounds differently from `a * b + c`; the picture and PDF-equivalence arithmetic is checked against
+#   exact expected values.
+suboptimal_flops = "allow"
+# - a conversion step or a protocol exchange read top to bottom is clearer than one split to meet a line count.
+too_many_lines = "allow"
+# - `map_or_else` with two closures reads worse than the `if let … else` it would replace.
+option_if_let_else = "allow"
+# - a nursery lint with open false positives; the guards it flags end with their block, where the state change the
+#   lock protects ends.
+significant_drop_tightening = "allow"
+
+[dependencies]
+axum = "0.8.9"
+bytes = "1.12.1"
+futures-util = "0.3.34"
+http-body = "1.1.0"
+multer = "3.1.0"
+tempfile = "3.23.0"
+libc = "0.2.191"
+miniz_oxide = "0.9.1"
+opentelemetry = "0.33.1"
+opentelemetry-appender-tracing = "0.33.1"
+opentelemetry-http = "0.33.1"
+opentelemetry-otlp = { version = "0.33.1", features = ["grpc-tonic", "http-json"] }
+opentelemetry-prometheus = "0.33.1"
+opentelemetry-semantic-conventions = "0.33.1"
+opentelemetry_sdk = "0.33.1"
+prometheus = "0.14.0"
+serde_json = { version = "1.0.154", features = ["preserve_order"] }
+tokio = { version = "1.54.1", features = ["rt-multi-thread", "macros", "signal", "net", "time", "sync", "fs", "io-util", "process"] }
+tower = { version = "0.5.3", features = ["util"] }
+tower-http = { version = "0.6.11", features = ["cors"] }
+tracing = "0.1.44"
+tracing-opentelemetry = "0.34.0"
+tracing-subscriber = { version = "0.3.23", features = ["env-filter", "json", "fmt", "registry"] }
+crc32fast = "1.4.2"
+png = "0.18.1"
+flate2 = "1.1.10"
+# Named only to hold it: idna_adapter 1.0 is idna's ASCII-only backend, so url (under reqwest and tower-http) links no
+# ICU4X crate, whose licence, Unicode-3.0, is outside the CNCF allowlist. Its cost is an internationalised hostname
+# in an OTLP endpoint, which http::Uri refused before url ever saw it; punycode (xn--) still parses. 1.1 does not
+# help: its idna_mapping and unicode-normalization are Unicode-3.0 too.
+idna_adapter = "=1.0.0"
+
+[package.metadata.cargo-machete]
+# Pinned, never named in a source file (above).
+ignored = ["idna_adapter"]
+
+[dev-dependencies]
+http-body-util = "0.1.5"
+opentelemetry_sdk = { version = "0.33.1", features = ["testing"] }
+serde = { version = "1.0.229", features = ["derive"] }
+zip = { version = "9.1.2", default-features = false, features = ["deflate-flate2"] }
+# An independent JPEG decoder to check the service's JPEG downscale against and an encoder to make test pictures.
+jpeg-decoder = { version = "0.3.2", default-features = false }
+jpeg-encoder = "0.7.1"
+
+# The PNG codec and its deflate run optimised in tests too: the PNG downscale's memory test (tests/pictures_memory.rs)
+# streams a gigapixel through them, which takes minutes unoptimised.
+[profile.dev.package.png]
+opt-level = 3
+[profile.dev.package.fdeflate]
+opt-level = 3
+[profile.dev.package.miniz_oxide]
+opt-level = 3
+[profile.dev.package.crc32fast]
+opt-level = 3
+[profile.dev.package.adler2]
+opt-level = 3
+[profile.dev.package.flate2]
+opt-level = 3
+[profile.dev.package.simd-adler32]
+opt-level = 3

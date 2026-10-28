@@ -1,0 +1,16 @@
+# Quick plan on amd64, oxidestack/docx-to-pdf, step 2: as quick/2-memory.tsv. Step 1 there (2026-10-22): the best
+# pool is the vCPU count (6 vCPU: pool 6 within 1 % of pool 8), memory.peak at 16 GiB 424, 683, 1170, 1752 MiB for 1, 2,
+# 4, 6 vCPU; each runs at that peak + 25 %, - 10 % and - 25 %. N as step 1 (120 + 3·VUs). --reps 1.
+cell	docs	cpus	pool	memory	mode	conversions	warmup_per_instance	cooldown
+c1-p1-plus25	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	1	1	530m	closed	132	1	15
+c1-p1-minus10	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	1	1	382m	closed	132	1	15
+c1-p1-minus25	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	1	1	318m	closed	132	1	15
+c2-p2-plus25	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	2	2	854m	closed	132	1	15
+c2-p2-minus10	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	2	2	615m	closed	132	1	15
+c2-p2-minus25	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	2	2	512m	closed	132	1	15
+c4-p4-plus25	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	4	4	1462m	closed	140	1	15
+c4-p4-minus10	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	4	4	1053m	closed	140	1	15
+c4-p4-minus25	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	4	4	878m	closed	140	1	15
+c6-p6-plus25	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	6	6	2190m	closed	144	1	15
+c6-p6-minus10	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	6	6	1577m	closed	144	1	15
+c6-p6-minus25	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	6	6	1314m	closed	144	1	15

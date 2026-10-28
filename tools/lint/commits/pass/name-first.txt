@@ -1,0 +1,8 @@
+perf(image): LibreOffice starts from a prepared profile
+
+```release-note
+A LibreOffice instance starts in half the time, so a replaced
+instance is ready sooner.
+```
+
+Signed-off-by: Jane Doe <jane@example.org>

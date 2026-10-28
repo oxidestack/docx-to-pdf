@@ -1,0 +1,3 @@
+docs(): describe the settings
+
+Signed-off-by: Jane Doe <jane@example.org>

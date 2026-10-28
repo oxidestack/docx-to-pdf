@@ -1,0 +1,23 @@
+name	check	divergence
+objects-tdf38575_fullWidthLine	converts	the deliberate difference: tdf38575_fullWidthLine.docx hangs moalhaddar/docx-to-pdf
+objects-090716_Studentische_Arbeit_VWS	text	the deliberate difference: text that LibreOffice 7.3 and 26.8 lay out or extract differently
+objects-Bug54849	text	the deliberate difference: text that LibreOffice 7.3 and 26.8 lay out or extract differently
+objects-EquationWithAboveAndBelowCaption	text	the deliberate difference: text that LibreOffice 7.3 and 26.8 lay out or extract differently
+objects-WordWithAttachments	text	the deliberate difference: text that LibreOffice 7.3 and 26.8 lay out or extract differently
+objects-n830205	text	the deliberate difference: text that LibreOffice 7.3 and 26.8 lay out or extract differently
+objects-strict	text	the deliberate difference: text that LibreOffice 7.3 and 26.8 lay out or extract differently
+objects-tableCurrupt	text	the deliberate difference: text that LibreOffice 7.3 and 26.8 lay out or extract differently
+objects-tdf124637_sectionMargin	text	the deliberate difference: text that LibreOffice 7.3 and 26.8 lay out or extract differently
+objects-tdf127814	text	the deliberate difference: text that LibreOffice 7.3 and 26.8 lay out or extract differently
+objects-tdf142407	text	the deliberate difference: a document with Chinese, Japanese or Korean text
+objects-tdf149089	text	the deliberate difference: a document with Chinese, Japanese or Korean text
+objects-tdf150200	text	the deliberate difference: text that LibreOffice 7.3 and 26.8 lay out or extract differently
+objects-tdf155736_PageNumbers_footer	text	the deliberate difference: text that LibreOffice 7.3 and 26.8 lay out or extract differently
+objects-tdf157011_ins_del_empty_cols	text	the deliberate difference: text that LibreOffice 7.3 and 26.8 lay out or extract differently
+objects-tdf164905	text	the deliberate difference: text that LibreOffice 7.3 and 26.8 lay out or extract differently
+objects-tdf166850	text	the deliberate difference: text that LibreOffice 7.3 and 26.8 lay out or extract differently
+objects-tdf87533_bidi	text	the deliberate difference: text that LibreOffice 7.3 and 26.8 lay out or extract differently
+objects-Bug54849	pages	the deliberate difference: text that LibreOffice 7.3 and 26.8 lay out or extract differently
+objects-tdf90810short	pages	the deliberate difference: text that LibreOffice 7.3 and 26.8 lay out or extract differently
+text-10p	pages	the open divergence: pagination of the corpus's generated text
+text-100p	pages	the open divergence: pagination of the corpus's generated text

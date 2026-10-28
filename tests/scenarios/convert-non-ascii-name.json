@@ -1,0 +1,16 @@
+{
+  "description": "The part's file name plays no part, a non-ASCII one included.",
+  "steps": [
+    {
+      "method": "POST",
+      "path": "/docx-to-pdf",
+      "multipart": [
+        {
+          "name": "document",
+          "file": "upstream/docx-to-pdf/examples/ex1/input.docx",
+          "filename": "Отчёт.docx"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{{- /*
+The pods' NetworkPolicy: a conversion opens no connection, so the pod needs ingress to the
+service port and egress to DNS and the OTLP endpoint, and nothing else. Enforced only where the cluster's network
+plugin enforces NetworkPolicy.
+*/ -}}
+{{- if .Values.networkPolicy.enabled }}
+{{- $np := .Values.networkPolicy }}
+{{- $otlpPort := "" }}
+{{- with .Values.otel.endpoint }}
+{{- $url := urlParse . }}
+{{- if not (and (has $url.scheme (list "http" "https")) $url.host) }}
+{{- fail (printf "networkPolicy: otel.endpoint %q is not http(s)://host[:port], so the policy cannot allow its port" .) }}
+{{- end }}
+{{- $otlpPort = trimPrefix ":" (regexFind ":[0-9]+$" $url.host) }}
+{{- if not $otlpPort }}
+{{- $otlpPort = ternary "443" "80" (eq $url.scheme "https") }}
+{{- end }}
+{{- end }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "docx-to-pdf.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "docx-to-pdf.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "docx-to-pdf.selectorLabels" . | nindent 6 }}
+  policyTypes: [Ingress, Egress]
+  ingress:
+    # The service port, which the Service, the kubelet's probes and a scrape of /metrics all use.
+    - ports:
+        - {protocol: TCP, port: 8080}
+      {{- with $np.ingressFrom }}
+      from:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  egress:
+    # DNS.
+    - ports:
+        - {protocol: UDP, port: 53}
+        - {protocol: TCP, port: 53}
+      {{- with $np.dnsTo }}
+      to:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- if $otlpPort }}
+    # The OTLP endpoint of otel.endpoint.
+    - ports:
+        - {protocol: TCP, port: {{ $otlpPort }}}
+      {{- with $np.otlpTo }}
+      to:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- end }}
+{{- end }}

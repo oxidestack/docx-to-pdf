@@ -1,0 +1,15 @@
+{
+  "description": "An RTF, one of the formats the allowlist admits, converts: tests/scenarios/fixtures/sample.rtf, written by hand for this repository (Apache-2.0).",
+  "steps": [
+    {
+      "method": "POST",
+      "path": "/pdf",
+      "multipart": [
+        {
+          "name": "document",
+          "file": "tests/scenarios/fixtures/sample.rtf"
+        }
+      ]
+    }
+  ]
+}

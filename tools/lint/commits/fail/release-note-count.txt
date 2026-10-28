@@ -1,0 +1,11 @@
+fix(pool): replace an instance that dies during start
+
+```release-note
+A dead instance is replaced.
+```
+
+```release-note
+The pool keeps its size.
+```
+
+Signed-off-by: Jane Doe <jane@example.org>

@@ -1,0 +1,41 @@
+# The tree's whitespace: editors follow it, `make lint ONLY=editorconfig` (editorconfig-checker) holds
+# every tracked text file to it, and shfmt (`make lint ONLY=shell`) takes its shell layout from it.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+
+[*.{rs,py,toml,js}]
+indent_size = 4
+
+[*.rb]
+indent_size = 2
+
+[*.{yml,yaml,json,tpl,gotmpl}]
+indent_size = 2
+
+# Make's recipes are tab-indented by Make's rule; git writes .gitmodules with tabs.
+[{Makefile,*.mk,.gitmodules}]
+indent_style = tab
+
+# A TSV's separator is a tab, and a row ending in one has an empty last field, not trailing whitespace.
+[*.tsv]
+indent_style = tab
+trim_trailing_whitespace = false
+
+# The shell scripts: tabs, a redirect operator followed by a space, a case's patterns at the case's own depth (shfmt).
+[*.sh]
+indent_style = tab
+space_redirects = true
+switch_case_indent = false
+binary_next_line = false
+
+[tools/public/pre-push]
+indent_style = tab
+space_redirects = true
+switch_case_indent = false
+binary_next_line = false

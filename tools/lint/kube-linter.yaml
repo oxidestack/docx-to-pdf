@@ -1,0 +1,18 @@
+# kube-linter's checks for the `chart-kube-linter` gate (tools/lint/lint.sh): every built-in check, on
+# the chart rendered with its defaults and with every option on (charts/docx-to-pdf/tests/values/all-options.yaml).
+# A finding is fixed in the chart; a check that judges a choice the chart leaves to its operator is excluded here, with
+# its reason, and a finding about one object only is an `ignore-check.kube-linter.io/<check>` annotation on it.
+checks:
+  addAllBuiltIn: true
+  exclude:
+    # Key order is Helm's conventional order (name, labels; spec as the API documents it), not alphabetical.
+    - sorted-keys
+    # An organisation's ownership conventions; the chart takes any via podLabels and podAnnotations.
+    - required-annotation-email
+    - required-label-owner
+    # How many replicas, and on which nodes, is the operator's sizing (replicaCount, affinity, nodeSelector). The
+    # default of one pod is the smallest working install, and its PodDisruptionBudget still lets a node drain.
+    - minimum-three-replicas
+    - no-node-affinity
+    # The cluster's DNS defaults serve the pod; it resolves only the OTLP endpoint, if one is set.
+    - dnsconfig-options

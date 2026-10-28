@@ -1,0 +1,5 @@
+# Latency against offered load (latency.png): open-model steps from 20 % to 120 % of the saturation rate
+# that usl.tsv measured. The rates below are placeholders until then: set them from runs.csv. --reps 1.
+cell	docs	pool	cpus	mode	stages	duration	memory
+reporttext-p4	report-text-5p	4	4	ramp	2:3m,4:3m,6:3m,8:3m,10:3m,12:3m	18m	16g
+reportimg-p4	report-img45-12mb	4	4	ramp	0.2:3m,0.4:3m,0.6:3m,0.8:3m,1.0:3m,1.2:3m	18m	16g

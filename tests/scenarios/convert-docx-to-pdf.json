@@ -1,0 +1,15 @@
+{
+  "description": "POST /docx-to-pdf, the second conversion path, answers as /pdf does.",
+  "steps": [
+    {
+      "method": "POST",
+      "path": "/docx-to-pdf",
+      "multipart": [
+        {
+          "name": "document",
+          "file": "upstream/docx-to-pdf/examples/ex1/input.docx"
+        }
+      ]
+    }
+  ]
+}

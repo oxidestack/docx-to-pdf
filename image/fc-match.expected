@@ -1,0 +1,47 @@
+# What fontconfig resolves each common Word font name to in moalhaddar/docx-to-pdf's image, measured with fc-match
+# there. The image must resolve each to the same family (image/test.sh, `fc-match -f '%{family}'`), on both
+# architectures, with every extra font package installed. Brown Std and GE Dinar Two are left out: they are
+# commercial, their licences forbid redistribution, so the image does not carry them and substitutes them by design.
+# name<TAB>family
+Calibri	Carlito
+Calibri Light	DejaVu Sans
+Cambria	Caladea
+Cambria Math	DejaVu Math TeX Gyre
+Aptos	DejaVu Sans
+Aptos Display	DejaVu Sans
+Aptos Narrow	DejaVu Sans
+Aptos Serif	DejaVu Sans
+Aptos Mono	DejaVu Sans
+Times New Roman	Liberation Serif
+Times	Liberation Serif
+Arial	Liberation Sans
+Helvetica	Liberation Sans
+Arial Narrow	Liberation Sans Narrow
+Courier New	Liberation Mono
+Symbol	OpenSymbol
+Consolas	DejaVu Sans Mono
+Georgia	DejaVu Serif
+Garamond	DejaVu Serif
+Palatino Linotype	DejaVu Serif
+SimSun	DejaVu Serif
+Wingdings	DejaVu Sans
+Verdana	DejaVu Sans
+Tahoma	DejaVu Sans
+Trebuchet MS	DejaVu Sans
+Century Gothic	DejaVu Sans
+Book Antiqua	DejaVu Sans
+Segoe UI	DejaVu Sans
+Comic Sans MS	DejaVu Sans
+Impact	DejaVu Sans
+Lucida Console	DejaVu Sans
+Arial Black	DejaVu Sans
+Lucida Sans Unicode	DejaVu Sans
+Arial Unicode MS	DejaVu Sans
+Simplified Arabic	DejaVu Sans
+MS Mincho	DejaVu Sans
+MS Gothic	DejaVu Sans
+Yu Gothic	DejaVu Sans
+Malgun Gothic	DejaVu Sans
+Microsoft YaHei	DejaVu Sans
+Droid Arabic Kufi	Droid Arabic Kufi
+Cantarell	Cantarell

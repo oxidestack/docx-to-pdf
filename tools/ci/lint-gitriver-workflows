@@ -1,0 +1,163 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Vendored from the forge's own repository (its bin/lint-gitriver-workflows) at f4cb216, the commit that
+# added the `interruptible:` rule (refused in a repository of two workflows). sha256 of that file there, which is
+# this file without lines 3-10 (this block and the blank line above it) and with the one comment that
+# named that repository's own work item put back: 6688ce0aea19f047cd51adf0c910a4af1877b6e8ce58676b7608cfa6bca24e48.
+# Do not edit here: change it there, commit it and copy it over again, updating this block, so every
+# tenant runs the same rule. The body is that file's byte for byte but for that comment, so its usage
+# lines say `bin/` wherever this copy lives. The `lint-workflows` job in ci.yml runs it.
+
+# Fails any GitRiver workflow job that does not name its own image as a plain string, that carries
+# GitHub's `timeout-minutes:` (which makes GitRiver drop the whole file), or that sets `interruptible:` in a
+# repository with two or more workflows (which lets another workflow's pipeline cancel this one).
+#
+#   bin/lint-gitriver-workflows                 # every .gitriver/workflows/*.yml and *.yaml
+#   bin/lint-gitriver-workflows <file>...       # just these
+#
+# Exit 0: every job names a string image. Exit 1: findings, one line each, naming file and job.
+# Exit 2: nothing to check, or a file that is not a readable YAML workflow.
+#
+# Why this is a lint and not a runner setting: on GitLab "no default job image" is enforced by the
+# runner, and a job without one fails saying why. GitRiver 1.1.0 cannot refuse such a job on either
+# executor. A job with no `image:` runs its script directly in the runner's environment — on the
+# built-in executor that is the server container with the Docker socket (docs/plan/spike-002-findings.md,
+# "Blocker 6"); on the external runner it is the runner container, as root, next to the host's socket,
+# where `docker ps` listed every container on the machine (docs/plan/spike-019-findings.md, "What a job
+# is, where it runs"). Nothing fails and nothing warns, so the only place the rule can live is here.
+#
+# Ruby, not sh: the CI gates already carry a Ruby image, and YAML with anchors, flow mappings and
+# block scalars cannot be read soundly with grep. Stdlib only, so it runs on the host's Ruby as well
+# (2.6 / Psych 3.1 on macOS) — nothing to install before a push.
+
+require "psych"
+require "date"
+
+# Returns [findings, number of jobs checked].
+def lint(path)
+  findings = []
+  text = File.read(path)
+
+  # Merge keys are refused before anything else is believed. GitRiver rejects `<<: *x` ("the value
+  # must be a scalar", spike 002 probe p-anch-merge), but Psych resolves it, so a job inheriting
+  # `image:` through one would pass here and then not run as written there. Plain aliases (`*x`) do
+  # work in GitRiver and are resolved below like any other value.
+  merge_keys(Psych.parse_stream(text, filename: path)).each do |line|
+    findings << "#{path}:#{line}: merge key `<<:` — GitRiver rejects merge keys; repeat the keys or alias whole values"
+  end
+
+  # Dates and symbols are legal YAML scalars in a workflow (an `env:` value, say); refusing them would
+  # make the lint fail on files GitRiver accepts.
+  doc = Psych.safe_load(text, permitted_classes: [Date, Time, Symbol], aliases: true, filename: path)
+  unless doc.is_a?(Hash)
+    return [findings << "#{path}: not a workflow — the top level must be a mapping with `jobs:`", 0]
+  end
+
+  # GitRiver documents no workflow-level image (the top-level keys are name, on, env, concurrency,
+  # jobs) and rejects keys it does not know. If such a key were ever honoured, a job relying on it would
+  # be one typo away from running imageless, so the rule stays per job and a top-level one is refused
+  # rather than credited.
+  %w[image default defaults].each do |key|
+    next unless doc.key?(key)
+
+    findings << "#{path}: top-level `#{key}:` — GitRiver has no workflow-level image; every job must name its own"
+  end
+
+  jobs = doc["jobs"]
+  unless jobs.is_a?(Hash) && !jobs.empty?
+    return [findings << "#{path}: no `jobs:` mapping — nothing here could be checked", 0]
+  end
+
+  workflows = Dir.glob(File.join(File.dirname(path), "*.{yml,yaml}")).size
+  jobs.each do |name, job|
+    where = "#{path}: job '#{name}'"
+    unless job.is_a?(Hash)
+      findings << "#{where}: not a mapping"
+      next
+    end
+
+    # GitHub's key. GitRiver does not know it, and an unknown key rejects the whole file: no pipeline is
+    # created, nothing is shown in the UI, and the only trace is a line in the server log.
+    # GitRiver's own key is `timeout:` (`timeout: 30m`).
+    if job.key?("timeout-minutes")
+      findings << "#{where}: `timeout-minutes:` is GitHub's key — GitRiver rejects the whole file and runs nothing; use `timeout:`"
+    end
+
+    # GitRiver 1.1.0 auto-cancels by ref only, not by workflow: creating any pipeline on a ref cancels every
+    # older pipeline on that ref with an interruptible job, whichever workflow it belongs to. In a repository
+    # with two workflows on push, each push's second pipeline cancels the first at creation, before any job
+    # has run (seen in the server's `auto-cancel:` log lines). With one workflow the
+    # cancel only meets that workflow's own older pipelines, which is what `interruptible:` is for, so it is
+    # allowed there. The count is of the file's own directory, not of the paths passed: the lint runs on the
+    # whole `.gitriver/workflows/` by default, and a file passed alone still has its siblings at push. `false`
+    # is refused too where the rule applies: it does nothing, and the next edit flips it. A workflow-level
+    # `concurrency:` group is scoped to the repository and its name, so it cancels the same workflow's older
+    # pipeline and never another's.
+    if job.key?("interruptible") && workflows > 1
+      findings << "#{where}: `interruptible:` in a directory of #{workflows} workflows — GitRiver auto-cancels by ref, " \
+                  "across workflows, so another workflow's pipeline on this ref cancels this one; drop it and give " \
+                  "the workflow `concurrency: {group, cancel-in-progress}`"
+    end
+
+    image = job["image"]
+    case image
+    when nil
+      # `image:` with no value parses to nil and GitRiver treats it as absent (spike 002 saw the dropped
+      # object form logged as `image: null` and the job ran on the server).
+      findings << "#{where}: no `image:` — GitRiver runs it inside the runner's own container, as root, next to the Docker socket"
+    when Hash
+      findings << "#{where}: `image:` is a mapping — GitRiver accepts GitLab's object form {name, entrypoint}, " \
+                  "silently drops it and runs the job with no image; use a string, and an image whose ENTRYPOINT is a shell"
+    when String
+      findings << "#{where}: `image:` is empty" if image.strip.empty?
+    else
+      kind = { Array => "list", Integer => "number", Float => "number", TrueClass => "boolean",
+               FalseClass => "boolean" }.fetch(image.class, image.class.name.downcase)
+      findings << "#{where}: `image:` is a #{kind}, not a string"
+    end
+  end
+
+  [findings, jobs.size]
+end
+
+# Yields the line of every plain `<<` mapping key in the stream. A quoted "<<" is an ordinary key to
+# both parsers, so it is left alone.
+def merge_keys(node, lines = [])
+  if node.is_a?(Psych::Nodes::Mapping)
+    node.children.each_slice(2) do |key, _|
+      next unless key.is_a?(Psych::Nodes::Scalar) && key.value == "<<" && key.plain
+
+      lines << (key.respond_to?(:start_line) ? key.start_line + 1 : "?")
+    end
+  end
+  (node.children || []).each { |child| merge_keys(child, lines) }
+  lines
+end
+
+paths = ARGV.empty? ? Dir.glob(".gitriver/workflows/*.{yml,yaml}").sort : ARGV
+
+# An empty set is an error, not a pass: a job that checks nothing and goes green is how a path typo, or
+# a run from the wrong directory, would hide a whole repository's workflows from the rule.
+if paths.empty?
+  warn "lint-gitriver-workflows: no workflow files (.gitriver/workflows/*.yml) — run from the repository root or pass paths"
+  exit 2
+end
+
+broken = false
+findings = []
+jobs = 0
+paths.each do |path|
+  found, checked = lint(path)
+  findings.concat(found)
+  jobs += checked
+rescue Psych::Exception, SystemCallError => e
+  warn "#{path}: cannot read as YAML — #{e.message}"
+  broken = true
+end
+
+findings.each { |f| warn f }
+exit 2 if broken
+exit 1 unless findings.empty?
+
+puts "lint-gitriver-workflows: #{paths.size} file(s), #{jobs} job(s), every job names a string image"

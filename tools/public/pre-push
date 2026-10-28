@@ -1,0 +1,12 @@
+#!/bin/sh
+# The pre-push hook, installed by `make hooks`: the leak is the push itself, so the check runs before it. A push runs
+# `make check`, then `make public-check` on the pushed commits' trees and messages, and refuses one that contains the
+# archive `pre-publication`, then `make commits-check` on the pushed commits' messages (the commit-message convention,
+# tools/lint/commits.py; nothing before its base). Git hands the hook `<remote> <url>` and, on stdin, one line per ref being pushed.
+# The one push that must carry the archive — the tag itself, to the private mirror, at the cut — passes `--no-verify`.
+set -eu
+cd "$(git rev-parse --show-toplevel)"
+refs=$(cat)
+make check < /dev/null
+printf '%s\n' "$refs" | make public-check PUSH="$1"
+printf '%s\n' "$refs" | make commits-check PUSH="$1"

@@ -1,0 +1,11 @@
+fix(api): close the spool file before the conversion reads it
+
+The file was closed after the conversion started since 4d5e6f7; no
+release has carried it.
+
+```release-note
+NONE
+```
+
+Refs: 4d5e6f7
+Signed-off-by: Jane Doe <jane@example.org>

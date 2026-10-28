@@ -1,0 +1,75 @@
+name: Bug report
+description: A document that converts wrongly, an answer that is wrong, or a service that misbehaves.
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        Thank you for the report. A question rather than a bug belongs in
+        [Discussions](https://github.com/oxidestack/docx-to-pdf/discussions/categories/q-a), and a vulnerability in a
+        [private report](https://github.com/oxidestack/docx-to-pdf/security/advisories/new).
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: The image tag or digest, or the commit you built.
+      placeholder: quay.io/oxidestack/docx-to-pdf:0.1.0
+    validations:
+      required: true
+  - type: dropdown
+    id: deployment
+    attributes:
+      label: How it runs
+      options:
+        - docker run
+        - Docker Compose
+        - Helm chart
+        - Built from source
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: settings
+    attributes:
+      label: Settings changed from their defaults
+      description: The `DOCX_TO_PDF_*` variables, the chart values, the resources given to it. Leave out any secret.
+      render: shell
+  - type: textarea
+    id: document
+    attributes:
+      label: The document
+      description: >-
+        Attach the document (drag it here). If it is confidential, a smaller document that shows the same thing
+        works as well. For a rendering bug, the PDF you got and a screenshot of how the document should look help too.
+    validations:
+      required: true
+  - type: textarea
+    id: request
+    attributes:
+      label: The request
+      description: The `curl` command or the client code that sent it.
+      render: shell
+      placeholder: curl -F document=@report.docx http://localhost:8080/pdf -o report.pdf
+    validations:
+      required: true
+  - type: textarea
+    id: answer
+    attributes:
+      label: The answer
+      description: The status and, for an error, the problem document the service returned.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: The service's log lines around the request.
+      render: text

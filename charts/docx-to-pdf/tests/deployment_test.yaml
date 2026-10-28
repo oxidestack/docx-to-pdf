@@ -1,0 +1,165 @@
+# The Deployment's logic: the sizing formula of docs/guide/operations.md, "Sizing", the refusals, the
+# image reference, the shutdown timing. Expected values are worked by hand from the formula, not recomputed.
+suite: deployment
+templates:
+  - templates/deployment.yaml
+tests:
+  - it: sizes the defaults to 256 + 1 × (2048 + 256) = 2560 MiB, one CPU
+    asserts:
+      - equal: {path: "spec.template.spec.containers[0].resources.requests.memory", value: 2560Mi}
+      - equal: {path: "spec.template.spec.containers[0].resources.limits.memory", value: 2560Mi}
+      - equal: {path: "spec.template.spec.containers[0].resources.requests.cpu", value: "1"}
+      - notExists: {path: "spec.template.spec.containers[0].resources.limits.cpu"}
+
+  - it: sizes pool 2 with a 1024 MiB hard limit to 256 + 2 × 1280 = 2816 MiB, two CPUs
+    set: {poolSize: 2, instanceHardMemoryMiB: 1024}
+    asserts:
+      - equal: {path: "spec.template.spec.containers[0].resources.limits.memory", value: 2816Mi}
+      - equal: {path: "spec.template.spec.containers[0].resources.requests.cpu", value: "2"}
+      - contains:
+          path: "spec.template.spec.containers[0].env"
+          content: {name: DOCX_TO_PDF_POOL_SIZE, value: "2"}
+      - contains:
+          path: "spec.template.spec.containers[0].env"
+          content: {name: DOCX_TO_PDF_INSTANCE_HARD_MEMORY, value: 1024MiB}
+
+  - it: adds a 512 MiB tmpfs to the memory limit and mounts it as /tmp
+    set: {tmp: {medium: Memory, sizeMiB: 512}}
+    asserts:
+      - equal: {path: "spec.template.spec.containers[0].resources.limits.memory", value: 3072Mi}
+      - contains:
+          path: "spec.template.spec.volumes"
+          content: {name: tmp, emptyDir: {medium: Memory, sizeLimit: 512Mi}}
+
+  - it: caps an on-disk /tmp without counting it against memory
+    set: {tmp: {sizeMiB: 300}}
+    asserts:
+      - equal: {path: "spec.template.spec.containers[0].resources.limits.memory", value: 2560Mi}
+      - contains:
+          path: "spec.template.spec.volumes"
+          content: {name: tmp, emptyDir: {sizeLimit: 300Mi}}
+
+  - it: gives /tmp an unbounded on-disk emptyDir by default
+    asserts:
+      - contains:
+          path: "spec.template.spec.volumes"
+          content: {name: tmp, emptyDir: {}}
+
+  - it: refuses a tmpfs without a size
+    set: {tmp: {medium: Memory, sizeMiB: 0}}
+    asserts:
+      - failedTemplate: {errorPattern: "tmp.medium Memory needs tmp.sizeMiB"}
+
+  - it: refuses no hard limit when it would compute the memory limit
+    set: {instanceHardMemoryMiB: 0}
+    asserts:
+      - failedTemplate: {errorPattern: "instanceHardMemoryMiB 0 .* set resources yourself"}
+
+  - it: takes resources as given, which allows no hard limit
+    set:
+      instanceHardMemoryMiB: 0
+      resources: {requests: {cpu: 500m, memory: 1Gi}, limits: {memory: 4Gi}}
+    asserts:
+      - equal:
+          path: "spec.template.spec.containers[0].resources"
+          value: {requests: {cpu: 500m, memory: 1Gi}, limits: {memory: 4Gi}}
+      - contains:
+          path: "spec.template.spec.containers[0].env"
+          content: {name: DOCX_TO_PDF_INSTANCE_HARD_MEMORY, value: 0MiB}
+
+  - it: refuses a setting in config that a value owns
+    set: {config: {DOCX_TO_PDF_POOL_SIZE: "4"}}
+    asserts:
+      - failedTemplate: {errorPattern: "config.DOCX_TO_PDF_POOL_SIZE: set it through its own value"}
+
+  - it: writes config entries as environment variables, quoted
+    set: {config: {RUST_LOG: debug, DOCX_TO_PDF_MAX_DOCUMENT_SIZE: 100MiB}}
+    asserts:
+      - contains:
+          path: "spec.template.spec.containers[0].env"
+          content: {name: RUST_LOG, value: debug}
+      - contains:
+          path: "spec.template.spec.containers[0].env"
+          content: {name: DOCX_TO_PDF_MAX_DOCUMENT_SIZE, value: 100MiB}
+
+  - it: runs the chart's appVersion by default
+    chart: {appVersion: 9.8.7}
+    asserts:
+      - equal: {path: "spec.template.spec.containers[0].image", value: "quay.io/oxidestack/docx-to-pdf:9.8.7"}
+
+  - it: pulls by digest when one is set, ignoring the tag
+    set:
+      image:
+        tag: ignored
+        digest: sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+    asserts:
+      - equal:
+          path: "spec.template.spec.containers[0].image"
+          value: quay.io/oxidestack/docx-to-pdf@sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+
+  - it: gives the pod preStop + grace + 40 s to stop, 5 + 180 + 40 = 225 by default
+    asserts:
+      - equal: {path: "spec.template.spec.terminationGracePeriodSeconds", value: 225}
+      - equal: {path: "spec.template.spec.containers[0].lifecycle.preStop.sleep.seconds", value: 5}
+      - contains:
+          path: "spec.template.spec.containers[0].env"
+          content: {name: DOCX_TO_PDF_SHUTDOWN_GRACE, value: 180s}
+
+  - it: leaves out the preStop hook when its sleep is 0
+    set: {preStopSleepSeconds: 0}
+    asserts:
+      - notExists: {path: "spec.template.spec.containers[0].lifecycle"}
+      - equal: {path: "spec.template.spec.terminationGracePeriodSeconds", value: 220}
+
+  - it: sets the port itself and turns service links off, so no Service named docx-to-pdf overrides it
+    asserts:
+      - equal: {path: "spec.template.spec.enableServiceLinks", value: false}
+      - contains:
+          path: "spec.template.spec.containers[0].env"
+          content: {name: DOCX_TO_PDF_PORT, value: "8080"}
+      - equal: {path: "spec.template.spec.automountServiceAccountToken", value: false}
+
+  - it: turns the platform probe on with a port, and leaves it off without one
+    set: {probePort: 9090}
+    asserts:
+      - contains:
+          path: "spec.template.spec.containers[0].env"
+          content: {name: DOCX_TO_PDF_PROBE_PORT, value: "9090"}
+
+  - it: has no platform probe by default
+    asserts:
+      - notContains:
+          path: "spec.template.spec.containers[0].env"
+          content: {name: DOCX_TO_PDF_PROBE_PORT}
+          any: true
+
+  - it: mounts licensed fonts read-only
+    set: {fonts: {secret: {secretName: licensed-fonts}}}
+    asserts:
+      - contains:
+          path: "spec.template.spec.containers[0].volumeMounts"
+          content: {name: fonts, mountPath: /usr/share/fonts/custom, readOnly: true}
+      - contains:
+          path: "spec.template.spec.volumes"
+          content: {name: fonts, secret: {secretName: licensed-fonts}}
+
+  - it: runs non-root on a read-only root without privilege escalation
+    asserts:
+      - equal: {path: "spec.template.spec.securityContext.runAsNonRoot", value: true}
+      - equal: {path: "spec.template.spec.containers[0].securityContext.readOnlyRootFilesystem", value: true}
+      - equal: {path: "spec.template.spec.containers[0].securityContext.allowPrivilegeEscalation", value: false}
+      - equal: {path: "spec.template.spec.containers[0].securityContext.capabilities.drop", value: [ALL]}
+
+  - it: refuses a misspelt value (values.schema.json)
+    set: {poolSzie: 2}
+    asserts:
+      - failedTemplate: {errorPattern: "additional properties 'poolSzie' not allowed"}
+
+  - it: rolls out by starting a new pod before it stops an old one
+    asserts:
+      - equal: {path: spec.strategy, value: {type: RollingUpdate, rollingUpdate: {maxSurge: 1, maxUnavailable: 0}}}
+
+  - it: lands in the release's namespace, also through helm template | kubectl apply
+    release: {namespace: documents}
+    asserts:
+      - equal: {path: metadata.namespace, value: documents}

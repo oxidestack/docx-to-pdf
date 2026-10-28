@@ -1,0 +1,3 @@
+# clippy's settings; the lint levels are in Cargo.toml's `[lints]`.
+# Product and format names that `doc_markdown` would otherwise want in backticks.
+doc-valid-idents = ["LibreOffice", "LibreOfficeKit", "WordprocessingML", "NetworkPolicy", "OpenDocument", "OpenTelemetry", "PostScript", ".."]

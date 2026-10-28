@@ -1,0 +1,26 @@
+# The `helm test` pod (templates/test-convert.yaml).
+suite: helm test
+templates:
+  - templates/test-convert.yaml
+tests:
+  - it: converts through the release's Service, as a test hook
+    release: {name: conv, namespace: documents}
+    set: {service: {port: 80}}
+    asserts:
+      - isKind: {of: Pod}
+      - equal: {path: "metadata.annotations[\"helm.sh/hook\"]", value: test}
+      - matchRegex: {path: "spec.containers[0].command[2]", pattern: "url=http://conv-docx-to-pdf.documents.svc:80/pdf"}
+      - equal: {path: spec.restartPolicy, value: Never}
+      - equal: {path: "spec.containers[0].securityContext.readOnlyRootFilesystem", value: true}
+
+  - it: carries no selector label, so neither the Service nor the NetworkPolicy selects it
+    release: {name: conv}
+    asserts:
+      - notExists: {path: "metadata.labels[\"app.kubernetes.io/name\"]"}
+      - equal: {path: "metadata.labels[\"app.kubernetes.io/instance\"]", value: conv}
+      - equal: {path: "metadata.labels[\"app.kubernetes.io/component\"]", value: test}
+
+  - it: is left out when disabled
+    set: {test: {enabled: false}}
+    asserts:
+      - hasDocuments: {count: 0}

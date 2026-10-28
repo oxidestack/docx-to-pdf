@@ -1,0 +1,20 @@
+{
+  "description": "A CORS preflight for POST /pdf is allowed for any origin; the requested headers are echoed.",
+  "steps": [
+    {
+      "method": "OPTIONS",
+      "path": "/pdf",
+      "headers": [
+        ["Origin", "http://a.example"],
+        ["Access-Control-Request-Method", "POST"],
+        ["Access-Control-Request-Headers", "content-type"]
+      ],
+      "compare": [
+        "access-control-allow-origin",
+        "access-control-allow-methods",
+        "access-control-allow-headers",
+        "access-control-max-age"
+      ]
+    }
+  ]
+}

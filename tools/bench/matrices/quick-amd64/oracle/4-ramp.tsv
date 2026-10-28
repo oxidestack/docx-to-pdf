@@ -1,0 +1,4 @@
+# Quick plan on amd64, moalhaddar/docx-to-pdf, step 4: as ours/4-ramp.tsv, plateaus from 30 % to 110 % of its step-1 X =
+# 1.145/s at 4 vCPU, pool 4 (2538m). ≈ 37 min.
+cell	docs	cpus	pool	memory	mode	stages	warmup_per_instance	cooldown
+ramp-c4	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	4	4	2538m	ramp	0.34:5m,0.57:20s,0.57:5m,0.8:20s,0.8:5m,0.92:20s,0.92:5m,1.03:20s,1.03:5m,1.15:20s,1.15:5m,1.26:20s,1.26:5m	1	15

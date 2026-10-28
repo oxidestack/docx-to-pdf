@@ -1,0 +1,104 @@
+# Every option of the chart turned on: what `make lint` renders, besides the defaults, for helm lint,
+# kubeconform and kube-linter, and what the unit tests (tests/*_test.yaml) start from. Not installable as it is: the
+# fonts Secret, the pull Secret and the ServiceMonitor CRD are not in a bare cluster, so it is not under ci/, whose
+# files `ct install` installs.
+image:
+  repository: registry.example.com/docx-to-pdf
+  tag: ignored-for-the-digest
+  digest: sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+  pullPolicy: Always
+imagePullSecrets:
+  - name: registry-credentials
+nameOverride: converter
+fullnameOverride: ""
+replicaCount: 3
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: 25%
+    maxUnavailable: 1
+poolSize: 4
+instanceHardMemoryMiB: 1536
+shutdownGraceSeconds: 120
+preStopSleepSeconds: 10
+config:
+  DOCX_TO_PDF_MAX_DOCUMENT_SIZE: 100MiB
+  DOCX_TO_PDF_CONVERSION_TIMEOUT: 300s
+  RUST_LOG: info
+otel:
+  endpoint: http://otel-collector.observability:4318
+  protocol: grpc
+  resourceAttributes: deployment.environment.name=prod
+networkPolicy:
+  enabled: true
+  ingressFrom:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: gateway
+  dnsTo:
+    - ipBlock:
+        cidr: 169.254.20.10/32
+  otlpTo:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: observability
+probePort: 9090
+extraEnv:
+  - name: NODE_NAME
+    valueFrom:
+      fieldRef:
+        fieldPath: spec.nodeName
+tmp:
+  medium: Memory
+  sizeMiB: 1024
+fonts:
+  secret:
+    secretName: licensed-fonts
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 2
+service:
+  type: LoadBalancer
+  port: 80
+  annotations:
+    example.com/internal: "true"
+    # The operator's choice, which this file makes to render every option; the default is ClusterIP.
+    ignore-check.kube-linter.io/exposed-services: "A LoadBalancer is what service.type: LoadBalancer asks for"
+serviceMonitor:
+  enabled: true
+  interval: 15s
+  scrapeTimeout: 5s
+  labels:
+    release: prometheus
+podAnnotations:
+  example.com/team: documents
+podLabels:
+  example.com/tier: backend
+serviceAccount:
+  create: true
+  name: docx-to-pdf-converter
+  annotations:
+    example.com/role: none
+nodeSelector:
+  kubernetes.io/arch: arm64
+tolerations:
+  - key: dedicated
+    operator: Equal
+    value: documents
+    effect: NoSchedule
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          topologyKey: kubernetes.io/hostname
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: converter
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: topology.kubernetes.io/zone
+    whenUnsatisfiable: ScheduleAnyway
+    labelSelector:
+      matchLabels:
+        app.kubernetes.io/name: converter

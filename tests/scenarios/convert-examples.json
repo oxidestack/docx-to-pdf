@@ -1,0 +1,38 @@
+{
+  "description": "Upstream's ex2, ex3 and ex4 convert in turn.",
+  "steps": [
+    {
+      "method": "POST",
+      "path": "/pdf",
+      "multipart": [
+        {
+          "name": "document",
+          "file": "upstream/docx-to-pdf/examples/ex2/input.docx"
+        }
+      ],
+      "note": "ex2"
+    },
+    {
+      "method": "POST",
+      "path": "/pdf",
+      "multipart": [
+        {
+          "name": "document",
+          "file": "upstream/docx-to-pdf/examples/ex3/input.docx"
+        }
+      ],
+      "note": "ex3"
+    },
+    {
+      "method": "POST",
+      "path": "/pdf",
+      "multipart": [
+        {
+          "name": "document",
+          "file": "upstream/docx-to-pdf/examples/ex4/input.docx"
+        }
+      ],
+      "note": "ex4"
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+docx-to-pdf
+Copyright 2026 docx-to-pdf contributors.
+Licensed under the Apache License, Version 2.0 (LICENSE); the documentation under the Creative Commons
+Attribution 4.0 International licence (CC-BY-4.0, https://creativecommons.org/licenses/by/4.0/).
+
+This project re-implements, in Rust, the behaviour of docx-to-pdf by Mohammad Alhaddar
+(https://github.com/moalhaddar/docx-to-pdf), MIT License as stated in its README, version 2.1.0-13
+(commit a692cfc286d3588b0c21456314cd605103810314). That repository is a git submodule at
+upstream/docx-to-pdf, kept as reference and never built into this project.
+
+Fonts in the image:
+- Droid Arabic Kufi (upstream fonts/DroidKufi-*.ttf) — Apache License 2.0.
+- Cantarell (upstream fonts/Cantarell-ExtraBold.otf) — SIL Open Font License 1.1.
+Upstream's Brown Std (Lineto) and GE Dinar Two (Boutros International) are commercial, their licences
+do not allow redistribution, and they are not distributed here.
+
+LibreOffice is distributed by The Document Foundation under the Mozilla Public License 2.0; the image
+installs it unmodified.
+
+The corpus documents under tests/corpus/documents/third-party/ (tests/corpus/README.md) are copied
+unmodified, each origin's licence text beside its documents:
+- third-party/libreoffice/: test documents of LibreOffice core (https://github.com/LibreOffice/core),
+  Mozilla Public License 2.0.
+- third-party/apache-poi/: test documents of Apache POI (https://github.com/apache/poi), Apache License
+  2.0, with Apache POI's NOTICE.
+Each folder's README.md names every document's path and git blob in its origin's repository. The five
+under tests/corpus/documents/docx2pdf/ (harvest11, ramp_adv_1, sample1, sample2, size40) come from the
+fixtures of the docx2pdf project by this project's author.

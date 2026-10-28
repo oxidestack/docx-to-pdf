@@ -1,0 +1,13 @@
+# chart-testing's configuration for the `chart-lint` gate (tools/lint/lint.sh): `ct lint` checks
+# Chart.yaml against its schema, yamllint on Chart.yaml and values.yaml, and helm lint with each ci/*-values.yaml.
+# The lint config and Chart.yaml schema are the image's own (/etc/ct/).
+chart-dirs: [charts]
+charts: [charts/docx-to-pdf]
+target-branch: main
+# Off: the version-bump check. The release stamps `version` and `appVersion` from the release tag, so the
+# version in the tree is not the published one, and a bump per change would gate a number nobody ships. ct needs the
+# target branch's history for it besides, which the private CI's depth-1 clone does not have.
+check-version-increment: false
+# Off: ct checks each maintainer's `name` as a GitHub account. The maintainer is listed by name and address, a person
+# and not an account name.
+validate-maintainers: false

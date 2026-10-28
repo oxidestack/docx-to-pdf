@@ -1,0 +1,22 @@
+# Quick plan, step 1 of 4 (hours, not days: the typical document only, one resource at a time):
+# the typical workload (text, tables and 30-60 pictures, 10-20 MB) under a closed load of pool + 2 clients, memory
+# ample (16 GiB), /tmp on the VM disk, tracing off. For each vCPU count, the pool that gives the most throughput.
+# N conversions each: step 0 (2026-10-21) found batches of 40 under 2.5 % rsd in throughput and p95 at 1 and
+# 4 vCPU, and the first 2·VUs conversions 4-6 % slow; the analysis drops those and the last round, so N = 40 + 3·VUs
+# rounded up to whole rounds of the four documents; 15 s cooldown. --reps 1, then rerun the best pool
+# and its neighbours (--only) for a second replicate.
+cell	docs	cpus	pool	memory	mode	conversions	warmup_per_instance	cooldown
+c1-p1	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	1	1	16g	closed	52	1	15
+c1-p2	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	1	2	16g	closed	52	1	15
+c2-p1	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	2	1	16g	closed	52	1	15
+c2-p2	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	2	2	16g	closed	52	1	15
+c2-p3	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	2	3	16g	closed	56	1	15
+c4-p2	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	4	2	16g	closed	52	1	15
+c4-p3	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	4	3	16g	closed	56	1	15
+c4-p4	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	4	4	16g	closed	60	1	15
+c4-p5	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	4	5	16g	closed	64	1	15
+c4-p6	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	4	6	16g	closed	64	1	15
+c6-p3	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	6	3	16g	closed	56	1	15
+c6-p4	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	6	4	16g	closed	60	1	15
+c6-p6	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	6	6	16g	closed	64	1	15
+c6-p8	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	6	8	16g	closed	72	1	15

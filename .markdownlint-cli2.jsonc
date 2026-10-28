@@ -1,0 +1,23 @@
+// markdownlint-cli2 (the `markdownlint` gate: `make lint ONLY=markdownlint`): every Markdown file of the repository,
+// on markdownlint's rules. What differs from the defaults says why next to it.
+{
+  "globs": ["**/*.md"],
+  // .gitignore's paths (target/, review/, .bench/) are not the repository's.
+  "gitignore": true,
+  "ignores": [
+    // moalhaddar/docx-to-pdf, read-only.
+    "upstream/**",
+    // helm-docs' output (`make chart-docs`), never edited: the `chart-docs` gate fails on any other copy; its source,
+    // README.md.gotmpl, is linted.
+    "charts/docx-to-pdf/README.md"
+  ],
+  "config": {
+    "default": true,
+    // The tree's width, as its Rust, Python and YAML.
+    // A table row, an ATX heading (a ticket's title) and a code block's command or recorded output are one line each
+    // by Markdown's syntax or by what they quote; prose is wrapped.
+    "MD013": { "line_length": 120, "tables": false, "headings": false, "code_blocks": false },
+    // One pipe style within a table: compact (`| a | b |` over a `| --- |` delimiter row) or aligned.
+    "MD060": { "style": "any" }
+  }
+}

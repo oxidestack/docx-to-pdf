@@ -1,0 +1,20 @@
+{
+  "description": "Two document parts, ex1 then ex2: the PDF is ex1's.",
+  "steps": [
+    {
+      "method": "POST",
+      "path": "/pdf",
+      "multipart": [
+        {
+          "name": "document",
+          "file": "upstream/docx-to-pdf/examples/ex1/input.docx"
+        },
+        {
+          "name": "document",
+          "file": "upstream/docx-to-pdf/examples/ex2/input.docx"
+        }
+      ],
+      "note": "the golden PDF is ex1's"
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+fix(pool): replace an instance that dies during start
+
+A failed start left the slot empty.
+
+Signed-off-by: Jane Doe <jane@example.org>

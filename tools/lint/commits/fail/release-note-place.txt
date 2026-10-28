@@ -1,0 +1,9 @@
+fix(pool): replace an instance that dies during start
+
+```release-note
+A dead instance is replaced.
+```
+
+The retry is bounded.
+
+Signed-off-by: Jane Doe <jane@example.org>

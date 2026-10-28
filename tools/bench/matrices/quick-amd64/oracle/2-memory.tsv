@@ -1,0 +1,17 @@
+# Quick plan on amd64, moalhaddar/docx-to-pdf, step 2: as ours/2-memory.tsv. moalhaddar/docx-to-pdf's step 1 there
+# (2026-10-22): pool = vCPU as for oxidestack/docx-to-pdf (the comparison holds the setting), memory.peak at 16 GiB
+# 1096, 1528, 2030, 2957 MiB for 1, 2, 4, 6 vCPU (the JVM's heap sizes itself from the limit: 25 % of it by default);
+# each at that peak + 25 %, - 10 %, - 25 %.
+cell	docs	cpus	pool	memory	mode	conversions	warmup_per_instance	cooldown
+c1-p1-plus25	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	1	1	1370m	closed	132	1	15
+c1-p1-minus10	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	1	1	986m	closed	132	1	15
+c1-p1-minus25	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	1	1	822m	closed	132	1	15
+c2-p2-plus25	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	2	2	1910m	closed	132	1	15
+c2-p2-minus10	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	2	2	1375m	closed	132	1	15
+c2-p2-minus25	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	2	2	1146m	closed	132	1	15
+c4-p4-plus25	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	4	4	2538m	closed	140	1	15
+c4-p4-minus10	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	4	4	1827m	closed	140	1	15
+c4-p4-minus25	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	4	4	1522m	closed	140	1	15
+c6-p6-plus25	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	6	6	3696m	closed	144	1	15
+c6-p6-minus10	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	6	6	2661m	closed	144	1	15
+c6-p6-minus25	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	6	6	2218m	closed	144	1	15

@@ -1,0 +1,6 @@
+# gitleaks (the `gitleaks` gate: `make lint ONLY=gitleaks`): credentials in the history and the working tree, by
+# gitleaks' own rules. Private names are not its job: `make public-check` holds those, with a denylist that is never
+# tracked, since a tracked list of private names would publish them. An accepted finding is an allowlist entry below,
+# narrowed to its file and its text, with the reason; never a rule switched off.
+[extend]
+useDefault = true

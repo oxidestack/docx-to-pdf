@@ -1,0 +1,21 @@
+# docx-to-pdf on this machine only: http://127.0.0.1:8080 (docs/guide/installation.md).
+services:
+  docx-to-pdf:
+    image: quay.io/oxidestack/docx-to-pdf:0.1.0
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      DOCX_TO_PDF_POOL_SIZE: "1"
+    # Locked down: a non-root user, a read-only root, no capability; the service writes only /tmp, a volume.
+    user: "10001:10001"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    volumes:
+      - /tmp
+    # 256 MiB + pool size × (DOCX_TO_PDF_INSTANCE_HARD_MEMORY, 2 GiB by default, + 256 MiB): no document can get
+    # the container killed for memory.
+    mem_limit: 2560m
+    # The shutdown grace (180 s by default) plus the 40 s the service needs after it.
+    stop_grace_period: 220s
+    restart: unless-stopped

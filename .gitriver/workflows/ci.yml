@@ -1,0 +1,421 @@
+# The gate for docx-to-pdf on the private mirror's GitRiver, modelled on the author's other projects' workflows. The
+# GitLab these were first written for no longer runs, so there is no .gitlab-ci.yml twin and no forge-parity job.
+# .github/workflows/ is the same gate on GitHub Actions, job for job: a gate change goes to both in the same commit, so
+# a gate cannot drift between them.
+#
+# One workflow, so one pipeline per push: one result to read, the jobs in parallel where nothing orders them. Its jobs
+# form a DAG: `lockhash` first, because the cargo jobs key their cache on its output; every other job starts at
+# once, so the image job runs beside the lint and test jobs. No other `needs:` exists, because no other job uses
+# another's result: a failed lint does not stop the image job, and every failure in a push shows in one pipeline.
+#
+# The runners are shared with other repositories, six jobs at a time, and they are arm64 (an M1 Max). A job that
+# names no `image:` (or GitLab's object form `image: {name: …}`, which GitRiver silently drops) does not fail: it
+# runs inside the runner's own container, as root, next to the host's Docker socket. So every job names a plain
+# string image, and the `lint-workflows` job lints this file for exactly that. A job with an image has no Docker
+# socket and no privilege, except on the one runner that gives its jobs the host's socket, so:
+# - moalhaddar/docx-to-pdf is not reachable from a job: the scenarios replay their recorded goldens (recording stays
+#   a local step, `make record`);
+# - the service's image is built and container-tested by the `image` job alone, on that runner: `make image-ci` (the
+#   image for the runner's architecture, then `make image-test`, `make image-egress`, `make image-scenarios`,
+#   `make image-corpus`, `make chart-kind` and the image gates of `make image-lint` against it), through
+#   tools/ci/image-job.sh, which says what it starts on the host and removes. There is no registry, so nothing is
+#   pushed anywhere.
+#
+# Every job maps to a local command, and `make ci-job JOB=<name>` runs a job's steps in its image on a snapshot of the
+# working tree, as a runner would (tools/ci/run-job.rb):
+#   lint-<gate>     `make lint ONLY=<gate>`: the same command in the same image, pinned by digest in
+#                   tools/lint/images.Dockerfile; one job per gate, so a failure names itself. A job calls
+#                   `make lint-run GATE=<gate>`, never its own copy of the command, and runs in exactly the pinned
+#                   ref: tools/lint/check-pins.rb (part of the `workflows` gate) fails otherwise.
+#   test            `tools/instance-test/run.sh`: every test, LibreOfficeKit required, the scenarios converting
+#                   (the library tests that `make check` runs locally among them)
+#   image           `make image-ci` on the host; it needs the socket, so `make ci-job` does not replay it
+#   release-notes   `make tools-test` on a host with Docker (the drafts of tools/release); it is on the socket's runner
+#                   too, so `make ci-job` does not replay it either
+#   site            `make site`: the documentation site built from README.md and docs/guide/, its internal links and
+#                   anchors checked (site/build.sh, in the node image `make site` uses)
+#
+# What GitRiver 1.1.0 cannot do, and so is not here (found by trying each one on the forge):
+# - `cache: key: files:` does not exist: `lockhash` hashes Cargo.lock and the cargo jobs key their cache on it.
+# - no cache is saved from a failed job, and a cache archive over 500 MiB is refused whole: only the cargo registry is
+#   cached, `target/` is not, so every build is cold.
+# - no retry on runner failure only: GitRiver counts an image-pull failure as a script failure, so any `retry:` would
+#   retry test flakes too, and a retried flake is a hidden flake. There is none.
+# - a multi-line `run:` block runs without errexit, so each one opens with `set -eu`.
+# - the runner always clones `--depth=1` and never touches submodules; upstream/docx-to-pdf (1.9 MB, the examples and
+#   the fonts the tests read) is fetched by the jobs that need it.
+
+name: CI
+
+# Every push to every branch builds once (a single `*` matches names with a slash too). Adding `pull_request` would
+# build a branch with an open PR twice, the two pipelines competing for the shared six slots.
+on:
+  push:
+    branches: ['*']
+
+# A newer push to the same branch cancels this workflow's pipeline still running there, the image job included: a
+# superseded pipeline holds slots on runners other repositories share. That is this `concurrency:` group, never a job's
+# `interruptible:`. GitRiver 1.1.0's `interruptible` auto-cancel is keyed on the ref and not on the workflow: while
+# there were two workflows, creating the Image pipeline cancelled the same push's CI pipeline ~13 ms after it was
+# created. With one workflow that cannot happen, but the group already does the job, and the vendored
+# lint refuses `interruptible:` again should a second workflow ever appear. The group is per repository;
+# `$CI_COMMIT_REF_NAME` makes it per branch where GitRiver expands it, and a literal name is still this workflow's own.
+concurrency:
+  group: ci-$CI_COMMIT_REF_NAME
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  # The registry lives in the project directory so `cache:` can keep it; $HOME goes with the container. A literal
+  # path: GitRiver hands an `env:` value over unexpanded. /workspace is where every `image:` job's working copy is;
+  # tools/ci/image-job.sh mounts it at its own path on the host and sets CARGO_HOME there.
+  CARGO_HOME: /workspace/.cargo
+  # A job container never makes a second build in the same tree, so incremental artifacts are cache weight only.
+  CARGO_INCREMENTAL: "0"
+  CARGO_NET_RETRY: "3"
+
+jobs:
+  # GitRiver's cache key is a string with $VARs only. This job turns Cargo.lock into the hash the cargo jobs key on.
+  lockhash:
+    image: alpine:3.20.3
+    timeout: 5m
+    steps:
+      - run: echo "cargo=$(sha256sum Cargo.lock | cut -c1-16)" >> "$CI_OUTPUT"
+
+  # First after lockhash: the longest job, on a runner of its own, so it is not queued behind the lint jobs.
+  image:
+    # The image the cargo jobs use; tools/ci/image-job.sh adds the Docker CLI and starts its second container from
+    # this same image.
+    image: rust:1.98.0-trixie
+    # `image-builder`, the label of the one runner with the socket, named for what it is for. Not
+    # `docker`: every runner already carries that label, and none of the others has a socket. A job whose
+    # `runs-on:` no runner has does not fail at once: it sits pending until the server's deadline (a server setting,
+    # three hours) and then fails saying only "returned no result". So if that runner is ever removed, this job is
+    # what to gate again.
+    runs-on: [image-builder]
+    needs: [lockhash]
+    # A cold image build (the service compiled in the Dockerfile), image/test.sh, the README's quick start and the
+    # installation guide's compose and helm tests, a cold `cargo test --test oracle` build and the
+    # scenarios, the corpus, the chart in kind, then the image gates (Trivy's database is fetched each run: it is too
+    # large for `cache:`, whose archive is refused whole over 500 MiB). Below the server's three-hour deadline, which
+    # counts queue time too.
+    timeout: 120m
+    cache:
+      key: cargo-$NEEDS_LOCKHASH_OUTPUTS_CARGO
+      paths:
+        - .cargo/registry/index
+        - .cargo/registry/cache
+    steps:
+      - run: sh tools/ci/image-job.sh
+
+  release-notes:
+    # tools/release's tests with their drafts, which run git-cliff in its pinned container, so the job needs the
+    # host's Docker socket: the `image` job's runner. `lint-public` runs the same tests without a socket, where the
+    # drafts skip; here DOCX_TO_PDF_REQUIRE_DOCKER makes a missing socket a failure, not a skip. A bind mount names a
+    # path on the Docker host, where this job's /workspace is somewhere else, so RELEASE_NOTES_VOLUMES_FROM hands
+    # git-cliff this job's own volumes instead (its container's id is its hostname, as tools/ci/image-job.sh relies on).
+    # The image of `lint-public`; it has no make, git or Docker CLI.
+    image: python:3.14.8-alpine@sha256:f6a589d43c42b9e7f7dc67a12d37132491f362859a5d750607710cc56da3bc72
+    runs-on: [image-builder]
+    timeout: 10m
+    env:
+      DOCX_TO_PDF_REQUIRE_DOCKER: "1"
+    steps:
+      - run: apk add --no-cache make git docker-cli
+      - run: RELEASE_NOTES_VOLUMES_FROM=$(hostname) python3 -m unittest discover -v -s tools/release
+
+  site:
+    # The documentation site (site/README.md): npm installs site/package-lock.json's tree from the registry, then the
+    # build stages README.md and docs/guide/ and fails on a broken internal link or anchor. The image is the
+    # `markdownlint` gate's, the one `make site` runs site/build.sh in; it needs no make. Deploying the site is GitHub
+    # Pages' job, on GitHub Actions; nothing is published from here.
+    image: node:24.22.1-alpine3.24@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53
+    timeout: 10m
+    steps:
+      - run: sh site/build.sh
+
+  test:
+    # The rust image of the `lint-clippy` job, by tag; tools/ci/test-deps.sh turns it into
+    # tools/instance-test/Dockerfile's environment.
+    image: rust:1.98.0-trixie
+    needs: [lockhash]
+    # A cold build of the dependency tree and the suite, the LibreOffice packages, and real conversions.
+    timeout: 60m
+    cache:
+      key: cargo-$NEEDS_LOCKHASH_OUTPUTS_CARGO
+      paths:
+        - .cargo/registry/index
+        - .cargo/registry/cache
+    env:
+      # The LibreOfficeKit tests fail instead of skipping when LibreOffice is missing (tools/instance-test).
+      DOCX_TO_PDF_REQUIRE_LOK: "1"
+    steps:
+      # The submodule, LibreOffice 26.8 from the pinned snapshot, the fonts and fontconfig, poppler-utils.
+      - run: sh tools/ci/test-deps.sh
+      # Every test binary runs even after one fails. `tdf38575_fullWidthLine.docx`, a LibreOffice regression document
+      # under the MPL, is kept out of the repository, so its test skips here with the reason, as it does locally
+      # without DOCX_TO_PDF_FIXTURES.
+      - run: cargo test --locked --no-fail-fast
+
+  # The quality gates (tools/lint/lint.sh). Each image is the gate's pinned ref in tools/lint/images.Dockerfile,
+  # character for character; a tool bump there changes it here in the same commit (check-pins.rb).
+  lint-fmt:
+    image: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    timeout: 10m
+    steps:
+      - run: make lint-run GATE=fmt
+
+  lint-clippy:
+    # The image the service's binary is built in (Dockerfile pins the same digest), so clippy is that toolchain's.
+    # The library compiles without the submodule, so it is not fetched.
+    image: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    needs: [lockhash]
+    timeout: 30m
+    cache:
+      key: cargo-$NEEDS_LOCKHASH_OUTPUTS_CARGO
+      paths:
+        - .cargo/registry/index
+        - .cargo/registry/cache
+    steps:
+      - run: make lint-run GATE=clippy
+
+  lint-hadolint:
+    # Every Dockerfile of ours (tools/lint/lint.sh says which), .hadolint.yaml's threshold. The image has no make.
+    # `docker build --check` needs a daemon, so it runs in the `image` job (tools/lint/image.sh).
+    image: hadolint/hadolint:v2.14.0-alpine@sha256:7aba693c1442eb31c0b015c129697cb3b6cb7da589d85c7562f9deb435a6657c
+    timeout: 5m
+    steps:
+      - run: apk add --no-cache make
+      - run: make lint-run GATE=hadolint
+
+  lint-public:
+    # The publication gate's built-in half: local paths and internal hosts in the tracked files, without
+    # the denylist, which is never in a job. Then the tests of tools/ while a Python is at hand; those of tools/public/
+    # need git and ripgrep. The alpine image has no make; `apk add` takes a second.
+    image: python:3.14.8-alpine@sha256:f6a589d43c42b9e7f7dc67a12d37132491f362859a5d750607710cc56da3bc72
+    timeout: 5m
+    steps:
+      - run: apk add --no-cache make git ripgrep
+      - run: make lint-run GATE=public
+      - run: make tools-test
+
+  lint-commits:
+    # The commit messages: the gate's own fixtures, then every commit after the base (tools/lint/commits.py). The
+    # runner clones `--depth=1`; the gate deepens the clone when the base is not in it. The image has no make; the
+    # gate installs git itself.
+    image: python:3.14.8-alpine@sha256:f6a589d43c42b9e7f7dc67a12d37132491f362859a5d750607710cc56da3bc72
+    timeout: 5m
+    steps:
+      - run: apk add --no-cache make
+      - run: make lint-run GATE=commits
+
+  lint-workflows:
+    # GitRiver cannot refuse a job that names no image (top of this file), so the rule is a lint, vendored (see its
+    # header), and it lints this file too; then check-pins.rb holds these lint jobs, and GitHub's, to tools/lint/.
+    image: ruby:3.3.12-alpine@sha256:ac11166d133f476b0c3b4ae6fa6c6301cfc9a6f4e03c0761c482f00808c96cad
+    timeout: 5m
+    steps:
+      - run: apk add --no-cache make
+      - run: make lint-run GATE=workflows
+
+  lint-chart-lint:
+    # The chart: helm lint --strict with the defaults and every option on, then `ct lint`.
+    # Every chart gate runs in chart-testing's image, whose ENTRYPOINT is empty (GitRiver keeps an image's), and fetches
+    # the tools that have no such image as release binaries pinned by sha256 (tools/lint/tools.txt). It has no make.
+    image: quay.io/helmpack/chart-testing:v3.15.0@sha256:54317f2d93730ea9ca1236e3d79cd95d74110b8d733b6ab124e5829209b5f4e4
+    timeout: 10m
+    steps:
+      - run: apk add --no-cache make
+      - run: make lint-run GATE=chart-lint
+
+  lint-chart-kubeconform:
+    # The rendered manifests against Kubernetes 1.30's and the newest release's schemas, fetched at a pinned commit.
+    image: quay.io/helmpack/chart-testing:v3.15.0@sha256:54317f2d93730ea9ca1236e3d79cd95d74110b8d733b6ab124e5829209b5f4e4
+    timeout: 10m
+    steps:
+      - run: apk add --no-cache make
+      - run: make lint-run GATE=chart-kubeconform
+
+  lint-chart-kube-linter:
+    # kube-linter's every check on the rendered manifests; the exceptions are tools/lint/kube-linter.yaml's.
+    image: quay.io/helmpack/chart-testing:v3.15.0@sha256:54317f2d93730ea9ca1236e3d79cd95d74110b8d733b6ab124e5829209b5f4e4
+    timeout: 10m
+    steps:
+      - run: apk add --no-cache make
+      - run: make lint-run GATE=chart-kube-linter
+
+  lint-chart-unittest:
+    # helm-unittest: charts/docx-to-pdf/tests/*_test.yaml.
+    image: quay.io/helmpack/chart-testing:v3.15.0@sha256:54317f2d93730ea9ca1236e3d79cd95d74110b8d733b6ab124e5829209b5f4e4
+    timeout: 10m
+    steps:
+      - run: apk add --no-cache make
+      - run: make lint-run GATE=chart-unittest
+
+  lint-chart-docs:
+    # The chart's README is helm-docs' output; a stale one fails (`make chart-docs` writes it).
+    image: quay.io/helmpack/chart-testing:v3.15.0@sha256:54317f2d93730ea9ca1236e3d79cd95d74110b8d733b6ab124e5829209b5f4e4
+    timeout: 5m
+    steps:
+      - run: apk add --no-cache make
+      - run: make lint-run GATE=chart-docs
+
+  # The Rust gates. typos and machete read the tree only; the others resolve the graph or build it, so
+  # they key the registry cache on lockhash like the other cargo jobs. The gates' release binaries are fetched into the
+  # rust image and checked against tools/lint/tools.txt's sha256 (tools/lint/fetch-tool.sh).
+  lint-typos:
+    # Misspellings in the tracked files; _typos.toml says what is not one.
+    image: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    timeout: 5m
+    steps:
+      - run: make lint-run GATE=typos
+
+  # The repository's gates. Their release binaries are fetched into the rust image (Debian: glibc for
+  # zizmor, git for the file lists and gitleaks) and checked against tools/lint/tools.txt's sha256; yamllint is
+  # chart-testing's, markdownlint-cli2 is installed in the node image from tools/lint/markdownlint/'s lockfile.
+  lint-actions:
+    # actionlint and zizmor on .github/workflows/, GitHub Actions' dialect; it passes saying so while there is no
+    # .github/workflows/. This file is GitRiver's dialect, which the `workflows` gate checks.
+    image: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    timeout: 5m
+    steps:
+      - run: make lint-run GATE=actions
+
+  lint-shell:
+    # shellcheck at every severity and shfmt's layout (.editorconfig) on every tracked shell script.
+    image: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    timeout: 5m
+    steps:
+      - run: make lint-run GATE=shell
+
+  lint-ruff:
+    # ruff's lint and format check on the tracked Python (ruff.toml).
+    image: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    timeout: 5m
+    steps:
+      - run: make lint-run GATE=ruff
+
+  lint-yamllint:
+    # The tracked YAML, strict (.yamllint.yaml). The image has no make.
+    image: quay.io/helmpack/chart-testing:v3.15.0@sha256:54317f2d93730ea9ca1236e3d79cd95d74110b8d733b6ab124e5829209b5f4e4
+    timeout: 5m
+    steps:
+      - run: apk add --no-cache make
+      - run: make lint-run GATE=yamllint
+
+  lint-markdownlint:
+    # The Markdown (.markdownlint-cli2.jsonc). npm fetches the lockfile's tree from the registry. The image has no make.
+    image: node:24.22.1-alpine3.24@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53
+    timeout: 5m
+    steps:
+      - run: apk add --no-cache make
+      - run: make lint-run GATE=markdownlint
+
+  lint-links:
+    # The repository's own links and anchors in the Markdown, offline: no request leaves the job, so a site being down
+    # never fails a push. The external ones are `make lint ONLY=links LINKS_EXTERNAL=1`: by hand, and on GitHub Actions'
+    # schedule once .github/workflows/ exists; never on a push.
+    image: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    timeout: 5m
+    steps:
+      - run: make lint-run GATE=links
+
+  lint-editorconfig:
+    # Every tracked text file against .editorconfig (editorconfig-checker).
+    image: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    timeout: 5m
+    steps:
+      - run: make lint-run GATE=editorconfig
+
+  lint-gitleaks:
+    # Credentials in the commits the clone has and in the tree. The runner clones `--depth=1`, so here that is the
+    # pushed commit; the history before it was checked when each of its commits was pushed, and a laptop's
+    # `make lint ONLY=gitleaks` checks all of it.
+    image: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    timeout: 5m
+    steps:
+      - run: make lint-run GATE=gitleaks
+
+  lint-machete:
+    # A dependency in Cargo.toml or fuzz/Cargo.toml that no source names.
+    image: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    timeout: 5m
+    steps:
+      - run: make lint-run GATE=machete
+
+  lint-deny:
+    # cargo-deny on the service and on fuzz/: RustSec advisories, licences, bans, sources (deny.toml). A new advisory
+    # fails a push that changed nothing, which is the point: it is news about what ships.
+    image: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    needs: [lockhash]
+    timeout: 10m
+    cache:
+      key: cargo-$NEEDS_LOCKHASH_OUTPUTS_CARGO
+      paths:
+        - .cargo/registry/index
+        - .cargo/registry/cache
+    steps:
+      - run: make lint-run GATE=deny
+
+  lint-doc:
+    # cargo doc --no-deps with rustdoc's warnings denied, private items included.
+    image: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    needs: [lockhash]
+    timeout: 30m
+    cache:
+      key: cargo-$NEEDS_LOCKHASH_OUTPUTS_CARGO
+      paths:
+        - .cargo/registry/index
+        - .cargo/registry/cache
+    steps:
+      - run: make lint-run GATE=doc
+
+  lint-msrv:
+    # Every target checked on Cargo.toml's rust-version, the toolchain asserted first.
+    image: rust:1.88.0-trixie@sha256:f2a17efbe58b00470be6e73dbea79705a789ee20ee8de2dcdaf73c0c6091f1db
+    needs: [lockhash]
+    timeout: 30m
+    cache:
+      key: cargo-$NEEDS_LOCKHASH_OUTPUTS_CARGO
+      paths:
+        - .cargo/registry/index
+        - .cargo/registry/cache
+    steps:
+      - run: make lint-run GATE=msrv
+
+  lint-fuzz:
+    # The fuzz targets replay their committed seeds, fuzz/seeds/: built on stable in this image, each
+    # target runs every seed once and a panic fails the job. The fuzzing itself, nightly and long, is not a push gate
+    # (fuzz/README.md). fuzz/ is a workspace of its own, so its Cargo.lock is not lockhash's; the registry cache keyed
+    # on the service's lock still holds most of its crates.
+    image: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    needs: [lockhash]
+    # A cold release build of the library and libFuzzer; the replay itself takes seconds.
+    timeout: 30m
+    cache:
+      key: cargo-$NEEDS_LOCKHASH_OUTPUTS_CARGO
+      paths:
+        - .cargo/registry/index
+        - .cargo/registry/cache
+    steps:
+      - run: make lint-run GATE=fuzz
+
+  lint-coverage:
+    # The unit and integration tests under cargo llvm-cov, in the `test` job's environment (the gate installs it with
+    # tools/ci/test-deps.sh), failing below the floor in tools/lint/lint.sh. The report is the job's artifact; GitRiver
+    # keeps none from a failed job, and the log prints the summary either way.
+    image: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    needs: [lockhash]
+    # The `test` job's cold build and suite, instrumented.
+    timeout: 90m
+    cache:
+      key: cargo-$NEEDS_LOCKHASH_OUTPUTS_CARGO
+      paths:
+        - .cargo/registry/index
+        - .cargo/registry/cache
+    steps:
+      - run: make lint-run GATE=coverage
+    artifacts:
+      expire-in: 7d
+      paths:
+        - target/lint/coverage/

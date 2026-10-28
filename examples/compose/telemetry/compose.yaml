@@ -1,0 +1,27 @@
+# docx-to-pdf sending its traces, logs and metrics to an OpenTelemetry Collector (docs/guide/installation.md).
+services:
+  docx-to-pdf:
+    image: quay.io/oxidestack/docx-to-pdf:0.1.0
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      DOCX_TO_PDF_POOL_SIZE: "1"
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+      OTEL_RESOURCE_ATTRIBUTES: deployment.environment.name=dev
+    user: "10001:10001"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    volumes:
+      - /tmp
+    mem_limit: 2560m
+    stop_grace_period: 220s
+    restart: unless-stopped
+    depends_on: [otel-collector]
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.162.0@sha256:39923a8e431bd1f57be82411999d389fcfe40857492e4365456d97a4c1f74be6
+    command: ["--config=/etc/otelcol-contrib/config.yaml"]
+    volumes:
+      - ./otel-collector.yaml:/etc/otelcol-contrib/config.yaml:ro
+    restart: unless-stopped

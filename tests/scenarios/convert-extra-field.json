@@ -1,0 +1,19 @@
+{
+  "description": "A field other than document, before it, is ignored.",
+  "steps": [
+    {
+      "method": "POST",
+      "path": "/pdf",
+      "multipart": [
+        {
+          "name": "other",
+          "value": "x"
+        },
+        {
+          "name": "document",
+          "file": "upstream/docx-to-pdf/examples/ex1/input.docx"
+        }
+      ]
+    }
+  ]
+}

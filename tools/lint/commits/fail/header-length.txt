@@ -1,0 +1,3 @@
+docs(chart): describe every value of the chart in its README and in the guide
+
+Signed-off-by: Jane Doe <jane@example.org>

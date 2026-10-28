@@ -1,0 +1,6 @@
+# Quick plan on amd64, oxidestack/docx-to-pdf, step 4: as quick/4-ramp.tsv, plateaus from 30 % to 110 % of step 1's
+# X = 3.596/s at 4 vCPU, pool 4 (1462m), pictures no longer reduced (with them reduced, the first amd64 run's X was
+# 1.326/s). Plateaus
+# 3 minutes, as on arm64: the rate is again comparable. ≈ 23 min.
+cell	docs	cpus	pool	memory	mode	stages	warmup_per_instance	cooldown
+ramp-c4	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	4	4	1462m	ramp	1.08:3m,1.8:20s,1.8:3m,2.52:20s,2.52:3m,2.88:20s,2.88:3m,3.24:20s,3.24:3m,3.6:20s,3.6:3m,3.96:20s,3.96:3m	1	15

@@ -1,0 +1,17 @@
+# Quick plan, step 2: for each vCPU count at its best pool (step 1: pool = vCPU), the memory it needs. Step 1
+# measured memory.peak at 16 GiB (MiB: 421, 704, 1233, 1688 for 1, 2, 4, 6 vCPU, page cache included); each best
+# (cpus, pool) runs at that peak + 25 %, - 10 % and - 25 %: the first must hold with step 1's throughput, the others
+# show where reclaim slows it or OOM starts. Same N as step 1. 12 cells × ~1.5 min ≈ 20 min.
+cell	docs	cpus	pool	memory	mode	conversions	warmup_per_instance	cooldown
+c1-p1-plus25	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	1	1	526m	closed	52	1	15
+c1-p1-minus10	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	1	1	378m	closed	52	1	15
+c1-p1-minus25	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	1	1	315m	closed	52	1	15
+c2-p2-plus25	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	2	2	880m	closed	52	1	15
+c2-p2-minus10	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	2	2	633m	closed	52	1	15
+c2-p2-minus25	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	2	2	528m	closed	52	1	15
+c4-p4-plus25	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	4	4	1541m	closed	60	1	15
+c4-p4-minus10	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	4	4	1109m	closed	60	1	15
+c4-p4-minus25	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	4	4	924m	closed	60	1	15
+c6-p6-plus25	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	6	6	2110m	closed	64	1	15
+c6-p6-minus10	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	6	6	1519m	closed	64	1	15
+c6-p6-minus25	report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb	6	6	1266m	closed	64	1	15

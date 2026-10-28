@@ -1,0 +1,25 @@
+## [1.0.0] - YYYY-MM-DD
+
+### Action required
+
+- `pool.size` is no longer read. A deployment that sets it sets `DOCX_TO_PDF_POOL_SIZE` (or `POOL_SIZE`) to the same value instead. (config, 28669ea)
+
+### Features
+
+- A Word macro-enabled template (DOTM) is converted like a DOCX. (api, 1613e88)
+- The chart takes `priorityClassName` for the pods. (chart, 5b5f0b0)
+
+### Bug fixes
+
+- A LibreOffice instance that dies while starting is replaced, so the service no longer runs with one instance fewer than configured. (pool, 5110ebe)
+- An upload over the size limit is answered 413 instead of 400. (74a1619)
+
+### Performance
+
+- A document with large photographs converts faster and in less memory. (pictures, f446c4c)
+
+### Other changes
+
+- The operations guide says how to add fonts without rebuilding the image. (0b438b8)
+
+[1.0.0]: https://github.com/oxidestack/docx-to-pdf/releases/tag/v1.0.0

@@ -1,0 +1,1 @@
+ci: pin the ruby image by digest

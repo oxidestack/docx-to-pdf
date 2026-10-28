@@ -1,0 +1,4 @@
+docs(chart): describe the values
+
+Reviewed-by: John Roe <john@example.org>
+Signed-off-by: Jane Doe <jane@example.org>

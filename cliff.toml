@@ -1,0 +1,87 @@
+# git-cliff's configuration: `make release-notes` (tools/release/release-notes.sh) drafts the next release's section of
+# CHANGELOG.md from the commits since the last tag. Each commit's release-note block, the last paragraph of its body
+# (CONTRIBUTING.md, "Commit messages"), is the entry; the commit's type picks the section; `NONE` and a commit without
+# a block give none. The draft is edited by hand before the tag (tools/release/README.md).
+#
+# The tests of tools/release/ run this file on a fixture history (tools/release/fixture.py) and compare the draft with
+# tools/release/expected-*.txt: a change to the template changes those in the same commit.
+
+[changelog]
+# CHANGELOG.md's head, everything above the newest release. `--prepend` finds it in the file and puts the new section
+# under it, so CHANGELOG.md starts with exactly this text (a test holds the two together).
+header = """
+# Changelog
+
+<!-- markdownlint-configure-file { "MD013": false, "MD024": { "siblings_only": true } } -->
+
+All notable changes to docx-to-pdf, newest release first. The layout is
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/)'s, with sections for the people who run the service: Action
+required, Features, Bug fixes, Performance and Other changes. The versions follow
+[Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## Unreleased
+
+The changes since the last release are the release notes of the commits after its tag; a release gathers them into
+its section below.
+"""
+# One release: its sections, each entry the block's text on one line with the scope and the short hash, then the link
+# to what changed since the previous tag.
+body = """
+{%- set url = "https://github.com/oxidestack/docx-to-pdf" -%}
+{%- set number = version | default(value="unreleased") | trim_start_matches(pat="v") -%}
+## [{{ number }}] - {{ timestamp | default(value=now()) | date(format="%Y-%m-%d") }}
+{% for section in ["Action required", "Features", "Bug fixes", "Performance", "Other changes"] %}
+{%- set_global entries = [] -%}
+{%- for commit in commits -%}
+    {%- if commit.breaking -%}{%- set kind = "Action required" -%}
+    {%- elif commit.group == "feat" -%}{%- set kind = "Features" -%}
+    {%- elif commit.group == "fix" -%}{%- set kind = "Bug fixes" -%}
+    {%- elif commit.group == "perf" -%}{%- set kind = "Performance" -%}
+    {%- else -%}{%- set kind = "Other changes" -%}{%- endif -%}
+    {%- if kind == section and commit.body and commit.body is containing("```release-note") -%}
+        {%- set note = commit.body | split(pat="```release-note") | nth(n=1) | split(pat="```") | first | trim -%}
+        {%- if note and note != "NONE" -%}
+            {%- set where = commit.id | truncate(length=7, end="") -%}
+            {%- if commit.scope -%}{%- set where = commit.scope ~ ", " ~ where -%}{%- endif -%}
+            {%- set text = note | linebreaksbr | replace(from="<br>", to=" ") -%}
+            {%- set line = "- " ~ text ~ " (" ~ where ~ ")" -%}
+            {%- set_global entries = entries | concat(with=line) -%}
+        {%- endif -%}
+    {%- endif -%}
+{%- endfor -%}
+{%- if entries %}
+### {{ section }}
+
+{{ entries | join(sep="\n") }}
+{% endif -%}
+{% endfor %}
+{% if previous.version -%}
+[{{ number }}]: {{ url }}/compare/{{ previous.version }}...{{ version }}
+{%- else -%}
+[{{ number }}]: {{ url }}/releases/tag/{{ version }}
+{%- endif %}
+"""
+trim = false
+
+[git]
+conventional_commits = true
+# A commit outside the format has no type to file it under; the commit gate keeps them off `main`.
+filter_unconventional = true
+split_commits = false
+# The type is the group the template sorts by; every conventional commit is kept, and the template skips those
+# without a block.
+commit_parsers = [
+    { message = "^feat", group = "feat" },
+    { message = "^fix", group = "fix" },
+    { message = "^perf", group = "perf" },
+    { message = ".", group = "other" },
+]
+protect_breaking_commits = true
+tag_pattern = "^v[0-9]+\\.[0-9]+\\.[0-9]+$"
+sort_commits = "oldest"
+
+[bump]
+# Before the first tag, the commits make up 1.0.0; from then on fix a patch, feat a minor, breaking a major.
+initial_tag = "v1.0.0"
+features_always_bump_minor = true
+breaking_always_bump_major = true

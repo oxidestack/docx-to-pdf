@@ -1,0 +1,8 @@
+{
+  "name": "docx-to-pdf-markdownlint",
+  "private": true,
+  "description": "The markdownlint gate's tool: `npm ci` installs exactly package-lock.json's tree.",
+  "dependencies": {
+    "markdownlint-cli2": "0.23.3"
+  }
+}

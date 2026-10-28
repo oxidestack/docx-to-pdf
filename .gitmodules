@@ -1,0 +1,4 @@
+[submodule "upstream/docx-to-pdf"]
+	path = upstream/docx-to-pdf
+	url = https://github.com/moalhaddar/docx-to-pdf
+	shallow = true

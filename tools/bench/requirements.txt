@@ -1,0 +1,7 @@
+# The bench's Python. Exact versions, each at least two weeks old.
+python-docx==1.2.0
+Pillow==12.3.0
+numpy==2.5.3
+scipy==1.18.1
+pandas==3.0.6
+matplotlib==3.11.2

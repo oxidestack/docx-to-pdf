@@ -1,0 +1,15 @@
+{
+  "description": "A DOC (Word 97), one of the formats the allowlist admits, converts: tests/scenarios/fixtures/sample.doc, saved from sample.rtf by LibreOffice 26.8.1.1 (soffice --headless --convert-to 'doc:MS Word 97').",
+  "steps": [
+    {
+      "method": "POST",
+      "path": "/pdf",
+      "multipart": [
+        {
+          "name": "document",
+          "file": "tests/scenarios/fixtures/sample.doc"
+        }
+      ]
+    }
+  ]
+}

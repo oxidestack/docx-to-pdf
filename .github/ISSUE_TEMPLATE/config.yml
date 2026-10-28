@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: A question
+    url: https://github.com/oxidestack/docx-to-pdf/discussions/categories/q-a
+    about: How to deploy it, why a document looks the way it does, whether it fits your case — ask in Discussions.
+  - name: An idea to talk through
+    url: https://github.com/oxidestack/docx-to-pdf/discussions/categories/ideas
+    about: Not yet a request? Discuss it first.
+  - name: A vulnerability
+    url: https://github.com/oxidestack/docx-to-pdf/security/advisories/new
+    about: Report it privately, never in a public issue.

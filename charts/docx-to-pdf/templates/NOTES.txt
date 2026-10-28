@@ -1,0 +1,12 @@
+docx-to-pdf {{ .Chart.AppVersion }}: {{ .Values.replicaCount }} pod(s), {{ .Values.poolSize }} conversion(s) in parallel each.
+
+Convert a document from inside the cluster:
+
+  curl -F document=@report.docx -o report.pdf http://{{ include "docx-to-pdf.fullname" . }}.{{ .Release.Namespace }}.svc:{{ .Values.service.port }}/pdf
+
+or from here:
+
+  kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "docx-to-pdf.fullname" . }} 8080:{{ .Values.service.port }}
+  curl -F document=@report.docx -o report.pdf http://localhost:8080/pdf
+
+Probes: /livez, /readyz. Metrics: /metrics{{ if .Values.otel.endpoint }}; OTLP to {{ .Values.otel.endpoint }}{{ end }}.

@@ -1,0 +1,7 @@
+revert: perf(pictures): decode JPEGs at the target scale
+
+The scaled decode drops the EXIF orientation on progressive JPEGs; the
+full decode comes back until that is handled.
+
+Refs: 1a2b3c4
+Signed-off-by: Jane Doe <jane@example.org>

@@ -1,0 +1,92 @@
+# oxidestack/docx-to-pdf, Gotenberg and moalhaddar/docx-to-pdf side by side, and the runner that
+# compares them. README.md beside this file says how to use it.
+#
+#   docker compose -f examples/compare/compose.yaml up -d                 the three services, to try by hand
+#   tools/compare/compare.sh --quick                                       the comparison (`make compare QUICK=1`)
+#
+# The services below are each service as it ships, one LibreOffice each (pool 1), one CPU and 4 GiB, on
+# 127.0.0.1:18081-18083. The comparison does not reuse these containers: every measurement starts a fresh one, with
+# the settings of the measurement on record it repeats (docs/guide/comparison.md, "Speed and memory" and "Hostile
+# documents"), because a container's memory peak cannot be reset. moalhaddar/docx-to-pdf has only a linux/amd64
+# image, so it sits behind the `amd64` profile: `--profile amd64` on an amd64 host. The runner never starts it
+# elsewhere.
+
+name: docx-to-pdf-compare
+
+services:
+  docx-to-pdf:
+    # oxidestack/docx-to-pdf, built from this repository for the host's architecture (linux/amd64 or
+    # linux/arm64): its defaults, the chart's security context, tracing off.
+    image: ${COMPARE_IMAGE:-docx-to-pdf:compare}
+    build:
+      context: ../..
+      # The commit the image is built from, as `make image` labels it: compare.sh sets COMPARE_REVISION to the
+      # Makefile's IMAGE_REVISION (`<commit>`, `<commit>-dirty` when tracked files differ), and the runner records it.
+      labels:
+        org.opencontainers.image.revision: ${COMPARE_REVISION:-}
+    ports: ["127.0.0.1:18081:8080"]
+    environment:
+      DOCX_TO_PDF_POOL_SIZE: "1"
+      OTEL_SDK_DISABLED: "true"
+    user: "10001:10001"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges]
+    volumes: [docx-to-pdf-tmp:/tmp]
+    cpus: 1
+    mem_limit: 4g
+    memswap_limit: 4g
+
+  gotenberg:
+    # Gotenberg 8.38.1 as shipped, at the digest the measurements on record ran: POST /forms/libreoffice/convert,
+    # field `files`.
+    image: gotenberg/gotenberg:8.38.1@sha256:aa552cc115db488e0f0bcb07446aac13071ad51505b642c84bb894500907b42b
+    ports: ["127.0.0.1:18082:3000"]
+    cpus: 1
+    mem_limit: 4g
+    memswap_limit: 4g
+
+  moalhaddar:
+    # moalhaddar/docx-to-pdf 2.1.0-13 (oracle.env), as its deployments' Helm chart runs it: pool 1, the multipart
+    # limits raised past 10 MB and Tomcat's connection timeout at 120 s.
+    image: moalhaddar/docx-to-pdf@sha256:14497d940936fe346cf74ce9c65bfa1eaff71487371888bd864777fd63a386c3
+    platform: linux/amd64
+    profiles: [amd64]
+    ports: ["127.0.0.1:18083:8080"]
+    environment:
+      POOL_SIZE: "1"
+      SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE: 300MB
+      SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE: 300MB
+      SERVER_TOMCAT_MAX_HTTP_FORM_POST_SIZE: 300MB
+      SERVER_TOMCAT_CONNECTION_TIMEOUT: "120000"
+    cpus: 1
+    mem_limit: 4g
+    memswap_limit: 4g
+
+  bench-tools:
+    # The bench's tool image (tools/bench/Dockerfile): the document generator and the analysis. Built, never run.
+    image: docx-to-pdf-bench-tools:dev
+    build:
+      context: ../../tools/bench
+    profiles: [compare]
+
+  compare:
+    # The runner (tools/compare/Dockerfile). It starts the services itself through the host's Docker socket, reads
+    # their cgroups from the Docker host's /sys/fs/cgroup, and reaches their published ports on the Docker host's
+    # loopback, hence the host network. The repository is mounted at its own path, so the paths it hands to Docker
+    # for sibling containers are the host's. COMPARE_ROOT is set by compare.sh.
+    image: docx-to-pdf-compare:dev
+    build:
+      context: ../../tools/compare
+    profiles: [compare]
+    network_mode: host
+    working_dir: ${COMPARE_ROOT:?run tools/compare/compare.sh}
+    environment:
+      COMPARE_IMAGE: ${COMPARE_IMAGE:-docx-to-pdf:compare}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /sys/fs/cgroup:/host-cgroup:ro
+      - ${COMPARE_ROOT:?run tools/compare/compare.sh}:${COMPARE_ROOT:?run tools/compare/compare.sh}
+
+volumes:
+  docx-to-pdf-tmp:

@@ -1,0 +1,13 @@
+feat(config)!: drop the pool.size alias
+
+moalhaddar/docx-to-pdf's Spring property name was read after
+DOCX_TO_PDF_POOL_SIZE and POOL_SIZE; one name too many for one setting.
+
+```release-note
+`pool.size` is no longer read. A deployment that sets it sets
+`DOCX_TO_PDF_POOL_SIZE` (or `POOL_SIZE`) to the same value instead.
+```
+
+BREAKING-CHANGE: a deployment that sets pool.size must set
+ DOCX_TO_PDF_POOL_SIZE instead; the value is unchanged.
+Signed-off-by: Jane Doe <jane@example.org>

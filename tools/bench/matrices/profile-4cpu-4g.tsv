@@ -1,0 +1,12 @@
+# The worked example: 4 vCPU, 4 GiB, SATA SSD 120 MB/s. Pool sizes 2-4 under a closed load on
+# text reports with pictures (12 MB) and on 50 MB photo documents; an OOM kill or a 5xx marks a setting as unsafe. --reps 3.
+cell	docs	pool	cpus	memory	io_bps	mode	duration
+reportimg-p2	report-img45-12mb	2	4	4g	120mb	closed	10m
+mix50-p2	mix-50mb	2	4	4g	120mb	closed	10m
+reportimg-p3	report-img45-12mb	3	4	4g	120mb	closed	10m
+mix50-p3	mix-50mb	3	4	4g	120mb	closed	10m
+reportimg-p4	report-img45-12mb	4	4	4g	120mb	closed	10m
+mix50-p4	mix-50mb	4	4	4g	120mb	closed	10m
+reporttext-p2	report-text-5p	2	4	4g	120mb	closed	10m
+reporttext-p3	report-text-5p	3	4	4g	120mb	closed	10m
+reporttext-p4	report-text-5p	4	4	4g	120mb	closed	10m

@@ -1,0 +1,15 @@
+{
+  "description": "A DOCX with one comment converts: tests/scenarios/fixtures/comment.docx, hand-made by tests/scenarios/fixtures/make_comment_docx.py. oxidestack/docx-to-pdf answered 422 on every document with a comment while libreoffice-uiconfig-writer was missing from the image.",
+  "steps": [
+    {
+      "method": "POST",
+      "path": "/pdf",
+      "multipart": [
+        {
+          "name": "document",
+          "file": "tests/scenarios/fixtures/comment.docx"
+        }
+      ]
+    }
+  ]
+}

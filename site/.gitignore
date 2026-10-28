@@ -1,0 +1,6 @@
+# The site's build output, and the pages staged from README.md and docs/guide/ on every build (scripts/stage.mjs):
+# edit those files, never a staged copy.
+/node_modules/
+/dist/
+/.astro/
+/src/content/docs/

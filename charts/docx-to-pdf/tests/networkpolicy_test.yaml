@@ -1,0 +1,79 @@
+# The pods' NetworkPolicy (templates/networkpolicy.yaml): ingress to 8080 only, egress to DNS and the
+# OTLP endpoint only.
+suite: network policy
+templates:
+  - templates/networkpolicy.yaml
+tests:
+  - it: is on by default and selects the Deployment's pods
+    release: {name: conv, namespace: documents}
+    asserts:
+      - isKind: {of: NetworkPolicy}
+      - equal: {path: metadata.namespace, value: documents}
+      - equal:
+          path: spec.podSelector.matchLabels
+          value: {app.kubernetes.io/name: docx-to-pdf, app.kubernetes.io/instance: conv}
+      - equal: {path: spec.policyTypes, value: [Ingress, Egress]}
+
+  - it: admits ingress to port 8080 only, from anywhere unless ingressFrom narrows it
+    asserts:
+      - equal: {path: spec.ingress, value: [{ports: [{protocol: TCP, port: 8080}]}]}
+
+  - it: admits ingress from the peers ingressFrom names
+    set:
+      networkPolicy:
+        ingressFrom: [{namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: gateway}}}]
+    asserts:
+      - equal:
+          path: spec.ingress
+          value:
+            - ports: [{protocol: TCP, port: 8080}]
+              from: [{namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: gateway}}}]
+
+  - it: with no OTLP endpoint, allows egress to the cluster DNS on UDP and TCP 53 only
+    asserts:
+      - equal:
+          path: spec.egress
+          value:
+            - ports: [{protocol: UDP, port: 53}, {protocol: TCP, port: 53}]
+              to:
+                - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}
+                  podSelector: {matchLabels: {k8s-app: kube-dns}}
+
+  - it: with an OTLP endpoint, adds egress to its port, at the peers otlpTo names
+    set:
+      otel: {endpoint: "http://otel-collector.observability:4318"}
+      networkPolicy:
+        otlpTo: [{namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: observability}}}]
+    asserts:
+      - lengthEqual: {path: spec.egress, count: 2}
+      - equal:
+          path: spec.egress[1]
+          value:
+            ports: [{protocol: TCP, port: 4318}]
+            to: [{namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: observability}}}]
+
+  - it: takes the port from the endpoint's scheme when it names none, to any address when otlpTo is empty
+    set:
+      otel: {endpoint: "https://collector.example.com/otlp"}
+    asserts:
+      - equal: {path: "spec.egress[1]", value: {ports: [{protocol: TCP, port: 443}]}}
+
+  - it: allows DNS anywhere when dnsTo is empty
+    set:
+      networkPolicy: {dnsTo: []}
+    asserts:
+      - equal: {path: spec.egress, value: [{ports: [{protocol: UDP, port: 53}, {protocol: TCP, port: 53}]}]}
+
+  - it: refuses an OTLP endpoint whose port it cannot tell
+    set:
+      otel: {endpoint: "otel-collector:4317"}
+    asserts:
+      - failedTemplate:
+          errorPattern: "otel.endpoint \"otel-collector:4317\" is not http\\(s\\)://host\\[:port\\]"
+
+  - it: is left out when disabled
+    set:
+      networkPolicy: {enabled: false}
+      otel: {endpoint: "http://otel-collector.observability:4318"}
+    asserts:
+      - hasDocuments: {count: 0}

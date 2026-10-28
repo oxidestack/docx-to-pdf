@@ -1,0 +1,154 @@
+{{- $owned := list "DOCX_TO_PDF_POOL_SIZE" "POOL_SIZE" "pool.size" "DOCX_TO_PDF_INSTANCE_HARD_MEMORY" "DOCX_TO_PDF_SHUTDOWN_GRACE" "DOCX_TO_PDF_PROBE_PORT" "DOCX_TO_PDF_PORT" "SERVER_PORT" }}
+{{- range $name, $_ := .Values.config }}
+{{- if has $name $owned }}
+{{- fail (printf "config.%s: set it through its own value (poolSize, instanceHardMemoryMiB, shutdownGraceSeconds, probePort; the port is 8080)" $name) }}
+{{- end }}
+{{- end }}
+{{- if lt (int .Values.poolSize) 1 }}
+{{- fail "poolSize must be at least 1" }}
+{{- end }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "docx-to-pdf.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "docx-to-pdf.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  {{- with .Values.strategy }}
+  strategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "docx-to-pdf.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "docx-to-pdf.labels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "docx-to-pdf.serviceAccountName" . }}
+      automountServiceAccountToken: false
+      restartPolicy: Always
+      # A Service named docx-to-pdf makes Kubernetes inject DOCX_TO_PDF_PORT=tcp://<ip>:8080 into every pod of the
+      # namespace, which the service reads as its port setting and refuses. No service links here,
+      # and the port is set explicitly below so another release's links cannot reach it either.
+      enableServiceLinks: false
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      # The service stops within the grace plus about 40 s (docs/guide/operations.md, "Stopping").
+      terminationGracePeriodSeconds: {{ add (int .Values.preStopSleepSeconds) (int .Values.shutdownGraceSeconds) 40 }}
+      containers:
+        - name: docx-to-pdf
+          image: {{ include "docx-to-pdf.image" . | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: DOCX_TO_PDF_PORT
+              value: "8080"
+            - name: DOCX_TO_PDF_POOL_SIZE
+              value: {{ .Values.poolSize | quote }}
+            - name: DOCX_TO_PDF_INSTANCE_HARD_MEMORY
+              value: {{ printf "%dMiB" (int .Values.instanceHardMemoryMiB) | quote }}
+            - name: DOCX_TO_PDF_SHUTDOWN_GRACE
+              value: {{ printf "%ds" (int .Values.shutdownGraceSeconds) | quote }}
+            {{- with .Values.probePort }}
+            - name: DOCX_TO_PDF_PROBE_PORT
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with .Values.otel.endpoint }}
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with .Values.otel.protocol }}
+            - name: OTEL_EXPORTER_OTLP_PROTOCOL
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with .Values.otel.resourceAttributes }}
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: {{ . | quote }}
+            {{- end }}
+            {{- range $name, $value := .Values.config }}
+            - name: {{ $name }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- with .Values.startupProbe }}
+          startupProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if gt (int .Values.preStopSleepSeconds) 0 }}
+          lifecycle:
+            preStop:
+              sleep:
+                seconds: {{ int .Values.preStopSleepSeconds }}
+          {{- end }}
+          resources:
+            {{- include "docx-to-pdf.resources" . | trim | nindent 12 }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            {{- if .Values.fonts }}
+            - name: fonts
+              mountPath: /usr/share/fonts/custom
+              readOnly: true
+            {{- end }}
+      volumes:
+        # The only writable directory: profiles, documents, PDFs and fontconfig's cache (docs/guide/operations.md, "The container").
+        - name: tmp
+          emptyDir:
+            {{- if eq .Values.tmp.medium "Memory" }}
+            medium: Memory
+            sizeLimit: {{ include "docx-to-pdf.tmpfsMiB" . }}Mi
+            {{- else if gt (int .Values.tmp.sizeMiB) 0 }}
+            sizeLimit: {{ int .Values.tmp.sizeMiB }}Mi
+            {{- else }}
+            {}
+            {{- end }}
+        {{- with .Values.fonts }}
+        - name: fonts
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

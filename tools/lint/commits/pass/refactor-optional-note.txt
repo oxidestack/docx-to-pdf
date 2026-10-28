@@ -1,0 +1,7 @@
+refactor(telemetry): name the span attributes in one place
+
+```release-note
+NONE
+```
+
+Signed-off-by: Jane Doe <jane@example.org>

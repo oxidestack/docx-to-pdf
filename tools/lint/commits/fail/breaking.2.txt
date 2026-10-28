@@ -1,0 +1,8 @@
+feat(config): drop the pool.size alias
+
+```release-note
+`pool.size` is no longer read: set `DOCX_TO_PDF_POOL_SIZE` instead.
+```
+
+BREAKING-CHANGE: set DOCX_TO_PDF_POOL_SIZE instead of pool.size.
+Signed-off-by: Jane Doe <jane@example.org>

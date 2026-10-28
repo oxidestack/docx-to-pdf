@@ -1,0 +1,11 @@
+/target
+*.swp
+.DS_Store
+__pycache__/
+
+# Visual review batches: renderings generated for a review by eye, never committed
+/review/
+
+# The bench (tools/bench/): generated documents and run results, never committed
+/.bench/
+

@@ -1,0 +1,16 @@
+# ruff (the `ruff` gate: `make lint ONLY=ruff`): the tracked Python, lint and format. The tree's width is
+# 120 columns, as its Rust and Markdown are. An accepted finding is a `# noqa: <rule>` on its line with the reason.
+line-length = 120
+# The oldest Python a tool here runs on: python3 on a contributor's machine (3.12 and newer); CI runs 3.14.
+target-version = "py312"
+
+[lint]
+# pycodestyle, pyflakes, import order, bugbear, and pyupgrade's rewrites for that version.
+select = ["E", "W", "F", "I", "B", "UP"]
+
+[lint.per-file-ignores]
+# Test documents built from literal markup (WordprocessingML, ODF, RTF): a document's XML is one string, and splitting
+# it at 120 columns would only scatter it. The code around it is held to the width by the formatter.
+"image/egress/documents.py" = ["E501"]
+"image/egress/listener.py" = ["E501"]
+"tests/scenarios/fixtures/make_comment_docx.py" = ["E501"]

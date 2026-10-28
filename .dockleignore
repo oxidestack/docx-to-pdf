@@ -1,0 +1,10 @@
+# Dockle's accepted findings for the service's image (`make image-lint ONLY=dockle`, which fails at INFO).
+# One rule per line, the reason above it. Everything else Dockle checks is fixed in the Dockerfile.
+
+# Content trust is Docker's Notary v1 signing, which Docker Hub has retired. Every image the build reads is pinned by
+# digest instead, and the release signs the image with cosign.
+CIS-DI-0005
+
+# No HEALTHCHECK: the image carries no HTTP client to run one, and Kubernetes ignores the instruction; the chart probes
+# GET /livez and GET /readyz on 8080, and a compose file can do the same from outside.
+CIS-DI-0006

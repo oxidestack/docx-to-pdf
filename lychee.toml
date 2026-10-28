@@ -1,0 +1,20 @@
+# lychee (the `links` gate: `make lint ONLY=links`): the links in the tracked Markdown. A push checks the
+# repository's own links offline (a file, a directory, an #anchor in a Markdown file); `LINKS_EXTERNAL=1` checks the
+# web too, and that run is never a push gate, so a site elsewhere being down does not block a merge.
+
+# An #anchor must name a heading of the file it points into.
+include_fragments = "full"
+no_progress = true
+
+# The external run: patient with slow or rate-limiting sites, and cached for a day (tools/lint/lint.sh).
+max_retries = 4
+retry_wait_time = 4
+timeout = 30
+# 429: a site that rate-limits a checker is up.
+accept = ["200..=299", "429"]
+
+exclude = [
+  # Local endpoints the documentation shows a reader calling on their own machine or cluster.
+  '^https?://localhost(:\d+)?(/|$)',
+  '^https?://127\.0\.0\.1(:\d+)?(/|$)',
+]

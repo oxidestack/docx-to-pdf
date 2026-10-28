@@ -1,0 +1,3 @@
+style: rewrap the README
+
+Signed-off-by: Jane Doe <jane@example.org>

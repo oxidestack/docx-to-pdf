@@ -1,0 +1,9 @@
+# Trivy's accepted findings for the service's image (`make image-lint ONLY=trivy`). The gate fails on a
+# fixable HIGH or CRITICAL finding; an entry here is one we cannot fix ourselves (the fix is not in the snapshot the
+# image pins, or not in Debian yet), and tools/lint/image.sh refuses an entry without both of:
+#   statement:   why it is accepted, and what ends it (a SNAPSHOT bump, a crate release)
+#   expired_at:  the date it stops being ignored, at most three months out, so it is looked at again
+# Format: https://trivy.dev/latest/docs/configuration/filtering/#trivyignoreyaml
+vulnerabilities: []
+misconfigurations: []
+secrets: []

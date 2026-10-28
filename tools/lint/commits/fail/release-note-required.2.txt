@@ -1,0 +1,4 @@
+refactor(config)!: rename the pool setting
+
+BREAKING-CHANGE: set DOCX_TO_PDF_POOL_SIZE instead of POOL_SIZE.
+Signed-off-by: Jane Doe <jane@example.org>

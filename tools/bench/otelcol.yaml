@@ -1,0 +1,19 @@
+# The bench's Collector: receives all three signals over OTLP and drops them, so a tracing-on run pays the service's
+# own export cost and nothing downstream.
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+exporters:
+  nop:
+service:
+  telemetry:
+    metrics:
+      level: none
+  pipelines:
+    traces: {receivers: [otlp], exporters: [nop]}
+    metrics: {receivers: [otlp], exporters: [nop]}
+    logs: {receivers: [otlp], exporters: [nop]}

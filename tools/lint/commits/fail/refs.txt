@@ -1,0 +1,4 @@
+docs(chart): describe the values
+
+Refs: the pool issue
+Signed-off-by: Jane Doe <jane@example.org>

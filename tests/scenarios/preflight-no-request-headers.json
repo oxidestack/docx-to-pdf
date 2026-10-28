@@ -1,0 +1,19 @@
+{
+  "description": "A preflight that requests no headers gets no Access-Control-Allow-Headers.",
+  "steps": [
+    {
+      "method": "OPTIONS",
+      "path": "/pdf",
+      "headers": [
+        ["Origin", "http://a.example"],
+        ["Access-Control-Request-Method", "POST"]
+      ],
+      "compare": [
+        "access-control-allow-origin",
+        "access-control-allow-methods",
+        "access-control-allow-headers",
+        "access-control-max-age"
+      ]
+    }
+  ]
+}

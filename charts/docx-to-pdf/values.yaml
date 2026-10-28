@@ -1,0 +1,203 @@
+# Values for charts/docx-to-pdf. Every setting of the service is an environment variable
+# (docs/guide/configuration.md); the ones the chart sizes the pod from have a value of their own here,
+# the rest go in `config`. values.schema.json holds every value to its type, and a misspelt one fails the install.
+# A `# --` comment is that value's row in README.md, which helm-docs writes (`make chart-docs`).
+
+image:
+  # -- The image to run.
+  repository: quay.io/oxidestack/docx-to-pdf
+  # -- The image tag. Empty: the chart's appVersion.
+  tag: ""
+  # -- `sha256:…`: when set, the image is pulled by digest and `tag` is ignored.
+  digest: ""
+  # -- The container's imagePullPolicy.
+  pullPolicy: IfNotPresent
+
+# -- Secrets to pull the image with, `[{name: …}]`.
+imagePullSecrets: []
+# -- Replaces the chart's name in the resources' names and the `app.kubernetes.io/name` label.
+nameOverride: ""
+# -- Replaces the resources' whole name.
+fullnameOverride: ""
+
+# -- Pods.
+replicaCount: 1
+
+# -- The Deployment's update strategy. The default starts a new pod and waits for it to be ready before it stops an
+# old one, so a rollout never lowers the conversions the release can take.
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 0
+
+# -- DOCX_TO_PDF_POOL_SIZE: LibreOffice instances, i.e. conversions in parallel. Set it to the pod's vCPU count;
+# the CPU request and the memory limit follow it.
+poolSize: 1
+
+# -- DOCX_TO_PDF_INSTANCE_HARD_MEMORY in MiB: an instance whose RSS passes it while converting is killed and the
+# request gets 413. The memory limit is sized from it so the pod cannot be OOM-killed (docs/guide/operations.md,
+# "Sizing"): 256 + poolSize × (instanceHardMemoryMiB + 256) MiB, plus the tmpfs if any. 0 (no hard limit) needs
+# `resources` set.
+instanceHardMemoryMiB: 2048
+
+# -- On SIGTERM, how long in-flight conversions may finish (DOCX_TO_PDF_SHUTDOWN_GRACE, seconds). The pod's
+# terminationGracePeriodSeconds is preStopSleepSeconds + this + 40, the time the service needs after the grace
+# to stop its instances and flush telemetry.
+shutdownGraceSeconds: 180
+
+# -- Before SIGTERM the pod sleeps this long, so endpoints and load balancers stop sending to it first. 0: none.
+preStopSleepSeconds: 5
+
+# -- Further settings, written as environment variables, e.g. `DOCX_TO_PDF_MAX_DOCUMENT_SIZE: 100MiB`,
+# `DOCX_TO_PDF_CONVERSION_TIMEOUT: 300s`, `RUST_LOG: info`. The ones the chart sets from its own values (pool size,
+# hard memory, shutdown grace, probe port, the port) are refused.
+config: {}
+
+# OpenTelemetry (docs/guide/operations.md, "Telemetry"). An empty endpoint exports nothing; /metrics is
+# served either way.
+otel:
+  # -- OTEL_EXPORTER_OTLP_ENDPOINT, e.g. `http://otel-collector.observability:4318`. Empty: no export.
+  endpoint: ""
+  # -- OTEL_EXPORTER_OTLP_PROTOCOL: `http/protobuf` (the service's default) or `grpc`; empty leaves the default.
+  protocol: ""
+  # -- OTEL_RESOURCE_ATTRIBUTES, e.g. `deployment.environment.name=prod`.
+  resourceAttributes: ""
+
+# The pods' NetworkPolicy (docs/guide/installation.md, "Network"): a conversion opens no connection, so the pod is
+# allowed ingress to the service port 8080 and egress to DNS and to the port of `otel.endpoint`, nothing else. It takes
+# effect where the cluster's network plugin enforces NetworkPolicy. Each list is of NetworkPolicy peers
+# (`podSelector`, `namespaceSelector`, `ipBlock`); an empty one allows any address on that rule's port.
+networkPolicy:
+  # -- Create the NetworkPolicy.
+  enabled: true
+  # -- Who may connect to port 8080. Empty: any pod or address.
+  ingressFrom: []
+  # -- Where DNS may be asked, on UDP and TCP 53. The default is the cluster DNS pods (`k8s-app: kube-dns` in
+  # kube-system, CoreDNS's labels on kind and the managed clusters); a node-local DNS cache needs its address here.
+  dnsTo:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+  # -- Where the OTLP collector is, on the port of `otel.endpoint` (its scheme's, 80 or 443, when it names none),
+  # e.g. `[{namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: observability}}}]`. Empty: any address on
+  # that port. No rule at all while `otel.endpoint` is empty.
+  otlpTo: []
+
+# -- The platform probe, POST /probe (docs/guide/operations.md, "Measuring a platform"): a port number turns it on.
+# It is never exposed through the Service; reach it with kubectl port-forward.
+probePort: ""
+
+# -- Extra environment entries, appended as they are (`valueFrom` allowed).
+extraEnv: []
+
+# Where a conversion's files live (docs/guide/operations.md, "/tmp: on disk or in memory").
+tmp:
+  # -- Empty: an on-disk emptyDir (recommended). `Memory`: a tmpfs, whose sizeMiB is required and is added to the
+  # memory limit.
+  medium: ""
+  # -- The tmpfs's size: poolSize × max(3 × DOCX_TO_PDF_MAX_DOCUMENT_SIZE, 256 MiB), so 256 covers pool 1 with
+  # 10 MiB documents. With an on-disk /tmp, a size above 0 caps it.
+  sizeMiB: 0
+
+# -- Fonts you hold a licence for, mounted read-only at /usr/share/fonts/custom: any volume source, e.g.
+# `{secret: {secretName: licensed-fonts}}`.
+fonts: {}
+
+# -- Empty: requests and limits are computed (CPU request = poolSize; memory request = limit = the formula of
+# `instanceHardMemoryMiB`). Set it to replace them wholesale.
+resources: {}
+
+podDisruptionBudget:
+  # -- A PodDisruptionBudget for the pods.
+  enabled: true
+  # -- One of the two; with replicaCount 1, maxUnavailable 1 lets a node drain.
+  maxUnavailable: 1
+  # -- Takes the place of maxUnavailable when set.
+  minAvailable: ""
+
+service:
+  # -- The Service's type.
+  type: ClusterIP
+  # -- The Service's port; the pod listens on 8080.
+  port: 8080
+  # -- The Service's annotations.
+  annotations: {}
+
+# A prometheus-operator ServiceMonitor for /metrics.
+serviceMonitor:
+  # -- Create the ServiceMonitor (needs the prometheus-operator CRDs).
+  enabled: false
+  # -- The scrape interval.
+  interval: 30s
+  # -- The scrape timeout.
+  scrapeTimeout: 10s
+  # -- Labels for the ServiceMonitor, e.g. the one your Prometheus selects.
+  labels: {}
+
+# -- The pod's annotations.
+podAnnotations: {}
+# -- The pod's extra labels.
+podLabels: {}
+
+# The service never calls the Kubernetes API, and no pod mounts a token.
+serviceAccount:
+  # -- Create a ServiceAccount.
+  create: false
+  # -- Its name; empty: the release's full name when created, `default` otherwise.
+  name: ""
+  # -- Its annotations.
+  annotations: {}
+
+# -- The pod's securityContext: a non-root user, the runtime's default seccomp profile.
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  runAsGroup: 10001
+  fsGroup: 10001
+  seccompProfile:
+    type: RuntimeDefault
+
+# -- The container's securityContext: a read-only root, no privilege escalation, no capability.
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: [ALL]
+
+# -- The startup probe (docs/guide/operations.md, "Health checks"): 120 s, above
+# 3 × DOCX_TO_PDF_INSTANCE_START_TIMEOUT + 1.5 s.
+startupProbe:
+  httpGet: {path: /readyz, port: http}
+  periodSeconds: 2
+  failureThreshold: 60
+# -- The liveness probe.
+livenessProbe:
+  httpGet: {path: /livez, port: http}
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 3
+# -- The readiness probe.
+readinessProbe:
+  httpGet: {path: /readyz, port: http}
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 2
+
+# -- The pod's nodeSelector.
+nodeSelector: {}
+# -- The pod's tolerations.
+tolerations: []
+# -- The pod's affinity.
+affinity: {}
+# -- The pod's topologySpreadConstraints.
+topologySpreadConstraints: []
+
+test:
+  # -- A `helm test` pod that converts a small RTF document through the Service.
+  enabled: true
+  # -- The test pod's image: any image with sh and curl.
+  image: curlimages/curl:8.16.0@sha256:463eaf6072688fe96ac64fa623fe73e1dbe25d8ad6c34404a669ad3ce1f104b6

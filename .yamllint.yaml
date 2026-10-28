@@ -1,0 +1,20 @@
+# yamllint (the `yamllint` gate: `make lint ONLY=yamllint`): yamllint's default rules on the tracked YAML,
+# strict, so a warning fails too. What differs from the default, and why:
+extends: default
+
+ignore: |
+  # Go templates, not YAML until rendered: the chart gates (chart-lint, chart-kubeconform) check what they render.
+  charts/*/templates/
+
+rules:
+  # The tree's width, as its Rust, Python and Markdown.
+  line-length:
+    max: 120
+    # `image: <ref>@sha256:<digest>` and the like: one value with no space in it cannot be wrapped.
+    allow-non-breakable-inline-mappings: true
+  # One-document files: a leading `---` would say nothing.
+  document-start: disable
+  # GitHub's and GitRiver's workflows key their triggers `on:`, which YAML 1.1 reads as a boolean; the keys are the
+  # tools' and not ours to rename. Values still have to be true or false.
+  truthy:
+    check-keys: false

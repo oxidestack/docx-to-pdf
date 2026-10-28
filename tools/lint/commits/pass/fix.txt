@@ -1,0 +1,12 @@
+fix(pool): replace an instance that dies during start
+
+A failed start was retried once and then left the slot empty, so the
+pool ran one instance short until restart. It is now retried like any
+replacement, a bounded number of times.
+
+```release-note
+A LibreOffice instance that dies while starting is replaced, so the
+service no longer runs with one instance fewer than configured.
+```
+
+Signed-off-by: Jane Doe <jane@example.org>

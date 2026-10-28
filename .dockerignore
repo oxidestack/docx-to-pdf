@@ -1,0 +1,12 @@
+# The image's build context is the repository root (Dockerfile); only what it copies goes in.
+*
+!Cargo.toml
+!Cargo.lock
+!LICENSE
+!NOTICE
+!src/
+!upstream/docx-to-pdf/fonts/DroidKufi-Regular.ttf
+!upstream/docx-to-pdf/fonts/DroidKufi-Bold.ttf
+!upstream/docx-to-pdf/fonts/Cantarell-ExtraBold.otf
+!tools/instance-test/fontconfig/
+!image/fontconfig/

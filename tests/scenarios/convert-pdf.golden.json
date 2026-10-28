@@ -1,0 +1,20 @@
+{
+  "recordedFrom": "docker.io/moalhaddar/docx-to-pdf@sha256:14497d940936fe346cf74ce9c65bfa1eaff71487371888bd864777fd63a386c3",
+  "results": [
+    {
+      "status": 200,
+      "headers": [
+        "vary: Origin",
+        "vary: Access-Control-Request-Method",
+        "vary: Access-Control-Request-Headers",
+        "content-type: application/pdf",
+        "content-length: 4992",
+        "date: <date>",
+        "connection: close"
+      ],
+      "body": {
+        "pdf": "convert-pdf.1.golden.pdf"
+      }
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+docs(chart): describe the values
+
+The values had no description in the README, so an operator read the template.
+
+Signed-off-by: Jane Doe <jane@example.org>

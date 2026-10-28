@@ -1,0 +1,13 @@
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: The idea
+      description: What you would like docx-to-pdf to do, and the task behind it.
+    validations:
+      required: true
+  - type: textarea
+    id: today
+    attributes:
+      label: How you manage today
+      description: A workaround, another tool, or nothing yet.

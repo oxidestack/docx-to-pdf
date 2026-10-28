@@ -1,0 +1,16 @@
+{
+  "description": "Expect: 100-continue gets the interim 100, then the PDF.",
+  "steps": [
+    {
+      "method": "POST",
+      "path": "/pdf",
+      "multipart": [
+        {
+          "name": "document",
+          "file": "upstream/docx-to-pdf/examples/ex1/input.docx"
+        }
+      ],
+      "expectContinue": true
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+apiVersion: v2
+name: docx-to-pdf
+description: An HTTP service that converts DOCX, DOC, ODT and RTF documents to PDF with LibreOffice.
+type: application
+# The chart's own version; appVersion is the image tag it installs by default (the release sets both from its tag).
+version: 0.1.0
+appVersion: "0.1.0"
+# 1.30: the preStop sleep action (preStopSleepSeconds).
+kubeVersion: ">=1.30.0-0"
+keywords: [docx, pdf, libreoffice, converter]
+home: https://github.com/oxidestack/docx-to-pdf
+sources:
+  - https://github.com/oxidestack/docx-to-pdf
+maintainers:
+  - name: Vitaly Kustov
+    email: kustov.vitalik@gmail.com
+annotations:
+  # The chart's licence, the code's: Artifact Hub shows it.
+  artifacthub.io/license: Apache-2.0

@@ -1,0 +1,17 @@
+docs: describe the pool settings in the README
+
+A URL alone on its line and a command may be longer than the body's
+width:
+
+https://github.com/oxidestack/docx-to-pdf/blob/main/docs/guide/configuration.md#the-pool
+
+```sh
+make lint ONLY=commits,workflows,shell,yamllint COMMITS_BASE=1a2b3c4d5e6f
+```
+
+    docker run --rm -p 8080:8080 quay.io/oxidestack/docx-to-pdf:1.0.0 --help
+
+Refs: #12, 1a2b3c4
+Co-authored-by: John Roe <john@example.org>
+Signed-off-by: Jane Doe <jane@example.org>
+Signed-off-by: John Roe <john@example.org>

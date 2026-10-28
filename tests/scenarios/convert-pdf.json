@@ -1,0 +1,15 @@
+{
+  "description": "POST /pdf with upstream's ex1 answers 200 with its PDF.",
+  "steps": [
+    {
+      "method": "POST",
+      "path": "/pdf",
+      "multipart": [
+        {
+          "name": "document",
+          "file": "upstream/docx-to-pdf/examples/ex1/input.docx"
+        }
+      ]
+    }
+  ]
+}
