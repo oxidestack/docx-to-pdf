@@ -22,7 +22,8 @@ The worklog rule: the worklog — the tickets, the decision records, the researc
 files — lives in a private repository of its own, and the code repository never names it. With the rule on, a tracked
 worklog path (WORKLOG_DIRS, WORKLOG_FILES, an agents' instruction file anywhere) fails, and so does a reference to the
 worklog (REFERENCES) in a tracked file or a checked commit message: a ticket, decision record or research number
-(`ticket NNNN`, `Ticket NNNN:`, `tickets NNNN and NNNN`, `ADR NNNN`, `research NNNN`), a ticket's possessive
+(`ticket NNNN`, `Ticket NNNN:`, `tickets NNNN and NNNN`, `ADR NNNN`, `research NNNN`, and in an identifier
+`adr_NNNN`, `TICKET_NNNN`, `AdrNNNN`), a ticket's possessive
 (`NNNN's`), the worklog's commit conventions (`Land NNNN: …`, `Close NNNN-NNNN`), or a worklog path named in text;
 NNNN is four digits, the first a zero. The patterns are case-insensitive and run over a whole text, so a reference
 split across lines, comment leaders between its words included, is found. A commit message is held stricter still
@@ -102,6 +103,14 @@ REFERENCES = [
         rb"\b(?:tickets?|adrs?|research(?:" + SEP + rb"notes?)?|items?|branch(?:es)?)" + SEP + NUMBER,
     ),
     ("a decision record or research number", rb"\b(?:adrs?|research)" + SEP + rb"\d{4}\b"),
+    # The same words joined to the number in an identifier, where `\b` does not fall: `adr_NNNNs_status`,
+    # `RESEARCH_NNNN`, `AdrNNNN`. The word starts the identifier or follows an underscore or, camelCase, a lower-case
+    # letter; the number is not followed by another digit.
+    (
+        "a ticket, decision record or research number in an identifier",
+        rb"(?:(?<![a-z0-9])|(?-i:(?<=[a-z])(?=[A-Z])))"
+        rb"(?:tickets?|adrs?|research(?:_*notes?)?|items?)_*0\d{3}[a-z]?(?!\d)",
+    ),
     ("a ticket's possessive", rb"\b0\d{3}[a-z]?(?:'|\xe2\x80\x99)s\b"),
     ("a worklog commit convention", rb"\b(?:land(?:s|ed|ing)?|close[sd]?|closing|file[sd]?|filing)" + SEP + NUMBER),
     ("a range of tickets", rb"\b0\d{3}[a-z]?[ \t]*(?:-|\xe2\x80\x93)[ \t]*" + NUMBER),

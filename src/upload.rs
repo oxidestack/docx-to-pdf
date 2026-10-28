@@ -768,7 +768,7 @@ mod tests {
     }
 
     #[test]
-    fn each_error_has_adr_0005s_status() {
+    fn each_upload_error_maps_to_its_http_status() {
         use axum::http::StatusCode;
         for (error, status) in [
             (UploadError::NotMultipart, StatusCode::BAD_REQUEST),

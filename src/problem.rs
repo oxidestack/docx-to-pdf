@@ -136,7 +136,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn every_situation_has_adr_0005s_status_and_a_problem_document() {
+    async fn every_problem_has_its_http_status_and_a_problem_json_body() {
         for (problem, status) in [
             (Problem::BadRequest("x"), 400),
             (Problem::NotFound, 404),

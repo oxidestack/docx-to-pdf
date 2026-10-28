@@ -401,6 +401,33 @@ class TheWorklogRule(Case):
         )
         self.assertPasses(self.check(r))
 
+    def test_a_reference_in_an_identifier_fails_whatever_its_case(self):
+        r = self.repo()
+        lines = [
+            "fn each_error_has_ad|r_0005s_status() {}",
+            "fn ticke|t_0123() {}",
+            "const RESEARC|H_0026: u8 = 1;",
+            "let research_not|e_0021 = 1;",
+            "let dispatch_ite|m_0162 = 1;",
+            "struct Ad|r0005;",
+            "fn testAd|r0005() {}",
+            "let tickets__01|23b = 1;",
+        ]
+        r.commit(**{"a.rs": "".join(planted(line) + "\n" for line in lines)})
+        out = self.check(r)
+        self.assertFails(out, *[f"a.rs:{n}: worklog reference" for n in range(1, len(lines) + 1)])
+
+    def test_identifiers_that_are_not_references_pass(self):
+        r = self.repo()
+        r.commit(
+            **{
+                "a.rs": "const STATUS_0404: u16 = 404; let date_2026_10_28 = 1; let items_count = 0x0005;\n"
+                "fn quadr_0123() {} let ladder_0123 = 1; let address_0005 = 1; let tickets_2048 = 1;\n"
+                "fn adrenaline_0005() {} let ticketing_0140 = 1; let researcher_0026 = 1; let item_00051 = 1;\n"
+            }
+        )
+        self.assertPasses(self.check(r))
+
     def test_a_commit_message_is_held_stricter_any_ticket_number_alone_fails(self):
         r = self.repo()
         a = r.commit(planted("01|65: tools say their reasons in place"))
