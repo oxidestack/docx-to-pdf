@@ -13,8 +13,9 @@
 #
 # The caller grants the deploy job's permissions, since a called workflow can narrow its caller's and never widen
 # them. `build` runs on every push and pull request: `make site` in the pinned node image, which checks the lockfile's
-# licences and fails on a broken internal link or anchor. `deploy` publishes the build on a push to `main` alone; it
-# needs the repository's Settings → Pages → Source set to GitHub Actions. Every action is pinned by commit.
+# licences and fails on a broken internal link or anchor. `deploy` publishes the build on a push to `main` alone, and
+# only while the repository is public: GitHub Pages refuses a private repository of a Free organisation. It needs the
+# repository's Settings → Pages → Source set to GitHub Actions. Every action is pinned by commit.
 name: site
 
 on:
@@ -40,7 +41,7 @@ jobs:
 
   deploy:
     name: deploy
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && !github.event.repository.private
     needs: [build]
     runs-on: ubuntu-24.04
     timeout-minutes: 10

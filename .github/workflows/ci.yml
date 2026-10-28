@@ -1,0 +1,520 @@
+# The gate for docx-to-pdf on GitHub Actions: .gitriver/workflows/ci.yml (the private mirror's GitRiver), job for job.
+# A gate change goes to both files in the same commit, and tools/lint/check-pins.rb (the `workflows` gate) holds the
+# `lint-*` jobs of both to the pinned images of tools/lint/images.Dockerfile, so a gate cannot drift between them.
+#
+# One workflow, so one run per push: the jobs in parallel, no `needs:`, every failure of a push in one run. Where this
+# file differs from GitRiver's, it is GitHub's dialect or GitHub's runners, not the gate:
+# - `container:` names a job's image (GitRiver's `image:`), and `timeout-minutes:` its deadline. The runners are
+#   GitHub-hosted, two vCPUs on a private repository, four on a public one, so the jobs that compile get more time.
+# - The lint and test jobs run on x64 (`ubuntu-24.04`): GitRiver's runners are arm64, so between the two forges the
+#   tests run on both architectures. x64 also because the runner starts a JavaScript action (checkout, cache) in an
+#   Alpine container on x64 only.
+# - The image job is a matrix, amd64 on `ubuntu-24.04` and arm64 on `ubuntu-24.04-arm`, each native: never emulated.
+#   The runner's VM has its own Docker, so tools/ci/image-job.sh starts its second container from the host (`host`).
+# - No `lockhash` job: actions/cache keys on `hashFiles('Cargo.lock')` itself. Only the cargo registry is cached, and
+#   only from a job that passed, as on GitRiver.
+# - `actions/checkout` clones depth 1, as GitRiver's runner does; `lint-commits` takes the whole history instead,
+#   and the image job the submodule.
+# - The `site` job is site.yml, a reusable workflow, called here so that it is no second run; it deploys GitHub Pages
+#   on a push to `main` of the public repository alone.
+#
+# Every action is pinned by its full commit, its release in a comment; every checkout keeps no credential.
+
+name: CI
+
+# Every push to every branch and every pull request once the repository is public, and a manual run (`gh workflow
+# run ci.yml`, or Actions → CI → Run workflow) at any time: a pull request's run is the one that checks its commits
+# from its base (`lint-commits`), and a fork's pull request has no push of its own here.
+#
+# While the repository is private, a push or a pull request starts no job: every job carries the same `if:`, so such
+# a run is all skipped and bills no minute, and a manual run is the whole CI. Publishing the repository turns the
+# automatic runs on with no edit here. An `if:` per job rather than one gate job the others need: a gate job is itself
+# a job, billed at least a minute on every push, and a `needs:` on it would hold every job behind it.
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+# A newer run of the same kind on the same branch (or pull request) cancels this workflow's run still going there, but
+# on `main`: there each push keeps its whole result, and a GitHub Pages deployment is never cut off half-way. The
+# event is in the group, so a push's skipped run never cancels a manual run in progress.
+concurrency:
+  group: ci-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  # A job container never makes a second build in the same tree, so incremental artifacts are cache weight only.
+  CARGO_INCREMENTAL: "0"
+  CARGO_NET_RETRY: "3"
+  # A job container runs as root on a workspace the runner's user owns, which git refuses as a dubious ownership. The
+  # gates tell git so themselves (tools/lint/lint.sh's safe_git); this covers every other git call (make tools-test's).
+  GIT_CONFIG_COUNT: "1"
+  GIT_CONFIG_KEY_0: safe.directory
+  GIT_CONFIG_VALUE_0: "*"
+
+jobs:
+  image:
+    # `make image-ci` on each architecture's own runner (tools/ci/image-job.sh: the image built, image/test.sh, the
+    # quick start and the installation guide, egress, the scenarios, the corpus, the chart in kind, the image gates).
+    # The size gate compares with tools/lint/image-size.txt's baseline for the architecture; an architecture without
+    # one fails, printing the size to record (`make image-size-record` on a release build).
+    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
+    name: image (${{ matrix.arch }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+          submodules: true
+      # The image, its build stages, the kind node and Trivy's database outgrow the runner's free disk: drop the
+      # toolchains preinstalled for other languages, none of which the job uses.
+      - run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL
+          df -h /
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
+        with:
+          path: |
+            .cargo/registry/index
+            .cargo/registry/cache
+          key: cargo-${{ hashFiles('Cargo.lock') }}
+      # The image GitRiver's `image` job runs in.
+      - run: sh tools/ci/image-job.sh host rust:1.98.0-trixie
+
+  release-notes:
+    # tools/release's tests with their drafts, which run git-cliff in its pinned container: on the runner itself,
+    # where Docker is, so a bind mount names a path the daemon sees and RELEASE_NOTES_VOLUMES_FROM is not needed.
+    # DOCX_TO_PDF_REQUIRE_DOCKER makes a missing Docker a failure, not a skip.
+    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      DOCX_TO_PDF_REQUIRE_DOCKER: "1"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - run: python3 -m unittest discover -v -s tools/release
+
+  site:
+    # The documentation site built (`make site`: the lockfile's licences, the internal links and anchors), and
+    # deployed to GitHub Pages on a push to `main` once public. A called workflow can narrow its caller's permissions
+    # and never widen them, so the deploy's are granted here. `./`, not GitHub's `$/` that zizmor asks for: actionlint
+    # 1.7.12 refuses `$/`, and a job-level call resolves at the running commit either way, before any step has run.
+    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
+    uses: ./.github/workflows/site.yml  # zizmor: ignore[self-repository]
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+  test:
+    # Every test, LibreOfficeKit required, the scenarios converting: tools/ci/test-deps.sh turns the rust image into
+    # tools/instance-test/Dockerfile's environment (the submodule, LibreOffice from the pinned snapshot, the fonts,
+    # poppler-utils).
+    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
+    runs-on: ubuntu-24.04
+    container: rust:1.98.0-trixie
+    timeout-minutes: 90
+    env:
+      DOCX_TO_PDF_REQUIRE_LOK: "1"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
+        with:
+          path: |
+            /usr/local/cargo/registry/index
+            /usr/local/cargo/registry/cache
+          key: cargo-${{ hashFiles('Cargo.lock') }}
+      - run: sh tools/ci/test-deps.sh
+      - run: cargo test --locked --no-fail-fast
+
+  # The quality gates (tools/lint/lint.sh), each in its pinned image, character for character
+  # (tools/lint/check-pins.rb). An Alpine image gets git before the checkout, so the checkout is a git clone and not
+  # an archive, and make for `make lint-run`.
+  lint-commits:
+    # The commit messages after the base (tools/lint/commits.py): a pull request's own base, else commits.py's BASE,
+    # the public history's root. So the whole history, and a pull request's head rather than the merge commit GitHub
+    # makes, which the `merge` rule would refuse.
+    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
+    runs-on: ubuntu-24.04
+    container: python:3.14.8-alpine@sha256:f6a589d43c42b9e7f7dc67a12d37132491f362859a5d750607710cc56da3bc72
+    timeout-minutes: 5
+    env:
+      COMMITS_BASE: ${{ github.event.pull_request.base.sha }}
+    steps:
+      - run: apk add --no-cache make git
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - run: make lint-run GATE=commits
+
+  lint-fmt:
+    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
+    runs-on: ubuntu-24.04
+    container: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - run: make lint-run GATE=fmt
+
+  lint-clippy:
+    # The image the service's binary is built in (Dockerfile pins the same digest).
+    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
+    runs-on: ubuntu-24.04
+    container: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
+        with:
+          path: |
+            /usr/local/cargo/registry/index
+            /usr/local/cargo/registry/cache
+          key: cargo-${{ hashFiles('Cargo.lock') }}
+      - run: make lint-run GATE=clippy
+
+  lint-hadolint:
+    # Every Dockerfile of ours; `docker build --check` needs a daemon, so it is in the `image` job.
+    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
+    runs-on: ubuntu-24.04
+    container: hadolint/hadolint:v2.14.0-alpine@sha256:7aba693c1442eb31c0b015c129697cb3b6cb7da589d85c7562f9deb435a6657c
+    timeout-minutes: 5
+    steps:
+      - run: apk add --no-cache make git
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - run: make lint-run GATE=hadolint
+
+  lint-public:
+    # The publication gate's built-in half, then the tests of tools/.
+    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
+    runs-on: ubuntu-24.04
+    container: python:3.14.8-alpine@sha256:f6a589d43c42b9e7f7dc67a12d37132491f362859a5d750607710cc56da3bc72
+    timeout-minutes: 5
+    steps:
+      - run: apk add --no-cache make git ripgrep
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - run: make lint-run GATE=public
+      - run: make tools-test
+
+  lint-workflows:
+    # GitRiver's vendored lint on .gitriver/workflows/, then check-pins.rb on both workflows.
+    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
+    runs-on: ubuntu-24.04
+    container: ruby:3.3.12-alpine@sha256:ac11166d133f476b0c3b4ae6fa6c6301cfc9a6f4e03c0761c482f00808c96cad
+    timeout-minutes: 5
+    steps:
+      - run: apk add --no-cache make git
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - run: make lint-run GATE=workflows
+
+  lint-chart-lint:
+    # helm lint --strict with the defaults and every option on, then `ct lint`.
+    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
+    runs-on: ubuntu-24.04
+    container: quay.io/helmpack/chart-testing:v3.15.0@sha256:54317f2d93730ea9ca1236e3d79cd95d74110b8d733b6ab124e5829209b5f4e4
+    timeout-minutes: 10
+    steps:
+      - run: apk add --no-cache make git
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - run: make lint-run GATE=chart-lint
+
+  lint-chart-kubeconform:
+    # The rendered manifests against Kubernetes 1.30's and the newest release's schemas.
+    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
+    runs-on: ubuntu-24.04
+    container: quay.io/helmpack/chart-testing:v3.15.0@sha256:54317f2d93730ea9ca1236e3d79cd95d74110b8d733b6ab124e5829209b5f4e4
+    timeout-minutes: 10
+    steps:
+      - run: apk add --no-cache make git
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - run: make lint-run GATE=chart-kubeconform
+
+  lint-chart-kube-linter:
+    # kube-linter's every check on the rendered manifests (tools/lint/kube-linter.yaml).
+    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
+    runs-on: ubuntu-24.04
+    container: quay.io/helmpack/chart-testing:v3.15.0@sha256:54317f2d93730ea9ca1236e3d79cd95d74110b8d733b6ab124e5829209b5f4e4
+    timeout-minutes: 10
+    steps:
+      - run: apk add --no-cache make git
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - run: make lint-run GATE=chart-kube-linter
+
+  lint-chart-unittest:
+    # helm-unittest: charts/docx-to-pdf/tests/*_test.yaml.
+    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
+    runs-on: ubuntu-24.04
+    container: quay.io/helmpack/chart-testing:v3.15.0@sha256:54317f2d93730ea9ca1236e3d79cd95d74110b8d733b6ab124e5829209b5f4e4
+    timeout-minutes: 10
+    steps:
+      - run: apk add --no-cache make git
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - run: make lint-run GATE=chart-unittest
+
+  lint-chart-docs:
+    # The chart's README is helm-docs' output; a stale one fails (`make chart-docs` writes it).
+    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
+    runs-on: ubuntu-24.04
+    container: quay.io/helmpack/chart-testing:v3.15.0@sha256:54317f2d93730ea9ca1236e3d79cd95d74110b8d733b6ab124e5829209b5f4e4
+    timeout-minutes: 5
+    steps:
+      - run: apk add --no-cache make git
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - run: make lint-run GATE=chart-docs
+
+  lint-typos:
+    # Misspellings in the tracked files (_typos.toml).
+    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
+    runs-on: ubuntu-24.04
+    container: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - run: make lint-run GATE=typos
+
+  lint-actions:
+    # actionlint and zizmor on this directory: this file and site.yml.
+    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
+    runs-on: ubuntu-24.04
+    container: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - run: make lint-run GATE=actions
+
+  lint-shell:
+    # shellcheck at every severity and shfmt's layout on every tracked shell script.
+    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
+    runs-on: ubuntu-24.04
+    container: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - run: make lint-run GATE=shell
+
+  lint-ruff:
+    # ruff's lint and format check on the tracked Python (ruff.toml).
+    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
+    runs-on: ubuntu-24.04
+    container: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - run: make lint-run GATE=ruff
+
+  lint-yamllint:
+    # The tracked YAML, strict (.yamllint.yaml).
+    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
+    runs-on: ubuntu-24.04
+    container: quay.io/helmpack/chart-testing:v3.15.0@sha256:54317f2d93730ea9ca1236e3d79cd95d74110b8d733b6ab124e5829209b5f4e4
+    timeout-minutes: 5
+    steps:
+      - run: apk add --no-cache make git
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - run: make lint-run GATE=yamllint
+
+  lint-markdownlint:
+    # The Markdown (.markdownlint-cli2.jsonc); npm fetches the lockfile's tree.
+    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
+    runs-on: ubuntu-24.04
+    container: node:24.22.1-alpine3.24@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53
+    timeout-minutes: 5
+    steps:
+      - run: apk add --no-cache make git
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - run: make lint-run GATE=markdownlint
+
+  lint-links:
+    # The repository's own links and anchors, offline: no request leaves the job.
+    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
+    runs-on: ubuntu-24.04
+    container: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - run: make lint-run GATE=links
+
+  lint-editorconfig:
+    # Every tracked text file against .editorconfig.
+    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
+    runs-on: ubuntu-24.04
+    container: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - run: make lint-run GATE=editorconfig
+
+  lint-gitleaks:
+    # Credentials in the commits the clone has (the pushed one: depth 1, as on GitRiver) and in the tree.
+    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
+    runs-on: ubuntu-24.04
+    container: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - run: make lint-run GATE=gitleaks
+
+  lint-machete:
+    # A dependency in Cargo.toml or fuzz/Cargo.toml that no source names.
+    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
+    runs-on: ubuntu-24.04
+    container: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - run: make lint-run GATE=machete
+
+  lint-deny:
+    # cargo-deny on the service and on fuzz/: advisories, licences, bans, sources (deny.toml).
+    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
+    runs-on: ubuntu-24.04
+    container: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
+        with:
+          path: |
+            /usr/local/cargo/registry/index
+            /usr/local/cargo/registry/cache
+          key: cargo-${{ hashFiles('Cargo.lock') }}
+      - run: make lint-run GATE=deny
+
+  lint-doc:
+    # cargo doc --no-deps with rustdoc's warnings denied, private items included.
+    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
+    runs-on: ubuntu-24.04
+    container: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
+        with:
+          path: |
+            /usr/local/cargo/registry/index
+            /usr/local/cargo/registry/cache
+          key: cargo-${{ hashFiles('Cargo.lock') }}
+      - run: make lint-run GATE=doc
+
+  lint-msrv:
+    # Every target checked on Cargo.toml's rust-version.
+    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
+    runs-on: ubuntu-24.04
+    container: rust:1.88.0-trixie@sha256:f2a17efbe58b00470be6e73dbea79705a789ee20ee8de2dcdaf73c0c6091f1db
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
+        with:
+          path: |
+            /usr/local/cargo/registry/index
+            /usr/local/cargo/registry/cache
+          key: cargo-${{ hashFiles('Cargo.lock') }}
+      - run: make lint-run GATE=msrv
+
+  lint-fuzz:
+    # The fuzz targets replay their committed seeds (fuzz/seeds/).
+    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
+    runs-on: ubuntu-24.04
+    container: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
+        with:
+          path: |
+            /usr/local/cargo/registry/index
+            /usr/local/cargo/registry/cache
+          key: cargo-${{ hashFiles('Cargo.lock') }}
+      - run: make lint-run GATE=fuzz
+
+  lint-coverage:
+    # The tests under cargo llvm-cov, failing below the floor; the report is the job's artifact.
+    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
+    runs-on: ubuntu-24.04
+    container: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
+        with:
+          path: |
+            /usr/local/cargo/registry/index
+            /usr/local/cargo/registry/cache
+          key: cargo-${{ hashFiles('Cargo.lock') }}
+      - run: make lint-run GATE=coverage
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
+        if: ${{ !cancelled() }}
+        with:
+          name: coverage
+          path: target/lint/coverage/
+          retention-days: 7
+          if-no-files-found: warn

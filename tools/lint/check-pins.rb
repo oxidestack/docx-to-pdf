@@ -55,8 +55,11 @@ gates.each do |gate, ref|
     findings << "#{workflow}: no job `#{name}` for the gate `#{gate}`"
     next
   end
-  if job["image"] != ref
-    findings << "#{workflow}: job `#{name}` runs in `#{job['image']}`, tools/lint/images.Dockerfile pins `#{ref}`"
+  # GitRiver names a job's image `image:`; GitHub Actions `container:`, a string or a mapping with `image:`.
+  container = job["container"]
+  image = job.key?("image") ? job["image"] : (container.is_a?(Hash) ? container["image"] : container)
+  if image != ref
+    findings << "#{workflow}: job `#{name}` runs in `#{image}`, tools/lint/images.Dockerfile pins `#{ref}`"
   end
   runs = (job["steps"] || []).map { |s| s.is_a?(Hash) ? s["run"].to_s : "" }
   unless runs.any? { |r| r.match?(/\bmake lint-run GATE=#{Regexp.escape(gate)}(\s|$)/) }

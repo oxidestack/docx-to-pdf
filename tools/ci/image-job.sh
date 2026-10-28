@@ -6,7 +6,14 @@
 # .gitriver/workflows/ci.yml names that runner). No other runner gives one, and nothing is pushed
 # anywhere.
 #
-#   sh tools/ci/image-job.sh          from the repository root, in the job's container (`rust:1.98.0-trixie`)
+#   sh tools/ci/image-job.sh                 from the repository root, in the job's container (`rust:1.98.0-trixie`)
+#   sh tools/ci/image-job.sh host <image>    from the repository root, on a CI host that runs Docker itself (GitHub's
+#                                            runner, .github/workflows/ci.yml): the same second container, of <image>
+#
+# On GitHub Actions the job is the runner's own VM, Docker on it, one VM per architecture: there is no job container to
+# copy settings from, the workspace's path is the same for the host and the daemon, and the submodule comes with the
+# checkout. `host` starts the same second container as below, from the image the workflow names, with no limits but
+# the VM's.
 #
 # The socket is root on the Docker host (a VM other projects share): whatever this script, `make image`
 # or the tests start runs beside every other container there. Everything it starts is named after the job and
@@ -61,37 +68,58 @@ if [ "${1:-}" = inner ]; then
 	exit 0
 fi
 
-[ -S "$SOCK" ] || {
-	echo "no Docker socket at $SOCK: this job runs only on the runner that gives its jobs the socket" >&2
-	exit 2
-}
+if [ "${1:-}" = host ]; then
+	JOB_IMAGE=${2:-}
+	[ -n "$JOB_IMAGE" ] || {
+		echo "usage: sh tools/ci/image-job.sh host <image>" >&2
+		exit 2
+	}
+	[ -S "$SOCK" ] || {
+		echo "no Docker socket at $SOCK on this host" >&2
+		exit 2
+	}
+	# The Dockerfile copies upstream's fonts: the checkout fetches the submodule (`submodules: true`).
+	[ -f upstream/docx-to-pdf/fonts/DroidKufi-Regular.ttf ] || {
+		echo "upstream/docx-to-pdf is not checked out: git submodule update --init --depth 1 upstream/docx-to-pdf" >&2
+		exit 2
+	}
+	WS=$PWD
+	HOST_SOCK=$SOCK
+	JOB=${GITHUB_RUN_ID:-$$}-${GITHUB_RUN_ATTEMPT:-1}-$(uname -m)
+	limits=""
+else
+	[ -S "$SOCK" ] || {
+		echo "no Docker socket at $SOCK: this job runs only on the runner that gives its jobs the socket" >&2
+		exit 2
+	}
 
-# The submodule (the Dockerfile copies upstream's fonts), into the workspace both containers share; then the CLI
-# only, to read this container's own settings and start the second one.
-sh tools/ci/test-deps.sh base
-apt_install docker-cli
+	# The submodule (the Dockerfile copies upstream's fonts), into the workspace both containers share; then the CLI
+	# only, to read this container's own settings and start the second one.
+	sh tools/ci/test-deps.sh base
+	apt_install docker-cli
 
-# A container's hostname is its short id unless the runner sets one; it does not (2026-10-21, `docker inspect`).
-SELF=$(hostname)
-mount_of() {
-	docker inspect --type container -f "{{range .Mounts}}{{if eq .Destination \"$1\"}}{{.Source}}{{end}}{{end}}" "$SELF"
-}
-WS=$(mount_of /workspace)
-HOST_SOCK=$(mount_of "$SOCK")
-[ -n "$WS" ] && [ -n "$HOST_SOCK" ] || {
-	echo "cannot find this job's /workspace and socket mounts on the Docker host (container $SELF)" >&2
-	exit 2
-}
-JOB_IMAGE=$(docker inspect --type container -f '{{.Config.Image}}' "$SELF")
-MEMORY=$(docker inspect --type container -f '{{.HostConfig.Memory}}' "$SELF")
-CGROUP=$(docker inspect --type container -f '{{.HostConfig.CgroupParent}}' "$SELF")
-JOB=${CI_JOB_ID:-$SELF}
+	# A container's hostname is its short id unless the runner sets one; it does not (2026-10-21, `docker inspect`).
+	SELF=$(hostname)
+	mount_of() {
+		docker inspect --type container -f "{{range .Mounts}}{{if eq .Destination \"$1\"}}{{.Source}}{{end}}{{end}}" "$SELF"
+	}
+	WS=$(mount_of /workspace)
+	HOST_SOCK=$(mount_of "$SOCK")
+	[ -n "$WS" ] && [ -n "$HOST_SOCK" ] || {
+		echo "cannot find this job's /workspace and socket mounts on the Docker host (container $SELF)" >&2
+		exit 2
+	}
+	JOB_IMAGE=$(docker inspect --type container -f '{{.Config.Image}}' "$SELF")
+	MEMORY=$(docker inspect --type container -f '{{.HostConfig.Memory}}' "$SELF")
+	CGROUP=$(docker inspect --type container -f '{{.HostConfig.CgroupParent}}' "$SELF")
+	JOB=${CI_JOB_ID:-$SELF}
+
+	limits=""
+	[ "$MEMORY" = 0 ] || limits="--memory $MEMORY --memory-swap $MEMORY"
+	[ -z "$CGROUP" ] || limits="$limits --cgroup-parent $CGROUP"
+fi
 IMAGE=${IMAGE:-docx-to-pdf-ci:$JOB}
 NAME=docx-to-pdf-ci-image-$JOB
-
-limits=""
-[ "$MEMORY" = 0 ] || limits="--memory $MEMORY --memory-swap $MEMORY"
-[ -z "$CGROUP" ] || limits="$limits --cgroup-parent $CGROUP"
 
 # A cancelled job stops this script, not the container it started: remove it, and the image, on the way out.
 cleanup() {

@@ -243,7 +243,12 @@ gate_run() {
 		# of the `workflows` gate is the one that knows it. Until .github/workflows/ holds a workflow there is nothing
 		# to check (.github/'s issue, pull request and discussion templates are no input for either tool, and zizmor
 		# fails on "no inputs collected"), which the gate says and passes on; the day one lands, these run on it.
-		if ! ls .github/workflows/*.yml .github/workflows/*.yaml > /dev/null 2>&1; then
+		# Any one file of either extension is a workflow (`ls` of both patterns fails when either matches nothing).
+		workflow=""
+		for f in .github/workflows/*.yml .github/workflows/*.yaml; do
+			[ -f "$f" ] && workflow=$f && break
+		done
+		if [ -z "$workflow" ]; then
 			echo "actions: no workflow in .github/workflows/ yet, nothing for actionlint and zizmor to check (skipped)"
 			return 0
 		fi
