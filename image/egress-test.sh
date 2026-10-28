@@ -83,6 +83,18 @@ docker run -d --name "$NAME-listener-$S" --network "$NAME-private-$S" --ip "$PRI
 		echo "cannot start the listener"
 		exit 2
 	}
+# A started container is not yet a bound socket: the listener's Python starts while the next containers do, and a
+# probe sent before it binds is refused (seen on a 2-vCPU runner: bound 1-2 s after the probe). Its own line says when.
+tries=0
+until docker logs "$NAME-listener-$S" 2>&1 | grep -q '"event": "listening"'; do
+	tries=$((tries + 1))
+	[ $tries -lt 60 ] || {
+		echo "the listener did not start listening in 30 s"
+		docker logs "$NAME-listener-$S" 2>&1 | tail -20
+		exit 2
+	}
+	sleep 0.5
+done
 docker run -d --name "$NAME-service-$S" --network "$NAME-private-$S" --ip "$PRIVATE.20" --user 10001:10001 --read-only \
 	--cap-drop ALL --security-opt no-new-privileges --tmpfs /tmp:rw,mode=1777,size=1g \
 	-v "$OUT/ca-bundle.crt:/etc/ssl/certs/ca-certificates.crt:ro" \
@@ -103,8 +115,10 @@ client() {
 
 # The listener answers on both networks: a connection the service opened would reach it and be logged.
 reach() { client "$1" -c "import urllib.request; urllib.request.urlopen('http://$2/probe', timeout=5)"; }
-reach private "$PRIVATE.10" && reach public "$PUBLIC.10" && ok "the listener answers on $PRIVATE.10 and $PUBLIC.10" ||
+reach private "$PRIVATE.10" && reach public "$PUBLIC.10" && ok "the listener answers on $PRIVATE.10 and $PUBLIC.10" || {
 	fail "the listener is unreachable"
+	docker logs "$NAME-listener-$S" 2>&1 | tail -20
+}
 # editorconfig-checker-disable: the Python below is indented with spaces, as Python is
 client private -c "
 import time, urllib.request
