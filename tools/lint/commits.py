@@ -76,7 +76,7 @@ NOTE_REQUIRED = ("feat", "fix", "perf")
 # appends it.
 FOOTERS = ("BREAKING-CHANGE", "Refs", "Co-authored-by", "Signed-off-by")
 # The public history's root commit, set in the commit that starts it; COMMITS_BASE overrides it.
-BASE = ""
+BASE = "661021207ce6bbd9ad7d3fa760ca95254d709792"
 HEADER_MAX = 72
 BODY_MAX = 72
 
