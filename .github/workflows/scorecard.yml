@@ -1,0 +1,78 @@
+# OpenSSF Scorecard: the repository's security practices scored (pinned actions, token permissions, branch protection,
+# code review, SAST, fuzzing, signed releases, …), the results on the Security tab and published to the Scorecard API
+# behind the README's badge.
+#
+# Weekly, on a push to `main`, and when a branch protection rule changes. Scorecard reads the default branch only.
+#
+# Publishing has rules of its own, which the Scorecard API checks against this file before it accepts a result: no
+# top-level `env` or `defaults`, no write permission at the top, and the `analysis` job with no `env`, no container and
+# no `run` step, only checkout, Scorecard, upload-artifact and upload-sarif. So this file holds nothing else.
+#
+# While the repository is private, a push starts no job (ci.yml's `if:`), and a scheduled run stops at `visibility`
+# (one minute, billed): a schedule's event carries no repository to read the visibility from, and Scorecard publishes
+# nothing and uploads nothing for a private repository of a Free organisation. A manual run (`gh workflow run
+# scorecard.yml`) scores the repository at any time; while private it keeps the SARIF as the run's artifact only.
+name: Scorecard
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '41 4 * * 1'
+  branch_protection_rule:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  visibility:
+    # A schedule's event has no `repository`, so it is asked of the API: `public` is `true` or `false`.
+    if: ${{ github.event_name == 'schedule' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    permissions:
+      contents: read  # the repository's metadata, its visibility
+    outputs:
+      public: ${{ steps.ask.outputs.public }}
+    steps:
+      - id: ask
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: echo "public=$(gh api "repos/$REPO" --jq '.private | not')" >> "$GITHUB_OUTPUT"
+
+  analysis:
+    needs: [visibility]
+    if: >-
+      ${{ !cancelled() && (github.event_name == 'workflow_dispatch'
+      || (github.event_name == 'schedule' && needs.visibility.outputs.public == 'true')
+      || (github.event_name != 'schedule' && !github.event.repository.private)) }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read  # actions/checkout and Scorecard read the repository
+      actions: read  # Scorecard reads the workflow runs (CI-Tests, Dangerous-Workflow)
+      checks: read  # Scorecard reads the check runs of recent commits (CI-Tests)
+      issues: read  # Scorecard reads the issues' activity (Maintained)
+      pull-requests: read  # Scorecard reads the merged pull requests' reviews (Code-Review)
+      security-events: write  # upload-sarif sends the results to code scanning
+      id-token: write  # Scorecard proves the run's identity to the Scorecard API when it publishes
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ossf/scorecard-action@fa7117db83c52d787ae5a89f350999701505d78e  # v2.5.0
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          publish_results: ${{ !github.event.repository.private }}
+      - if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
+        with:
+          name: scorecard
+          path: results.sarif
+          retention-days: 7
+      - if: ${{ !cancelled() && !github.event.repository.private }}
+        uses: github/codeql-action/upload-sarif@24c54180a607b1449ed407dd24f251e4e9147c8d  # v4.38.3
+        with:
+          sarif_file: results.sarif

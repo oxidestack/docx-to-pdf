@@ -11,6 +11,11 @@
 # The `workflows` gate runs it on .gitriver/workflows/ci.yml and on the default: the two CI definitions carry the
 # same jobs, so a gate cannot drift between them.
 #
+# Run on the default, it also holds every workflow of .github/workflows/ to GitHub's hardening rules, which zizmor
+# checks only in part: `permissions: {}` at the top, so each job is granted only what it uses, and every `uses:` of
+# another repository's action or workflow pinned by its full commit with the release in a comment (`@<40 hex>  # v1.2.3`),
+# so a moved tag cannot change what runs and a reader still sees which release it is.
+#
 # The default workflow not existing yet is a clean skip (exit 0, saying so); a named one that is missing is exit 2.
 # Exit 0: they agree. Exit 1: findings, one line each. Exit 2: lint.sh or the workflow cannot be read.
 # Ruby stdlib only.
@@ -68,6 +73,31 @@ gates.each do |gate, ref|
 end
 (jobs.keys.grep(/\Alint-/) - gates.keys.map { |g| "lint-#{g}" }).each do |name|
   findings << "#{workflow}: job `#{name}` is no gate of tools/lint/lint.sh (`sh tools/lint/lint.sh --list`)"
+end
+
+# GitHub's hardening rules, on every workflow of .github/workflows/ (the default run only: GitRiver's has neither).
+if ARGV[0].nil?
+  PINNED = /\A[\w.-]+\/[\w.\/-]+@[0-9a-f]{40}\z/
+  Dir.glob(".github/workflows/*.{yml,yaml}").sort.each do |file|
+    text = File.read(file)
+    wf = Psych.safe_load(text, permitted_classes: [Date, Time, Symbol], aliases: true)
+    unless wf.is_a?(Hash) && wf.key?("permissions") && wf["permissions"] == {}
+      findings << "#{file}: no `permissions: {}` at the top (grant each job what it uses)"
+    end
+    text.each_line.with_index(1) do |line, n|
+      m = line.match(/\A\s*(?:-\s+)?uses:\s*(['"]?)([^\s'"#]+)\1\s*(#.*)?$/)
+      next unless m
+      ref = m[2]
+      next if ref.start_with?("./")
+      if ref.start_with?("docker://")
+        findings << "#{file}:#{n}: `#{ref}` is not pinned by digest" unless ref.include?("@sha256:")
+      elsif !ref.match?(PINNED)
+        findings << "#{file}:#{n}: `#{ref}` is not pinned by its full commit"
+      elsif !m[3].to_s.match?(/\A#\s*v\d/)
+        findings << "#{file}:#{n}: `#{ref}` has no `# v<release>` comment"
+      end
+    end
+  end
 end
 
 findings.each { |f| puts f }

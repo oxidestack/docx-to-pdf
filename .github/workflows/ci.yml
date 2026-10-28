@@ -43,8 +43,8 @@ concurrency:
   group: ci-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
-permissions:
-  contents: read
+# Nothing at the top: each job is granted what it uses, `contents: read` for actions/checkout.
+permissions: {}
 
 env:
   CARGO_TERM_COLOR: always
@@ -74,6 +74,8 @@ jobs:
           - arch: arm64
             runner: ubuntu-24.04-arm
     runs-on: ${{ matrix.runner }}
+    permissions:
+      contents: read  # actions/checkout reads the repository
     timeout-minutes: 180
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
@@ -100,6 +102,8 @@ jobs:
     # DOCX_TO_PDF_REQUIRE_DOCKER makes a missing Docker a failure, not a skip.
     if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read  # actions/checkout reads the repository
     timeout-minutes: 10
     env:
       DOCX_TO_PDF_REQUIRE_DOCKER: "1"
@@ -127,6 +131,8 @@ jobs:
     # poppler-utils).
     if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read  # actions/checkout reads the repository
     container: rust:1.98.0-trixie
     timeout-minutes: 90
     env:
@@ -153,6 +159,8 @@ jobs:
     # makes, which the `merge` rule would refuse.
     if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read  # actions/checkout reads the repository
     container: python:3.14.8-alpine@sha256:f6a589d43c42b9e7f7dc67a12d37132491f362859a5d750607710cc56da3bc72
     timeout-minutes: 5
     env:
@@ -169,6 +177,8 @@ jobs:
   lint-fmt:
     if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read  # actions/checkout reads the repository
     container: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
     timeout-minutes: 10
     steps:
@@ -181,6 +191,8 @@ jobs:
     # The image the service's binary is built in (Dockerfile pins the same digest).
     if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read  # actions/checkout reads the repository
     container: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
     timeout-minutes: 45
     steps:
@@ -199,6 +211,8 @@ jobs:
     # Every Dockerfile of ours; `docker build --check` needs a daemon, so it is in the `image` job.
     if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read  # actions/checkout reads the repository
     container: hadolint/hadolint:v2.14.0-alpine@sha256:7aba693c1442eb31c0b015c129697cb3b6cb7da589d85c7562f9deb435a6657c
     timeout-minutes: 5
     steps:
@@ -212,6 +226,8 @@ jobs:
     # The publication gate's built-in half, then the tests of tools/.
     if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read  # actions/checkout reads the repository
     container: python:3.14.8-alpine@sha256:f6a589d43c42b9e7f7dc67a12d37132491f362859a5d750607710cc56da3bc72
     timeout-minutes: 5
     steps:
@@ -226,6 +242,8 @@ jobs:
     # GitRiver's vendored lint on .gitriver/workflows/, then check-pins.rb on both workflows.
     if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read  # actions/checkout reads the repository
     container: ruby:3.3.12-alpine@sha256:ac11166d133f476b0c3b4ae6fa6c6301cfc9a6f4e03c0761c482f00808c96cad
     timeout-minutes: 5
     steps:
@@ -239,6 +257,8 @@ jobs:
     # helm lint --strict with the defaults and every option on, then `ct lint`.
     if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read  # actions/checkout reads the repository
     container: quay.io/helmpack/chart-testing:v3.15.0@sha256:54317f2d93730ea9ca1236e3d79cd95d74110b8d733b6ab124e5829209b5f4e4
     timeout-minutes: 10
     steps:
@@ -252,6 +272,8 @@ jobs:
     # The rendered manifests against Kubernetes 1.30's and the newest release's schemas.
     if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read  # actions/checkout reads the repository
     container: quay.io/helmpack/chart-testing:v3.15.0@sha256:54317f2d93730ea9ca1236e3d79cd95d74110b8d733b6ab124e5829209b5f4e4
     timeout-minutes: 10
     steps:
@@ -265,6 +287,8 @@ jobs:
     # kube-linter's every check on the rendered manifests (tools/lint/kube-linter.yaml).
     if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read  # actions/checkout reads the repository
     container: quay.io/helmpack/chart-testing:v3.15.0@sha256:54317f2d93730ea9ca1236e3d79cd95d74110b8d733b6ab124e5829209b5f4e4
     timeout-minutes: 10
     steps:
@@ -278,6 +302,8 @@ jobs:
     # helm-unittest: charts/docx-to-pdf/tests/*_test.yaml.
     if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read  # actions/checkout reads the repository
     container: quay.io/helmpack/chart-testing:v3.15.0@sha256:54317f2d93730ea9ca1236e3d79cd95d74110b8d733b6ab124e5829209b5f4e4
     timeout-minutes: 10
     steps:
@@ -291,6 +317,8 @@ jobs:
     # The chart's README is helm-docs' output; a stale one fails (`make chart-docs` writes it).
     if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read  # actions/checkout reads the repository
     container: quay.io/helmpack/chart-testing:v3.15.0@sha256:54317f2d93730ea9ca1236e3d79cd95d74110b8d733b6ab124e5829209b5f4e4
     timeout-minutes: 5
     steps:
@@ -304,6 +332,8 @@ jobs:
     # Misspellings in the tracked files (_typos.toml).
     if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read  # actions/checkout reads the repository
     container: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
     timeout-minutes: 5
     steps:
@@ -316,6 +346,8 @@ jobs:
     # actionlint and zizmor on this directory: this file and site.yml.
     if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read  # actions/checkout reads the repository
     container: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
     timeout-minutes: 5
     steps:
@@ -328,6 +360,8 @@ jobs:
     # shellcheck at every severity and shfmt's layout on every tracked shell script.
     if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read  # actions/checkout reads the repository
     container: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
     timeout-minutes: 5
     steps:
@@ -340,6 +374,8 @@ jobs:
     # ruff's lint and format check on the tracked Python (ruff.toml).
     if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read  # actions/checkout reads the repository
     container: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
     timeout-minutes: 5
     steps:
@@ -352,6 +388,8 @@ jobs:
     # The tracked YAML, strict (.yamllint.yaml).
     if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read  # actions/checkout reads the repository
     container: quay.io/helmpack/chart-testing:v3.15.0@sha256:54317f2d93730ea9ca1236e3d79cd95d74110b8d733b6ab124e5829209b5f4e4
     timeout-minutes: 5
     steps:
@@ -365,6 +403,8 @@ jobs:
     # The Markdown (.markdownlint-cli2.jsonc); npm fetches the lockfile's tree.
     if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read  # actions/checkout reads the repository
     container: node:24.22.1-alpine3.24@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53
     timeout-minutes: 5
     steps:
@@ -378,6 +418,8 @@ jobs:
     # The repository's own links and anchors, offline: no request leaves the job.
     if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read  # actions/checkout reads the repository
     container: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
     timeout-minutes: 5
     steps:
@@ -390,6 +432,8 @@ jobs:
     # Every tracked text file against .editorconfig.
     if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read  # actions/checkout reads the repository
     container: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
     timeout-minutes: 5
     steps:
@@ -402,6 +446,8 @@ jobs:
     # Credentials in the commits the clone has (the pushed one: depth 1, as on GitRiver) and in the tree.
     if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read  # actions/checkout reads the repository
     container: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
     timeout-minutes: 5
     steps:
@@ -414,6 +460,8 @@ jobs:
     # A dependency in Cargo.toml or fuzz/Cargo.toml that no source names.
     if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read  # actions/checkout reads the repository
     container: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
     timeout-minutes: 5
     steps:
@@ -426,6 +474,8 @@ jobs:
     # cargo-deny on the service and on fuzz/: advisories, licences, bans, sources (deny.toml).
     if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read  # actions/checkout reads the repository
     container: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
     timeout-minutes: 15
     steps:
@@ -444,6 +494,8 @@ jobs:
     # cargo doc --no-deps with rustdoc's warnings denied, private items included.
     if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read  # actions/checkout reads the repository
     container: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
     timeout-minutes: 45
     steps:
@@ -462,6 +514,8 @@ jobs:
     # Every target checked on Cargo.toml's rust-version.
     if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read  # actions/checkout reads the repository
     container: rust:1.88.0-trixie@sha256:f2a17efbe58b00470be6e73dbea79705a789ee20ee8de2dcdaf73c0c6091f1db
     timeout-minutes: 45
     steps:
@@ -480,6 +534,8 @@ jobs:
     # The fuzz targets replay their committed seeds (fuzz/seeds/).
     if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read  # actions/checkout reads the repository
     container: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
     timeout-minutes: 45
     steps:
@@ -498,6 +554,8 @@ jobs:
     # The tests under cargo llvm-cov, failing below the floor; the report is the job's artifact.
     if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read  # actions/checkout reads the repository
     container: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
     timeout-minutes: 120
     steps:

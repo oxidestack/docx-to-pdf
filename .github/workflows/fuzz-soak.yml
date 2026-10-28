@@ -1,0 +1,118 @@
+# The weekly fuzz soak: every target of fuzz/ under cargo-fuzz on nightly, AddressSanitizer on, a fixed time each,
+# from its committed seeds and the pool the earlier soaks grew (fuzz/README.md's soak, on a schedule). Not a push gate:
+# a short run finds nothing and a long one goes red on an unrelated commit, so every push replays the seeds instead
+# (ci.yml's `lint-fuzz`).
+#
+# A crash fails the run: `soak` keeps the crashing inputs as the run's artifact, and `report` files an issue that
+# links to the run and names no input, for a maintainer to minimise and fix as fuzz/README.md says (a test named for
+# the defect, red first, the minimised input committed as a seed). An input that is a vulnerability, not a bug, moves
+# to a security advisory (SECURITY.md).
+#
+# The grown pool (`fuzz/corpus/`, never committed) is carried from one soak to the next in the Actions cache.
+#
+# While the repository is private, a scheduled run stops at `visibility` (one minute, billed): a schedule's event
+# carries no repository to read the visibility from. A manual run (`gh workflow run fuzz-soak.yml`) soaks at any time.
+name: fuzz soak
+
+on:
+  schedule:
+    - cron: '7 5 * * 6'
+  workflow_dispatch:
+
+concurrency:
+  group: fuzz-soak
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  visibility:
+    # A schedule's event has no `repository`, so it is asked of the API: `public` is `true` or `false`.
+    if: ${{ github.event_name == 'schedule' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    permissions:
+      contents: read  # the repository's metadata, its visibility
+    outputs:
+      public: ${{ steps.ask.outputs.public }}
+    steps:
+      - id: ask
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: echo "public=$(gh api "repos/$REPO" --jq '.private | not')" >> "$GITHUB_OUTPUT"
+
+  soak:
+    needs: [visibility]
+    if: >-
+      ${{ !cancelled() && (github.event_name == 'workflow_dispatch'
+      || needs.visibility.outputs.public == 'true') }}
+    runs-on: ubuntu-24.04
+    # The image ci.yml's Rust jobs run in; the nightly and cargo-fuzz are pinned below.
+    container: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    timeout-minutes: 90
+    permissions:
+      contents: read  # actions/checkout reads the repository
+    env:
+      # Each target's time, in seconds: two targets, so the soak is about forty minutes.
+      FUZZ_SECONDS: "1200"
+      RUSTUP_TOOLCHAIN: nightly-2026-10-13
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
+        with:
+          path: fuzz/corpus
+          key: fuzz-corpus-${{ github.run_id }}
+          restore-keys: fuzz-corpus-
+      - run: |
+          rustup toolchain install "$RUSTUP_TOOLCHAIN" --profile minimal
+          cargo install cargo-fuzz --version 0.13.2 --locked
+      # Every target runs its time whatever another found, so one crash does not hide another. `cargo fuzz run`
+      # exits non-zero on a crash, a leak, a timeout or an input over the memory limit, and writes the input to
+      # fuzz/artifacts/<target>/.
+      - working-directory: fuzz
+        run: |
+          rc=0
+          for t in $(cargo fuzz list); do
+            mkdir -p "corpus/$t"
+            echo "fuzz soak: $t, ${FUZZ_SECONDS}s"
+            cargo fuzz run "$t" "corpus/$t" "seeds/$t" -- \
+              -max_total_time="$FUZZ_SECONDS" -timeout=10 -rss_limit_mb=2048 -max_len=300000 || {
+              echo "fuzz soak: $t crashed: the input is in the run's artifact" >&2
+              rc=1
+            }
+          done
+          exit "$rc"
+      - if: ${{ failure() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
+        with:
+          name: fuzz-artifacts
+          path: fuzz/artifacts/
+          retention-days: 30
+          if-no-files-found: warn
+
+  report:
+    # The issue, from the runner itself: gh is there, and the soak's container has none.
+    needs: [soak]
+    if: ${{ failure() && needs.soak.result == 'failure' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      issues: write  # gh files the issue
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue create --repo "$REPO" --title "fuzz soak: a target crashed" --body "$(cat <<EOF
+          The weekly fuzz soak failed: $RUN
+
+          The crashing inputs are the run's \`fuzz-artifacts\` artifact (kept 30 days). fuzz/README.md says what to do
+          with one: minimise it, a test named for the defect, red first, then the fix, and the minimised input
+          committed as a seed. If the input is a vulnerability rather than a bug, move this to a security advisory
+          (SECURITY.md).
+          EOF
+          )"

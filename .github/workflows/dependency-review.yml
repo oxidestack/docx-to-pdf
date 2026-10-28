@@ -1,0 +1,30 @@
+# A pull request that adds or bumps a dependency with a known vulnerability (GitHub's advisory database) fails: the
+# crates of Cargo.lock and fuzz/Cargo.lock, the npm packages of site/package-lock.json, and these workflows' actions.
+#
+# Licences are not checked here: deny.toml (`lint-deny`, cargo-deny on the whole graph) and site/scripts/licences.mjs
+# (the `site` job, on the whole lockfile) hold every dependency to the CNCF allowlist, each with its reviewed
+# exceptions. A second list here would match exact package names only, where those match by crate and by pattern, and
+# the two would drift.
+#
+# Dependency review needs the repository public, or GitHub Code Security on a paid plan, and a pull request to compare,
+# so it has no manual run, and while the repository is private it starts no job.
+name: dependency review
+
+on:
+  pull_request:
+
+permissions: {}
+
+jobs:
+  review:
+    if: ${{ !github.event.repository.private }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read  # the dependency graph's diff between the pull request's base and head
+    steps:
+      - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294  # v5.0.0
+        with:
+          fail-on-severity: low
+          license-check: false
+          show-openssf-scorecard: false

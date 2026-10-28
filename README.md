@@ -1,5 +1,7 @@
 # docx-to-pdf
 
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/oxidestack/docx-to-pdf/badge)](https://scorecard.dev/viewer/?uri=github.com/oxidestack/docx-to-pdf)
+
 An HTTP service that turns an office document into a PDF with LibreOffice.
 
 It answers the same requests as [moalhaddar/docx-to-pdf](https://github.com/moalhaddar/docx-to-pdf) 2.1.0-13, so a

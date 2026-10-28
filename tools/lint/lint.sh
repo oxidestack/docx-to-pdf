@@ -145,6 +145,7 @@ gate_run() {
 		ruby tools/ci/lint-gitriver-workflows || rc=1
 		ruby tools/lint/check-pins.rb .gitriver/workflows/ci.yml || rc=1
 		ruby tools/lint/check-pins.rb || rc=1
+		ruby tools/lint/test_check_pins.rb || rc=1
 		return $rc
 		;;
 	hadolint)
