@@ -8,6 +8,9 @@ target-branch: main
 # version in the tree is not the published one, and a bump per change would gate a number nobody ships. ct needs the
 # target branch's history for it besides, which the private CI's depth-1 clone does not have.
 check-version-increment: false
-# Off: ct checks each maintainer's `name` as a GitHub account. The maintainer is listed by name and address, a person
-# and not an account name.
-validate-maintainers: false
+# Each maintainer's `name` must be an account: ct asks `https://<host>/<name>` for a 200, the host being the one in
+# `remote`'s URL. `remote` is the repository's URL and not a remote's name (git hands a URL back as it is), so the host
+# is GitHub's in every clone, the private CI's included, whose origin is another host. ct reads `remote` for nothing
+# else here: the charts are listed above and the version-bump check is off.
+remote: https://github.com/oxidestack/docx-to-pdf.git
+validate-maintainers: true

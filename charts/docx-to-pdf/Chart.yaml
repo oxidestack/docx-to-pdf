@@ -12,7 +12,8 @@ home: https://github.com/oxidestack/docx-to-pdf
 sources:
   - https://github.com/oxidestack/docx-to-pdf
 maintainers:
-  - name: Vitaly Kustov
+  # `name` is a GitHub account: chart-testing checks it (tools/lint/ct.yaml).
+  - name: kustov-vitalik
     email: kustov.vitalik@gmail.com
 annotations:
   # The chart's licence, the code's: Artifact Hub shows it.
