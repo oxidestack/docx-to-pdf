@@ -1,0 +1,59 @@
+# The documentation site (site/README.md) on GitHub Pages: a project page at
+# https://oxidestack.github.io/docx-to-pdf/.
+#
+# A reusable workflow, not a pipeline of its own: GitHub's CI is one workflow, .github/workflows/ci.yml, one run per
+# push, and that workflow calls this one as its `site` job, the twin of .gitriver/workflows/ci.yml's:
+#
+#   site:
+#     uses: ./.github/workflows/site.yml
+#     permissions:
+#       contents: read
+#       pages: write
+#       id-token: write
+#
+# The caller grants the deploy job's permissions, since a called workflow can narrow its caller's and never widen
+# them. `build` runs on every push and pull request: `make site` in the pinned node image, which checks the lockfile's
+# licences and fails on a broken internal link or anchor. `deploy` publishes the build on a push to `main` alone; it
+# needs the repository's Settings → Pages → Source set to GitHub Actions. Every action is pinned by commit.
+name: site
+
+on:
+  workflow_call:
+
+permissions: {}
+
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read  # actions/checkout reads the repository
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - run: make site
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9  # v5.0.0
+        with:
+          path: site/dist
+
+  deploy:
+    name: deploy
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [build]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      pages: write  # deploy-pages publishes the uploaded build to the repository's Pages site
+      id-token: write  # deploy-pages proves the run's identity to Pages with an OIDC token
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    # One deployment at a time, and a running one is never cancelled half-way: the next push's waits for it.
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346  # v5.0.1

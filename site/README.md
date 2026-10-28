@@ -40,11 +40,16 @@ Nothing is copied into this directory by hand. Every build runs [`scripts/stage.
 
 [starlight-links-validator](https://github.com/HiDeoo/starlight-links-validator) fails the build on an internal link
 to a page that does not exist or to an anchor that is not a heading of its page, and the staging fails on a link to a
-file that is not in the repository. The CI builds the site on every push.
+file that is not in the repository. Before `npm ci` fetches anything, [`scripts/licences.mjs`](scripts/licences.mjs)
+holds every package of the lockfile to `deny.toml`'s licence allowlist, the one the Rust dependencies answer to; the
+few build tools outside it (libvips, lightningcss, three BlueOak-licensed helpers, CSS syntax data) are listed there by
+name with the licence they were reviewed under: each runs only during the build, and nothing of theirs is in `dist/`.
+The CI builds the site on every push.
 
 ## Where it is served from
 
 `oxidestack.github.io` is shared by every project of the organisation, so this site is a project page under
-`/docx-to-pdf/`: that is `base` in `astro.config.mjs`, and every internal link carries it. A GitHub Actions workflow
-builds `site/dist/` on a push to `main` and deploys it with GitHub Pages; the repository's *Settings → Pages → Source*
-is *GitHub Actions*.
+`/docx-to-pdf/`: that is `base` in `astro.config.mjs`, and every internal link carries it.
+[`.github/workflows/site.yml`](../.github/workflows/site.yml), the `site` job of the GitHub CI, builds `site/dist/` on
+every push and deploys it with GitHub Pages on a push to `main`; the repository's *Settings → Pages → Source* is
+*GitHub Actions*.
