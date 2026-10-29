@@ -8,7 +8,8 @@
 //! Memory is bounded by rows, never by the bitmap: the decoder hands one row at a time (it holds two raw rows to
 //! unfilter and its inflate window), the accumulator holds one output row of sums, the encoder streams `IDAT`
 //! chunks. An interlaced (Adam7) PNG cannot be read that way and is refused, as is a damaged one (a bad CRC or
-//! Adler-32, a truncated stream); the caller replaces those with the placeholder.
+//! Adler-32, a truncated stream) or an indexed one whose palette is malformed; the caller replaces those with the
+//! placeholder.
 
 use std::borrow::Cow;
 use std::fmt;
@@ -59,6 +60,14 @@ pub enum Refused {
     Bound,
     /// Not a PNG the decoder reads to its end: a bad CRC or Adler-32, a stream cut short, a malformed chunk.
     Damaged(png::DecodingError),
+    /// An indexed picture whose `PLTE` is not whole RGB entries, or holds more entries than its bit depth indexes:
+    /// the PNG specification calls both an error, and png's palette expansion panics on the first.
+    Palette {
+        /// The `PLTE` chunk's length in bytes.
+        len: usize,
+        /// The bit depth of the indices.
+        depth: u8,
+    },
     /// The output could not be written.
     Output(io::Error),
 }
@@ -69,6 +78,9 @@ impl fmt::Display for Refused {
             Self::Interlaced => f.write_str("interlaced (Adam7)"),
             Self::Bound => write!(f, "no factor up to {MAX_FACTOR} reaches the threshold"),
             Self::Damaged(error) => write!(f, "damaged: {error}"),
+            Self::Palette { len, depth } => {
+                write!(f, "a {len}-byte palette for {depth}-bit indices")
+            }
             Self::Output(error) => write!(f, "not written: {error}"),
         }
     }
@@ -106,6 +118,15 @@ pub fn png<R: Read, W: Write>(input: R, out: W, bound: u64) -> Result<Downscaled
     let info = reader.info();
     if info.interlaced {
         return Err(Refused::Interlaced);
+    }
+    // Before the first row: png builds its palette expansion there, and it panics on a palette that ends inside an
+    // entry. A palette is read only for indexed pixels; any other colour type's is a hint that nothing here uses.
+    if info.color_type == png::ColorType::Indexed {
+        let len = info.palette.as_deref().map_or(0, <[u8]>::len);
+        let depth = info.bit_depth as u8;
+        if !len.is_multiple_of(3) || len / 3 > 1 << depth {
+            return Err(Refused::Palette { len, depth });
+        }
     }
     let alpha = matches!(
         colour,
@@ -752,6 +773,83 @@ mod tests {
 
         let refused = png(&b"not a png"[..], Vec::new(), 1).unwrap_err();
         assert!(matches!(refused, Refused::Damaged(_)), "{refused}");
+    }
+
+    /// `bytes` with its `PLTE` chunk's data replaced by `palette`, its length and CRC mended.
+    fn with_palette(bytes: &[u8], palette: &[u8]) -> Vec<u8> {
+        let at = bytes
+            .windows(4)
+            .position(|w| w == b"PLTE")
+            .expect("a PLTE chunk")
+            - 4;
+        let len = u32::from_be_bytes(bytes[at..at + 4].try_into().unwrap()) as usize;
+        let mut out = bytes[..at].to_vec();
+        out.extend_from_slice(&u32::try_from(palette.len()).unwrap().to_be_bytes());
+        let typed = [&b"PLTE"[..], palette].concat();
+        out.extend_from_slice(&typed);
+        out.extend_from_slice(&crc32fast::hash(&typed).to_be_bytes());
+        out.extend_from_slice(&bytes[at + 12 + len..]);
+        out
+    }
+
+    /// An 8 × 8 indexed picture at `depth` of entry 0, its palette well formed.
+    fn indexed(depth: png::BitDepth) -> Vec<u8> {
+        let mut p = Picture::new(8, 8, Indexed, depth);
+        p.palette = Some(vec![255, 0, 0, 0, 0, 255]);
+        let row_bytes = (8 * depth as usize).div_ceil(8);
+        p.pixels = vec![0; row_bytes * 8];
+        p.encode()
+    }
+
+    /// The fuzz soak's input, minimised (`fuzz/seeds/png_downscale/plte-length-not-a-multiple-of-three`): its pick
+    /// byte, then a 64 × 48 4-bit indexed PNG whose `PLTE` is 49 bytes long, its `IDAT` cut short. The soak's
+    /// build skips CRCs (png under `cfg(fuzzing)`); the `PLTE`'s is mended so a release build reaches it too.
+    const SOAK_PLTE: [u8; 166] = [
+        0x03, 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d, 0x49, 0x48,
+        0x44, 0x52, 0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x00, 0x30, 0x04, 0x03, 0x00, 0x00, 0x00,
+        0x53, 0x65, 0x61, 0x2c, 0x00, 0x00, 0x00, 0x31, 0x50, 0x4c, 0x54, 0x45, 0xdc, 0xcd, 0x43,
+        0x9a, 0xcd, 0x20, 0xdc, 0x8f, 0x6c, 0x9a, 0x8f, 0x7e, 0x5a, 0xcd, 0xa4, 0x1c, 0xcd, 0x77,
+        0x4b, 0x5a, 0x8f, 0x3c, 0x1c, 0x8f, 0x53, 0xdc, 0x53, 0x8b, 0x9a, 0x53, 0x8c, 0xdc, 0x19,
+        0xa4, 0x9a, 0x19, 0x74, 0x5a, 0x53, 0x2b, 0x1c, 0x53, 0x32, 0x5a, 0x19, 0x44, 0x1c, 0x19,
+        0x16, 0x11, 0xc9, 0x25, 0xd9, 0x00, 0x00, 0x00, 0xfb, 0x49, 0x44, 0x41, 0x54, 0x78, 0x9c,
+        0xdd, 0x94, 0xcd, 0x0d, 0xc2, 0x30, 0x0c, 0x85, 0x5f, 0x42, 0xb9, 0x22, 0x60, 0x02, 0xd4,
+        0x9d, 0x58, 0x81, 0x15, 0xd8, 0x25, 0xa7, 0x2e, 0x04, 0x62, 0x01, 0xac, 0x6e, 0xd0, 0x8a,
+        0x63, 0x11, 0x09, 0x4a, 0xe2, 0x84, 0x26, 0xf4, 0x87, 0x03, 0x07, 0xc4, 0xbb, 0xb8, 0x7e,
+        0xfe, 0xec, 0xfc, 0x54, 0xad, 0x30, 0x70, 0x32, 0xad, 0x8f, 0x8f, 0x44, 0xae, 0x42, 0x60,
+        0x82,
+    ];
+
+    #[test]
+    fn a_palette_whose_length_is_not_a_multiple_of_three_is_refused_not_a_panic() {
+        // png's palette expansion copies entry by entry and slices past the end of a palette that stops one or two
+        // bytes into an entry; the PNG specification calls such a PLTE an error. (png itself refuses one under 3.)
+        for len in [4usize, 5, 47, 49, 50, 767] {
+            let palette: Vec<u8> = (0..len).map(|i| i.to_le_bytes()[0]).collect();
+            let bytes = with_palette(&indexed(Four), &palette);
+            let refused = png(bytes.as_slice(), Vec::new(), bound(4, 4, 24)).unwrap_err();
+            assert!(
+                matches!(refused, Refused::Palette { .. }),
+                "{len} bytes: {refused}"
+            );
+        }
+        let refused = png(&SOAK_PLTE[1..], Vec::new(), 1).unwrap_err();
+        assert!(
+            matches!(refused, Refused::Palette { len: 49, depth: 4 }),
+            "{refused}"
+        );
+    }
+
+    #[test]
+    fn a_palette_with_more_entries_than_the_depth_indexes_is_refused() {
+        // Two bits index four entries; a fifth is an error in the PNG specification.
+        let five: Vec<u8> = (0..15).collect();
+        let bytes = with_palette(&indexed(Two), &five);
+        let refused = png(bytes.as_slice(), Vec::new(), bound(4, 4, 24)).unwrap_err();
+        assert!(matches!(refused, Refused::Palette { .. }), "{refused}");
+        // Four entries, as many as two bits index, are read.
+        let four: Vec<u8> = (0..12).collect();
+        let bytes = with_palette(&indexed(Two), &four);
+        png(bytes.as_slice(), Vec::new(), bound(4, 4, 24)).unwrap();
     }
 
     #[test]

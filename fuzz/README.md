@@ -48,6 +48,8 @@ libFuzzer re-derives most of it from the seeds in seconds.
 ## A crash
 
 1. Minimise it: `RUSTUP_TOOLCHAIN=nightly cargo fuzz tmin <target> artifacts/<target>/crash-…`.
+   The soak's build skips png's CRC checks (`cfg(fuzzing)`) and the replay's does not, so mend the CRC of every
+   chunk before the one that crashes, or the replay stops at a CRC error short of the defect.
 2. A test named for the defect, beside the downscale in `src/pictures/` or in `tests/pictures_fuzz.rs`, with the
    minimised input inline; red first.
 3. Fix it.
