@@ -14,7 +14,7 @@ export default defineConfig({
     starlight({
       title: 'docx-to-pdf',
       description:
-        'An HTTP service that turns an office document into a PDF with LibreOffice, a drop-in replacement for moalhaddar/docx-to-pdf.',
+        'An HTTP service that turns office documents into PDF with LibreOffice: fast, bounded in memory, safe against hostile documents.',
       social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/oxidestack/docx-to-pdf' }],
       // Each staged page sets its own editUrl to its source file: the default would point at the staged copy,
       // which the next build deletes.

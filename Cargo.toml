@@ -7,7 +7,7 @@ license = "Apache-2.0"
 # The oldest toolchain that builds the crate: tonic and zopfli ask for 1.88, and the `msrv` gate
 # (tools/lint/lint.sh) checks every target on exactly that toolchain. Raising it is a decision, not a side effect.
 rust-version = "1.88"
-description = "Office documents to PDF with LibreOffice over HTTP: the interface of moalhaddar/docx-to-pdf 2.1.0-13, reliably and without its bugs"
+description = "Office documents to PDF over HTTP with LibreOffice: fast, bounded in memory, safe against hostile documents"
 
 # The lints every target is held to. The `clippy` gate runs with `-D warnings`, so a `warn` here fails
 # it; `cargo build` and `cargo test` only warn. A lint turned off is turned off here with its reason; a single accepted

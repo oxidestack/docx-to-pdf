@@ -3,6 +3,8 @@
 [![CI](https://github.com/oxidestack/docx-to-pdf/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/oxidestack/docx-to-pdf/actions/workflows/ci.yml?query=branch%3Amain)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/oxidestack/docx-to-pdf/badge)](https://scorecard.dev/viewer/?uri=github.com/oxidestack/docx-to-pdf)
 
+**Documentation: [oxidestack.github.io/docx-to-pdf](https://oxidestack.github.io/docx-to-pdf/)**
+
 <!-- benchmarks:begin: `make evidence` writes this block from site/public/benchmarks/results.json -->
 
 > **docx-to-pdf turns office documents into PDF faster and with less memory than Gotenberg and moalhaddar/docx-to-pdf on
@@ -73,6 +75,9 @@ Every release is signed and carries its SBOM and build provenance;
   Linux capabilities, and only free fonts, metric-compatible with the common Microsoft ones.
 
 ## Documentation
+
+The guide is published at [oxidestack.github.io/docx-to-pdf](https://oxidestack.github.io/docx-to-pdf/); the same
+pages are in `docs/guide/`:
 
 - [Installation](docs/guide/installation.md) — `docker run`, Docker Compose and Kubernetes with the Helm chart, and the
   resources to give it
