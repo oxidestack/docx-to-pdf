@@ -37,8 +37,11 @@ usage() {
 crane() {
 	mkdir -p "$CRANE_CONFIG"
 	[ -f "$CRANE_CONFIG/config.json" ] || printf '{}\n' > "$CRANE_CONFIG/config.json"
+	# crane runs as the caller's user: docker login leaves the credentials readable by their owner alone, and the
+	# image's own user could not read them.
 	# shellcheck disable=SC2086 # CRANE_FLAGS is a list of flags
-	docker run --rm -i --network host -e DOCKER_CONFIG=/crane-config -v "$CRANE_CONFIG:/crane-config:ro" \
+	docker run --rm -i --network host --user "$(id -u):$(id -g)" -e DOCKER_CONFIG=/crane-config \
+		-v "$CRANE_CONFIG:/crane-config:ro" \
 		${TARS:+-v "$TARS:/tars:ro"} "$CRANE" "$@" ${CRANE_FLAGS:-}
 }
 
