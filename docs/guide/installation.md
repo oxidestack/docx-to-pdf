@@ -263,11 +263,12 @@ your documents take on your machines, and how many pods a load needs, see [Opera
 
 ## A classic Helm repository
 
-For a tool that installs charts from a repository URL rather than from an OCI registry, the same chart is indexed at
-`https://oxidestack.github.io/docx-to-pdf/charts`, each version downloading from its GitHub release:
+For a tool that installs charts from a repository URL rather than from an OCI registry, every GitHub release carries
+the index of the charts released so far, each version downloading from its own release; the URL below always serves
+the latest release's:
 
 ```sh
-helm repo add docx-to-pdf https://oxidestack.github.io/docx-to-pdf/charts
+helm repo add docx-to-pdf https://github.com/oxidestack/docx-to-pdf/releases/latest/download
 helm install docx-to-pdf docx-to-pdf/docx-to-pdf --version 0.1.0 --namespace docx-to-pdf --create-namespace
 ```
 

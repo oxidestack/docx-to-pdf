@@ -45,7 +45,9 @@ One tag publishes every artifact, quay.io first; the header of `.github/workflow
   warning, never a failed release.
 - **github-release**: the GitHub release with the body of step 5, the SBOMs, the chart's archive and the compose
   examples.
-- **site**: the documentation of the tagged commit, and the Helm repository index built from the releases' charts.
+- **index**: the GitHub release gets `index.yaml`, the Helm repository index of every release's chart, which
+  `helm repo add docx-to-pdf https://github.com/oxidestack/docx-to-pdf/releases/latest/download` reads. The
+  documentation site deploys from `main`.
 
 A manual run (`gh workflow run release.yml`) is the dry run: both architectures built and tested, the chart and the
 notes made at version `0.0.0-dry-run`, nothing pushed or published. A user checks a release as

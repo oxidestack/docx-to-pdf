@@ -24,9 +24,11 @@
 #   repository variable MIRROR_REGISTRY replaces `ghcr.io/oxidestack` (a test tag aimed at a registry the token cannot
 #   write shows the failure path).
 # - `github-release`: the GitHub release of the tag, its body CHANGELOG.md's section and how to verify, with the
-#   SBOMs, the chart's .tgz and examples/compose/ attached; a pre-release is marked one and never `latest`.
-# - `site`: site.yml, which deploys the documentation of this commit and the `helm repo add` index built from the
-#   releases' charts (https://oxidestack.github.io/docx-to-pdf/charts).
+#   SBOMs, the chart's .tgz and examples/compose/ attached; a pre-release is marked one and never `latest`. Then the
+#   `helm repo add` index of every release's chart is attached to it as index.yaml: the repository URL
+#   https://github.com/oxidestack/docx-to-pdf/releases/latest/download serves the latest release's. Not on Pages:
+#   Pages keeps one deployment a commit, and the tag's commit is one `main` has already deployed. The documentation
+#   site deploys from `main` (site.yml).
 #
 # A manual run (`gh workflow run release.yml`, or Actions → Release → Run workflow) is the dry run: both architectures
 # built and tested, the chart packaged and the notes written at version 0.0.0-dry-run, nothing pushed or published.
@@ -369,17 +371,9 @@ jobs:
             gh release create "$REF_NAME" --verify-tag --title "$REF_NAME" --notes-file "$RUNNER_TEMP/notes.md" \
               $kind "$FILES"/*
           fi
-
-  site:
-    # The documentation of this commit and the `helm repo add` index with the release just made. `./`: ci.yml's
-    # `site` job says why.
-    if: ${{ github.event_name == 'push' && !github.event.repository.private }}
-    needs: github-release
-    uses: ./.github/workflows/site.yml  # zizmor: ignore[self-repository]
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
+          # The helm repository's index, this release's chart included now that the release carries it.
+          sh tools/ci/release.sh index "$RUNNER_TEMP/index"
+          gh release upload "$REF_NAME" --clobber "$RUNNER_TEMP/index/index.yaml"
 
   dry-run:
     if: ${{ github.event_name == 'workflow_dispatch' }}

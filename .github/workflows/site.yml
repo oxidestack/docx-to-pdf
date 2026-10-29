@@ -13,12 +13,11 @@
 #
 # The caller grants the deploy job's permissions, since a called workflow can narrow its caller's and never widen
 # them. `build` runs on every push and pull request: `make site` in the pinned node image, which checks the lockfile's
-# licences and fails on a broken internal link or anchor; then the `helm repo add` repository is added to the build,
-# /charts/index.yaml, indexing the chart attached to each GitHub release (tools/ci/release.sh index), so every deploy
-# carries every release's chart. `deploy` publishes the build on a push to `main`, and on a release tag when
-# .github/workflows/release.yml calls this after its GitHub release; only while the repository is public: GitHub Pages
-# refuses a private repository of a Free organisation. It needs the repository's Settings → Pages → Source set to
-# GitHub Actions, and the `github-pages` environment to admit the `v*` tags. Every action is pinned by commit.
+# licences and fails on a broken internal link or anchor. `deploy` publishes the build on a push to `main`, only while
+# the repository is public: GitHub Pages refuses a private repository of a Free organisation. It needs the repository's
+# Settings → Pages → Source set to GitHub Actions. The helm repository's index is not here: Pages keeps one deployment
+# a commit, and a release tag's commit is one `main` has already deployed, so the index is a file of each GitHub
+# release (.github/workflows/release.yml). Every action is pinned by commit.
 name: site
 
 on:
@@ -33,34 +32,25 @@ jobs:
     timeout-minutes: 10
     permissions:
       contents: read  # actions/checkout reads the repository
-    outputs:
-      artifact-id: ${{ steps.upload.outputs.artifact_id }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           persist-credentials: false
       - run: make site
-      - name: the helm repository's index
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: sh tools/ci/release.sh index site/dist/charts
-      - id: upload
-        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9  # v5.0.0
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9  # v5.0.0
         with:
           path: site/dist
 
   deploy:
     name: deploy
     if: >-
-      github.event_name == 'push' && !github.event.repository.private &&
-      (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+      github.event_name == 'push' && !github.event.repository.private && github.ref == 'refs/heads/main'
     needs: [build]
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 10
     permissions:
-      contents: read  # actions/checkout reads the repository
-      pages: write  # tools/ci/deploy-pages.sh publishes the uploaded build to the repository's Pages site
-      id-token: write  # tools/ci/deploy-pages.sh proves the run's identity to Pages with an OIDC token
+      pages: write  # deploy-pages publishes the uploaded build to the repository's Pages site
+      id-token: write  # deploy-pages proves the run's identity to Pages with an OIDC token
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -69,14 +59,5 @@ jobs:
       group: pages
       cancel-in-progress: false
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
-        with:
-          persist-credentials: false
-      # Not actions/deploy-pages: it names a deployment by the commit, and Pages keeps the first deployment of a
-      # commit, so a release tag's build on a commit `main` already deployed was never published
-      # (tools/ci/deploy-pages.sh says more).
       - id: deployment
-        env:
-          GH_TOKEN: ${{ github.token }}
-          ARTIFACT: ${{ needs.build.outputs.artifact-id }}
-        run: sh tools/ci/deploy-pages.sh "$ARTIFACT"
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346  # v5.0.1
