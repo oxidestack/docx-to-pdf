@@ -51,13 +51,19 @@ One tag publishes every artifact, quay.io first; the header of `.github/workflow
 - **mirror**: the same digests, signatures and attestations copied to `ghcr.io/oxidestack`. A mirror failure is a
   warning, never a failed release.
 - **github-release**: the GitHub release with the body of step 5, the SBOMs, the chart's archive and the compose
-  examples.
+  examples. Each file is signed with cosign keyless, its Sigstore bundle attached as `<file>.sigstore.json`, and one
+  SLSA build provenance of them all (actions/attest, also kept at GitHub) is attached as
+  `docx-to-pdf-<version>.intoto.jsonl`; both are verified before the release is made. These are what OpenSSF
+  Scorecard's Signed-Releases check reads: a `.sigstore.json` asset on each of the last five releases, and an
+  `.intoto.jsonl` one for the full score.
 - **index**: the GitHub release gets `index.yaml`, the Helm repository index of every release's chart, which
-  `helm repo add docx-to-pdf https://github.com/oxidestack/docx-to-pdf/releases/latest/download` reads. The
-  documentation site deploys from `main`.
+  `helm repo add docx-to-pdf https://github.com/oxidestack/docx-to-pdf/releases/latest/download` reads, signed and
+  attested the same way (`index.yaml.sigstore.json`, `index.yaml.intoto.jsonl`). The documentation site deploys from
+  `main`.
 
 A manual run (`gh workflow run release.yml`) is the dry run: both architectures built and tested, the chart and the
-notes made at version `0.0.0-dry-run`, nothing pushed or published. A user checks a release as
+notes made at version `0.0.0-dry-run`, the chart and the index signed and verified with a throwaway key (`release.sh
+sign-blob` and `verify-blob` with `COSIGN_KEY`/`COSIGN_PUB`), nothing pushed or published. A user checks a release as
 [Verifying a release](../../docs/guide/installation.md#verifying-a-release) says.
 
 ## What is tested

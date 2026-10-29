@@ -21,6 +21,8 @@ extend-ignore-re = [
 ]
 
 [default.extend-words]
+# in-toto, the attestation format: a release's provenance is <name>.intoto.jsonl.
+intoto = "intoto"
 # LibreOfficeKit, as the code and the docs abbreviate it.
 lok = "lok"
 # OpenDocument Format.

@@ -36,6 +36,11 @@
 #   sh tools/ci/release.sh verify <reference> <tag>
 #       Checks the cosign signature: made by .github/workflows/release.yml of $GITHUB_REPOSITORY (default
 #       oxidestack/docx-to-pdf) at refs/tags/<tag>, issued by GitHub Actions' OIDC; or by $COSIGN_PUB.
+#   sh tools/ci/release.sh sign-blob <file>...
+#       Signs each file of the GitHub release with cosign as `sign` does, into <file>.sigstore.json beside it: one
+#       Sigstore bundle holding the signature, Fulcio's certificate and Rekor's entry.
+#   sh tools/ci/release.sh verify-blob <tag> <file>...
+#       Checks each file against its <file>.sigstore.json, the identity `verify`'s; or by $COSIGN_PUB.
 #   sh tools/ci/release.sh push-chart <oci repository> <chart.tgz>
 #       Pushes the packaged chart (`helm push`); prints its digest.
 #   sh tools/ci/release.sh mirror <source repository> <mirror repository> <tag> [<tag>...]
@@ -71,7 +76,7 @@ AUTH=${DOCKER_CONFIG:-$HOME/.docker}/config.json
 CHANGELOG=${CHANGELOG:-$ROOT/CHANGELOG.md}
 
 usage() {
-	sed -n '7,52p' "$0" >&2
+	sed -n '7,57p' "$0" >&2
 	exit 2
 }
 
@@ -293,6 +298,13 @@ cosign verify $ref --certificate-identity $identity --certificate-oidc-issuer ht
 gh attestation verify oci://$ref --repo $repo
 cosign verify $CHART_REPOSITORY:$version --certificate-identity $identity --certificate-oidc-issuer https://token.actions.githubusercontent.com
 \`\`\`
+
+Each file below is signed the same way, its Sigstore bundle beside it (\`<file>.sigstore.json\`), and \`docx-to-pdf-$version.intoto.jsonl\` is the build provenance of them all. For the chart's archive, as for any other:
+
+\`\`\`sh
+cosign verify-blob docx-to-pdf-$version.tgz --bundle docx-to-pdf-$version.tgz.sigstore.json --certificate-identity $identity --certificate-oidc-issuer https://token.actions.githubusercontent.com
+gh attestation verify docx-to-pdf-$version.tgz --repo $repo
+\`\`\`
 EOF
 	;;
 chart)
@@ -416,6 +428,40 @@ verify)
 			--certificate-oidc-issuer https://token.actions.githubusercontent.com > /dev/null
 	fi
 	say "$1: the signature verifies"
+	;;
+sign-blob)
+	[ $# -ge 1 ] || usage
+	COSIGN=$(tool cosign)
+	for file in "$@"; do
+		[ -f "$file" ] || {
+			say "no file $file"
+			exit 1
+		}
+		if [ -n "${COSIGN_KEY:-}" ]; then
+			retry "signature of $file" "$COSIGN" sign-blob --yes --key "$COSIGN_KEY" --use-signing-config=false \
+				--tlog-upload=false --bundle "$file.sigstore.json" "$file" > /dev/null
+		else
+			retry "signature of $file" "$COSIGN" sign-blob --yes --bundle "$file.sigstore.json" "$file" > /dev/null
+		fi
+	done
+	;;
+verify-blob)
+	[ $# -ge 2 ] || usage
+	tag=$1
+	shift
+	COSIGN=$(tool cosign)
+	repo=${GITHUB_REPOSITORY:-oxidestack/docx-to-pdf}
+	for file in "$@"; do
+		if [ -n "${COSIGN_PUB:-}" ]; then
+			retry "verification of $file" "$COSIGN" verify-blob --key "$COSIGN_PUB" --insecure-ignore-tlog=true \
+				--bundle "$file.sigstore.json" "$file" > /dev/null
+		else
+			retry "verification of $file" "$COSIGN" verify-blob --bundle "$file.sigstore.json" \
+				--certificate-identity "https://github.com/$repo/.github/workflows/release.yml@refs/tags/$tag" \
+				--certificate-oidc-issuer https://token.actions.githubusercontent.com "$file" > /dev/null
+		fi
+		say "$file: the signature verifies"
+	done
 	;;
 push-chart)
 	[ $# -eq 2 ] || usage

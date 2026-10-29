@@ -304,6 +304,21 @@ For an SBOM, name one architecture's image by its digest (`docker buildx imageto
 predicate type, `--predicate-type https://spdx.dev/Document/v2.3`. The SBOMs are also attached to the GitHub release
 as files, in SPDX and CycloneDX, one per architecture, with the chart and the compose examples.
 
+Every file attached to the GitHub release is signed the same way, its Sigstore bundle attached beside it as
+`<file>.sigstore.json`, and `docx-to-pdf-1.0.0.intoto.jsonl` is the build provenance of them all. Download the file
+and its bundle, then check either or both:
+
+```sh
+cosign verify-blob docx-to-pdf-1.0.0.tgz --bundle docx-to-pdf-1.0.0.tgz.sigstore.json \
+  --certificate-identity https://github.com/oxidestack/docx-to-pdf/.github/workflows/release.yml@refs/tags/v1.0.0 \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com
+gh attestation verify docx-to-pdf-1.0.0.tgz --repo oxidestack/docx-to-pdf
+```
+
+The same holds for the SBOMs, the compose examples and the Helm repository's `index.yaml`. The files of the first
+release, 1.0.0, were attached before the release signed them, so they have no bundle: these two commands apply from
+the next release on, with its version in place of 1.0.0.
+
 The mirror on ghcr.io carries the same digests with the same signatures and attestations, copied with the image, so
 the same commands verify `ghcr.io/oxidestack/docx-to-pdf:1.0.0` and `ghcr.io/oxidestack/charts/docx-to-pdf:1.0.0`
 (add `--bundle-from-oci` to `gh attestation verify` to read the attestations from the registry itself).

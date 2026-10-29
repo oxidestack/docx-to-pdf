@@ -25,14 +25,18 @@
 #   repository variable MIRROR_REGISTRY replaces `ghcr.io/oxidestack` (a test tag aimed at a registry the token cannot
 #   write shows the failure path).
 # - `github-release`: the GitHub release of the tag, its body CHANGELOG.md's section and how to verify, with the
-#   SBOMs, the chart's .tgz and examples/compose/ attached; a pre-release is marked one and never `latest`. Then the
-#   `helm repo add` index of every release's chart is attached to it as index.yaml: the repository URL
-#   https://github.com/oxidestack/docx-to-pdf/releases/latest/download serves the latest release's. Not on Pages:
-#   Pages keeps one deployment a commit, and the tag's commit is one `main` has already deployed. The documentation
-#   site deploys from `main` (site.yml).
+#   SBOMs, the chart's .tgz and examples/compose/ attached; a pre-release is marked one and never `latest`. Each file
+#   is signed with cosign keyless as the image is, its Sigstore bundle attached beside it as <file>.sigstore.json, and
+#   one SLSA build provenance naming every file (actions/attest) is attached as docx-to-pdf-<version>.intoto.jsonl;
+#   both are verified before the release is made. Then the `helm repo add` index of every release's chart is attached
+#   as index.yaml, signed and attested the same way (index.yaml.sigstore.json, index.yaml.intoto.jsonl): the
+#   repository URL https://github.com/oxidestack/docx-to-pdf/releases/latest/download serves the latest release's.
+#   Not on Pages: Pages keeps one deployment a commit, and the tag's commit is one `main` has already deployed. The
+#   documentation site deploys from `main` (site.yml).
 #
 # A manual run (`gh workflow run release.yml`, or Actions → Release → Run workflow) is the dry run: both architectures
-# built and tested, the chart packaged and the notes written at version 0.0.0-dry-run, nothing pushed or published.
+# built and tested, the chart packaged and the notes written at version 0.0.0-dry-run, the chart and the index signed
+# and verified with a throwaway key, nothing pushed or published.
 # Every action is pinned by its full commit, its release in a comment; every checkout keeps no credential.
 
 name: Release
@@ -331,7 +335,12 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: write  # creates the release and uploads its files
-    timeout-minutes: 15
+      id-token: write  # cosign's and actions/attest's identity, to sign the files
+      attestations: write  # actions/attest keeps the files' provenance at GitHub
+    timeout-minutes: 30
+    env:
+      VERSION: ${{ needs.gate.outputs.version }}
+      REF_NAME: ${{ github.ref_name }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
@@ -345,16 +354,38 @@ jobs:
         with:
           name: chart
           path: ${{ runner.temp }}/files
+      - name: the compose examples
+        env:
+          FILES: ${{ runner.temp }}/files
+        run: tar -czf "$FILES/docx-to-pdf-$VERSION-examples-compose.tar.gz" examples/compose
+      # One SLSA provenance naming every file by its sha256, kept at GitHub and attached as <name>.intoto.jsonl.
+      - name: attest the files' provenance
+        id: provenance
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6  # v4.2.2
+        with:
+          subject-path: ${{ runner.temp }}/files/*
+      - name: sign and verify the files
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          BUNDLE: ${{ steps.provenance.outputs.bundle-path }}
+          FILES: ${{ runner.temp }}/files
+        run: |
+          set -- "$FILES"/*
+          sh tools/ci/release.sh sign-blob "$@"
+          sh tools/ci/release.sh verify-blob "$REF_NAME" "$@"
+          cp "$BUNDLE" "$FILES/docx-to-pdf-$VERSION.intoto.jsonl"
+          for file; do
+            gh attestation verify "$file" --repo "$REPOSITORY" \
+              --bundle "$FILES/docx-to-pdf-$VERSION.intoto.jsonl" > /dev/null
+          done
       - name: the release
         env:
           GH_TOKEN: ${{ github.token }}
-          VERSION: ${{ needs.gate.outputs.version }}
-          REF_NAME: ${{ github.ref_name }}
           DIGEST: ${{ needs.publish.outputs.digest }}
           FILES: ${{ runner.temp }}/files
         run: |
           sh tools/ci/release.sh notes "$VERSION" "$DIGEST" > "$RUNNER_TEMP/notes.md"
-          tar -czf "$FILES/docx-to-pdf-$VERSION-examples-compose.tar.gz" examples/compose
           ls -l "$FILES"
           case $VERSION in
           *-*) kind="--prerelease --latest=false" ;;
@@ -370,9 +401,28 @@ jobs:
             gh release create "$REF_NAME" --verify-tag --title "$REF_NAME" --notes-file "$RUNNER_TEMP/notes.md" \
               $kind "$FILES"/*
           fi
-          # The helm repository's index, this release's chart included now that the release carries it.
-          sh tools/ci/release.sh index "$RUNNER_TEMP/index"
-          gh release upload "$REF_NAME" --clobber "$RUNNER_TEMP/index/index.yaml"
+      # The helm repository's index, this release's chart included now that the release carries it.
+      - name: the helm index
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: sh tools/ci/release.sh index "$RUNNER_TEMP/index"
+      - name: attest the index's provenance
+        id: index-provenance
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6  # v4.2.2
+        with:
+          subject-path: ${{ runner.temp }}/index/index.yaml
+      - name: sign, verify and attach the index
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          BUNDLE: ${{ steps.index-provenance.outputs.bundle-path }}
+        run: |
+          index=$RUNNER_TEMP/index/index.yaml
+          sh tools/ci/release.sh sign-blob "$index"
+          sh tools/ci/release.sh verify-blob "$REF_NAME" "$index"
+          cp "$BUNDLE" "$index.intoto.jsonl"
+          gh attestation verify "$index" --repo "$REPOSITORY" --bundle "$index.intoto.jsonl" > /dev/null
+          gh release upload "$REF_NAME" --clobber "$index" "$index.sigstore.json" "$index.intoto.jsonl"
 
   dry-run:
     if: ${{ github.event_name == 'workflow_dispatch' }}
@@ -390,8 +440,15 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ needs.gate.outputs.version }}
         run: |
-          sh tools/ci/release.sh chart "$VERSION" "$RUNNER_TEMP/chart"
+          chart=$(sh tools/ci/release.sh chart "$VERSION" "$RUNNER_TEMP/chart")
           sh tools/ci/release.sh index "$RUNNER_TEMP/index"
+          # The files' signing and its check, with a throwaway key: a dry run writes nothing to Sigstore's public log.
+          export COSIGN_PASSWORD="" COSIGN_KEY="$RUNNER_TEMP/throwaway.key" COSIGN_PUB="$RUNNER_TEMP/throwaway.pub"
+          "$(sh tools/lint/fetch-tool.sh cosign)" generate-key-pair --output-key-prefix "$RUNNER_TEMP/throwaway"
+          set -- "$chart"
+          [ ! -f "$RUNNER_TEMP/index/index.yaml" ] || set -- "$@" "$RUNNER_TEMP/index/index.yaml"
+          sh tools/ci/release.sh sign-blob "$@"
+          sh tools/ci/release.sh verify-blob "v$VERSION" "$@"
           {
             echo "### Dry run: the release notes"
             echo
