@@ -1,4 +1,4 @@
-# Releasing: the notes in CHANGELOG.md
+# Releasing: the notes in CHANGELOG.md and the release workflow
 
 A release's notes are written with the changes, by their authors: each commit's `release-note` block (CONTRIBUTING.md,
 "Commit messages") is an entry. At a release they are drafted into `CHANGELOG.md`, read and edited by one person, and
@@ -18,11 +18,38 @@ that edited section is what the GitHub release says.
    to someone who runs the service, add an introduction when the release needs one, and set the heading's date to
    the day of the tag. The diff between the two commits is the edit; nothing else changes in this one.
 4. **Tag the edited commit** `vX.Y.Z` (annotated: `git tag -a vX.Y.Z -m vX.Y.Z`) and push the commit, then the tag.
-5. **The release body is that section**: the release workflow takes the text of `## [X.Y.Z]` in `CHANGELOG.md` at the
-   tag, from the line after the heading up to the next `## [`, without the compare link at its end. It never uses
-   git-cliff's output and never GitHub's generated notes.
+   The tag starts `.github/workflows/release.yml` (below).
+5. **The release body is that section**: the workflow takes the text of `## [X.Y.Z]` in `CHANGELOG.md` at the tag,
+   from the line after the heading up to the next `## [`, without the compare link at its end, and appends an
+   Install and a Verify block: the `docker run` and `helm install` of the version, and the `cosign verify` and
+   `gh attestation verify` commands that check its signatures and attestations (`tools/ci/release.sh notes`). It
+   never uses git-cliff's output and never GitHub's generated notes.
+
+A pre-release tag (`vX.Y.Z-rc.N`) needs none of steps 1-3: no section in `CHANGELOG.md` and no version bump, its
+chart is packaged at the tag's version, its body says it is a pre-release, and `latest` stays on the last release.
 
 To see what the next release would say without touching anything, run step 1 and `git checkout CHANGELOG.md`.
+
+## The release workflow
+
+One tag publishes every artifact, quay.io first; the header of `.github/workflows/release.yml` describes each job.
+
+- **gate**: the tag is a SemVer tag on `main`; for a release, the chart's `version` and `appVersion`,
+  `Cargo.toml`'s version and the `CHANGELOG.md` section say the same version; then it waits until `ci.yml` has
+  passed on that commit. Nothing is built for a tag that fails here.
+- **image**: the CI's image job on native amd64 and arm64 runners, with the SBOMs.
+- **publish** (the `release` environment): the image and the chart pushed to `quay.io/oxidestack`, signed with
+  cosign keyless, attested (SLSA provenance, and an SPDX SBOM for each architecture) and verified. A failure here
+  fails the release.
+- **mirror**: the same digests, signatures and attestations copied to `ghcr.io/oxidestack`. A mirror failure is a
+  warning, never a failed release.
+- **github-release**: the GitHub release with the body of step 5, the SBOMs, the chart's archive and the compose
+  examples.
+- **site**: the documentation of the tagged commit, and the Helm repository index built from the releases' charts.
+
+A manual run (`gh workflow run release.yml`) is the dry run: both architectures built and tested, the chart and the
+notes made at version `0.0.0-dry-run`, nothing pushed or published. A user checks a release as
+[Verifying a release](../../docs/guide/installation.md#verifying-a-release) says.
 
 ## What is tested
 

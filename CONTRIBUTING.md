@@ -80,7 +80,9 @@ Signed-off-by: Your Name <you@example.org>
   `probe`, `pdf-equivalence`, `image`, `chart`, `examples`, `bench`, `fuzz`, `upstream`, `deps`, `release`. Leave it
   out when the change spans several.
 - **Description**: imperative, lower-case, no full stop; the whole first line at most 72 characters.
-- **Body**: what changed and why, wrapped at 72 columns.
+- **Body**: what changed and why, wrapped at 72 columns. A line that cannot be wrapped is exempt: one without a space
+  (a URL, a path), one indented by four spaces or more, one in a fenced block other than the release note (a
+  command), and a `Signed-off-by:` or `Co-authored-by:` trailer, whose name and address no trailer can fold.
 - **Release note**: a `release-note` block, the body's last paragraph, written for the people who run the service,
   not for its developers. Required on `feat`, `fix`, `perf` and breaking commits, optional on the others. Write
   `NONE` in it when no released version is affected (a bug introduced since the last release); a breaking change
@@ -91,6 +93,9 @@ Signed-off-by: Your Name <you@example.org>
 - **Sign-off**: `git commit -s` adds `Signed-off-by:` as the last line. It certifies the
   [Developer Certificate of Origin](https://developercertificate.org/).
 - **Reverts**: `revert: <the reverted commit's first line>`, the reason, and `Refs: <hash>`.
+
+Dependency updates come from [Renovate](https://docs.renovatebot.com/) (`.github/renovate.json5`): its pull requests
+are `build(deps)` commits without a release note, signed off by its bot, and go through the same checks as yours.
 
 Pull requests are merged with "Rebase and merge", so each commit lands as written: squash your fixups
 (`git commit --fixup`, `git rebase -i --autosquash`) before asking for a merge.

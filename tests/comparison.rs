@@ -1,12 +1,12 @@
 //! The comparison page, `docs/guide/comparison.md`, against the code and the tools that measure.
 //!
-//! - **The page gives the commands that repeat its figures**: the three-service matrix on one amd64 vCPU (`bench.py matrix
-//!   tools/bench/matrices/compare-1cpu.tsv --reps 3`, through `make bench-matrix`) and `make compare`, and each is
-//!   real: the matrix file exists and the Makefile has both targets.
-//! - **The page says what the record leaves open**: the 75 minutes between oxidestack/docx-to-pdf's runs and
-//!   Gotenberg's, and that Gotenberg's rendering has never been measured.
-//! - **The page says what the command's full run gave**: it ran once on the record's kind of host, the
-//!   page gives its date and its outcome against the record, and no longer says it has not been run.
+//! - **The page gives the command that repeats its figures**: `make compare`, which the Makefile has, the same
+//!   command its generated block says measured them.
+//! - **The page says what was measured**: it carries the block `make evidence` writes from the committed results
+//!   (`site/public/benchmarks/results.json`; the site's build holds the block to them), and that block names the
+//!   run's date.
+//! - **The page says what the figures leave open**: one run a side for a hostile document, the code before the heap
+//!   trim, and that Gotenberg's rendering has never been measured.
 //! - **The Gotenberg it describes is the one measured**: the version `tools/compare/compare.py` runs.
 //! - The paths it names for oxidestack/docx-to-pdf are paths of `docs/guide/api.md`, and every relative link
 //!   resolves.
@@ -19,7 +19,9 @@ use std::path::PathBuf;
 const PAGE: &str = "docs/guide/comparison.md";
 const API: &str = "docs/guide/api.md";
 const COMPARE: &str = "tools/compare/compare.py";
-const MATRIX: &str = "tools/bench/matrices/compare-1cpu.tsv";
+const RESULTS: &str = "site/public/benchmarks/results.json";
+const BEGIN: &str = "<!-- benchmarks:begin: `make evidence` writes this block from site/public/benchmarks/results.json -->";
+const END: &str = "<!-- benchmarks:end -->";
 
 fn root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -114,65 +116,63 @@ fn numbers(text: &str) -> BTreeSet<String> {
     out
 }
 
+/// The page's text with its lines joined, so a phrase the generator wrapped still reads as one.
+fn flowed(page: &str) -> String {
+    page.replace('\n', " ")
+}
+
 #[test]
-fn the_page_gives_the_commands_that_repeat_the_numbers() {
+fn the_page_gives_the_command_that_repeats_the_numbers() {
     let page = read(PAGE);
-    let commands = fences(&page);
-    for command in [
-        format!("make bench-matrix MATRIX={MATRIX} REPS=3"),
-        "make compare".to_owned(),
-    ] {
-        assert!(
-            commands.contains(&command),
-            "{PAGE}: no command block runs `{command}`"
-        );
-    }
     assert!(
-        page.contains(&format!("bench.py matrix {MATRIX} --reps 3")),
-        "{PAGE}: does not name the matrix's command, `bench.py matrix {MATRIX} --reps 3`"
+        fences(&page).lines().any(|l| l.starts_with("make compare")),
+        "{PAGE}: no command block runs `make compare`"
     );
-    assert!(root().join(MATRIX).exists(), "{MATRIX} is gone");
-    let makefile = read("Makefile");
-    for target in [
-        "bench-matrix:",
-        "compare:",
-        "bench-tools:",
-        "bench-generate:",
+    assert!(
+        read("Makefile").lines().any(|l| l.starts_with("compare:")),
+        "the Makefile has no target compare:"
+    );
+}
+
+#[test]
+fn the_page_says_what_was_measured() {
+    let page = read(PAGE);
+    let (Some(start), Some(end)) = (page.find(BEGIN), page.find(END)) else {
+        panic!("{PAGE}: no block generated from {RESULTS}");
+    };
+    let block = flowed(&page[start..end]);
+    let results: serde_json::Value =
+        serde_json::from_str(&read(RESULTS)).unwrap_or_else(|e| panic!("{RESULTS}: {e}"));
+    let stamp = results["meta"]["stamp"]
+        .as_str()
+        .expect("results.json has no meta.stamp");
+    let date = format!("{}-{}-{}", &stamp[0..4], &stamp[4..6], &stamp[6..8]);
+    for phrase in [
+        "Measured by `make compare` on ",
+        date.as_str(),
+        "## Speed and memory",
+        "## Hostile documents",
     ] {
         assert!(
-            makefile.lines().any(|l| l.starts_with(target)),
-            "the Makefile has no target {target}"
+            block.contains(phrase),
+            "{PAGE}: the generated block does not say \"{phrase}\""
         );
     }
 }
 
 #[test]
-fn the_page_says_what_the_record_leaves_open() {
-    let page = read(PAGE);
-    for phrase in [
-        "75 minutes",
-        "not interleaved",
-        "Gotenberg's rendering of the corpus has never been measured",
-    ] {
-        assert!(page.contains(phrase), "{PAGE}: does not say \"{phrase}\"");
-    }
-}
-
-#[test]
-fn the_page_says_what_the_commands_full_run_gave() {
-    let page = read(PAGE);
+fn the_page_says_what_the_figures_leave_open() {
+    let page = flowed(&read(PAGE));
     assert!(
         !page.contains("has not yet been run"),
         "{PAGE}: still says the full mode has not been run"
     );
-    let flowed = page.replace('\n', " ");
     for phrase in [
-        "It ran there once, on 2026-10-27",
-        "ran interleaved",
-        "4.8 % above the table's",
-        "33 agree with it at 2σ",
+        "one run a side",
+        "before the heap trim",
+        "Gotenberg's rendering has never been measured",
     ] {
-        assert!(flowed.contains(phrase), "{PAGE}: does not say \"{phrase}\"");
+        assert!(page.contains(phrase), "{PAGE}: does not say \"{phrase}\"");
     }
 }
 
@@ -186,7 +186,7 @@ fn the_gotenberg_described_is_the_one_measured() {
     let named = &rest[..rest.find('"').unwrap()];
     let page = read(PAGE);
     assert!(
-        page.contains(named),
+        flowed(&page).contains(named),
         "{PAGE}: does not describe {named}, the version {COMPARE} runs"
     );
     assert!(

@@ -58,7 +58,7 @@ chart-docs: ## regenerate charts/docx-to-pdf/README.md from README.md.gotmpl and
 # (site/public/benchmarks/results.json) by site/scripts/evidence.mjs in the same pinned node image; `make site` fails
 # on a README whose block differs from what this writes.
 .PHONY: evidence
-evidence: ## rewrite the README's headline block from site/public/benchmarks/results.json
+evidence: ## rewrite the README's and the comparison guide's blocks from site/public/benchmarks/results.json
 	docker run --rm --name docx-to-pdf-evidence-$$$$ --user "$$(id -u):$$(id -g)" -e HOME=/tmp -v "$(CURDIR):/src" -w /src \
 		$$(sh tools/lint/lint.sh --list | awk '$$1 == "markdownlint" { print $$3 }') node site/scripts/evidence.mjs --write-readme
 

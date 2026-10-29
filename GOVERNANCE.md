@@ -68,8 +68,14 @@ docx-to-pdf takes on a dependency only when it earns its place, and keeps every 
 - **Advisories.** `cargo deny` fails a pull request on a known advisory, a yanked crate or an unmaintained one; Trivy
   scans the image for known vulnerabilities on every pull request. A fix for a vulnerable dependency goes into the
   next release ([SECURITY.md](SECURITY.md)).
-- **Updates.** Dependencies are updated by pull request, each through the same checks as any other change; a
-  dependency's breaking change is a larger change, as above.
+- **Updates.** [Renovate](https://docs.renovatebot.com/) opens the pull requests that keep the pins current
+  (`.github/renovate.json5`): the crates, the GitHub Actions, the image's base images and the Rust image of every CI
+  job in a weekly batch on Monday mornings (UTC), `Cargo.lock` once a month, and the Debian snapshot that pins
+  LibreOffice and every package of the image in the first week of each month, so the image job and the rendering
+  corpus show whether the layout moved. A new version is proposed once it is three days old. The gates' tool
+  images, the pins of the benchmarks and the comparison, which reproduce published measurements, and `upstream/`
+  are moved by hand, and the minimum Rust version is a decision, never an update. Each pull request goes through
+  the same checks as any other change; a dependency's breaking change is a larger change, as above.
 
 ## Changing this page
 

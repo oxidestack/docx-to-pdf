@@ -26,13 +26,14 @@ the checkout's commit. An image given with `IMAGE=` is not built: it is recorded
 
 ## What it measures
 
-**Speed and memory.** This is the cell of `tools/bench/matrices/compare-1cpu.tsv`, the measurement on record that [the
-comparison page](../../docs/guide/comparison.md#speed-and-memory) quotes. Each service gets one pinned vCPU and one
-LibreOffice (pool 1). Three clients in a closed loop send the typical report mix: four reports of 10-20 MB with 30-60
-pictures each. The table gives conversions per second, CPU-seconds per conversion, p50/p95/p99 latency, the container's
-`memory.peak` and anonymous peak, the bytes written per conversion, and the time from `docker run` to ready. Gotenberg
-runs twice: as shipped, and with `LIBREOFFICE_RESTART_AFTER=0`. The cells run in blocks, and each block runs every cell
-once in a shuffled order. A host that slows down in the middle of a run therefore slows every service alike.
+**Speed and memory.** This is the cell of `tools/bench/matrices/compare-1cpu.tsv`, the run whose results [the comparison
+page](../../docs/guide/comparison.md#speed-and-memory) and the Benchmarks page are generated from. Each service gets one
+pinned vCPU and one LibreOffice (pool 1). Three clients in a closed loop send the typical report mix: four reports of
+10-20 MB with 30-60 pictures each. The table gives conversions per second, CPU-seconds per conversion, p50/p95/p99
+latency, the container's `memory.peak` and anonymous peak, the bytes written per conversion, and the time from
+`docker run` to ready. Gotenberg runs twice: as shipped, and with `LIBREOFFICE_RESTART_AFTER=0`. The cells run in
+blocks, and each block runs every cell once in a shuffled order. A host that slows down in the middle of a run therefore
+slows every service alike.
 
 **The torture test.** These are the hostile documents of [the comparison
 page](../../docs/guide/comparison.md#hostile-documents). Each one goes to each service alone, in a fresh container, with

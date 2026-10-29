@@ -1,5 +1,6 @@
-// The evidence: the Benchmarks page and the README's headline numbers, both generated from one committed file, the raw
-// results of the latest full `make compare` run (public/benchmarks/results.json, served beside the page for download).
+// The evidence: the Benchmarks page, the README's headline numbers and the comparison guide's figures, all generated
+// from one committed file, the raw results of the latest full `make compare` run (public/benchmarks/results.json,
+// served beside the page for download).
 //
 // A number a reader is shown has to be one a stranger can find in that file, so nothing here types a figure by hand:
 //
@@ -7,13 +8,14 @@
 //     markup and the link targets from the generated text, and fails on any digit left over, so a figure typed into
 //     a template below fails the build. The few labels that hold a digit and are not figures (p50, 2σ, SHA-256, amd64, QUICK=1) are
 //     listed in LABELS.
-//   * The README carries the headline block between two markers, exactly as `headline()` writes it: a block that
-//     differs from the generated one, a number edited in it included, fails the check. `--write-readme` rewrites it.
-//   * Outside that block, a number with a unit of measure (×, %, s, MiB, GiB, MB, conversions) fails the check: the
-//     README states figures only through the block.
+//   * The README and docs/guide/comparison.md each carry a block between two markers, exactly as `headline()` and
+//     `guide()` write it: a block that differs from the generated one, a number edited in it included, fails the
+//     check. `--write-readme` rewrites both.
+//   * Outside its block, a number with a unit of measure (×, %, s, MiB, GiB, MB, conversions) fails the check: each
+//     file states figures only through its block (a setting is written as code, `180s`, and is not a figure).
 //
-//   node scripts/evidence.mjs                 the page into src/content/docs/benchmarks.md, after the README check
-//   node scripts/evidence.mjs --write-readme  rewrite the README's block from the results (`make evidence`)
+//   node scripts/evidence.mjs                 the page into src/content/docs/benchmarks.md, after the files' check
+//   node scripts/evidence.mjs --write-readme  rewrite both files' blocks from the results (`make evidence`)
 //
 // package.json's prebuild runs it after scripts/stage.mjs, which empties src/content/docs/; exit 1 on a finding.
 
@@ -26,6 +28,7 @@ const REPO = join(here, '..', '..')
 export const RESULTS = join(here, '..', 'public', 'benchmarks', 'results.json')
 const PAGE = join(here, '..', 'src', 'content', 'docs', 'benchmarks.md')
 const README = join(REPO, 'README.md')
+const GUIDE = join(REPO, 'docs', 'guide', 'comparison.md')
 
 const SITE = 'https://oxidestack.github.io/docx-to-pdf'
 const GITHUB = 'https://github.com/oxidestack/docx-to-pdf'
@@ -63,7 +66,7 @@ export const plain = (text) => text.replaceAll(OPEN, '').replaceAll(CLOSE, '')
 /** A number with a unit of measure, the shape of a figure, outside code. */
 const FIGURE = /\d[\d.,]*(?:[  ]?(?:×|%|MiB|GiB|KiB|MB|GB|ms|s\b|conversions))/g
 
-/** Figure-shaped numbers in the README outside its generated block and outside code. */
+/** Figure-shaped numbers in a file (the README, the comparison guide) outside its generated block and outside code. */
 export function readmeStrays(readme) {
   const out = []
   const start = readme.indexOf(BEGIN)
@@ -238,6 +241,11 @@ function cellSetup(results) {
 // pages name the day and the change since instead; say what that change costs once a run has measured it.
 const CODE_NOTE = 'a release image carries it, at a small CPU cost a conversion that this run did not measure'
 
+// The one sentence of the project's positioning: what the README opens with. Each clause stands on a figure the block
+// and the Benchmarks page show; it names the two services measured, never "anything else".
+const SENTENCE =
+  'docx-to-pdf turns office documents into PDF faster and with less memory than Gotenberg and moalhaddar/docx-to-pdf on the same documents, and no document — however large, malicious or broken — can take it down, hold it past its timeout or make it reach the network.'
+
 // The deflate bomb of the torture test, the headline's fourth row.
 const BOMB = 'pages-500000p'
 
@@ -258,14 +266,14 @@ export function headline(results) {
   return [
     BEGIN,
     '',
-    '> **docx-to-pdf turns office documents into PDF faster and with less memory than anything else, and no document — however large, malicious or broken — can take it down, hang it or make it reach the network.**',
+    `> **${SENTENCE}**`,
     '',
-    `- **Less CPU than Gotenberg**: Gotenberg uses ${r('gotenberg', 'ours', 'cpu')} the CPU a conversion as it ships, and ${r('g-norestart', 'ours', 'cpu')} without its restarts ([the row](${row('ratio-cpu')})).`,
+    `- **Less CPU than Gotenberg**: Gotenberg uses ${r('gotenberg', 'ours', 'cpu')} the CPU a conversion as it ships, and ${r('g-norestart', 'ours', 'cpu')} without its restarts, measured on the code before the heap trim ([the row](${row('ratio-cpu')})).`,
     `- **Less memory than Gotenberg**: its container peaks at ${r('gotenberg', 'ours', 'peak')} the memory as it ships, and ${r('g-norestart', 'ours', 'peak')} without its restarts ([the row](${row('ratio-peak')})).`,
     `- **The service it replaces, outrun**: ${r('ours', 'oracle', 'throughput')} moalhaddar/docx-to-pdf's throughput, which uses ${r('oracle', 'ours', 'cpu')} the CPU a conversion and ${r('oracle', 'ours', 'peak')} the memory ([the row](${row('ratio-throughput')})).`,
-    `- **A deflate bomb stopped at once**: \`${v(BOMB)}\`, a document that inflates past any limit, gets ${answer(deflate.ours)} at a ${mib(deflate.ours.peak)} MiB peak; Gotenberg answers ${answer(deflate.gotenberg)} while its LibreOffice goes on to ${mib(deflate.gotenberg.peak)} MiB, and moalhaddar/docx-to-pdf gives ${answer(deflate.moalhaddar)} at ${mib(deflate.moalhaddar.peak)} MiB ([the row](${row(`torture-${BOMB}`)})).`,
+    `- **A deflate bomb stopped at once**: \`${v(BOMB)}\`, a document that inflates past any limit, gets ${answer(deflate.ours)} at a ${mib(deflate.ours.peak)} MiB peak; Gotenberg answers ${answer(deflate.gotenberg)} while its LibreOffice goes on to ${mib(deflate.gotenberg.peak)} MiB, and moalhaddar/docx-to-pdf gives ${answer(deflate.moalhaddar)} at ${mib(deflate.moalhaddar.peak)} MiB, one run a side ([the row](${row(`torture-${BOMB}`)})).`,
     '',
-    `Measured by \`make compare\` on ${at(results)}, on an ${v(h.cpu_model)} (${v(h.arch)}), ${setup.cpus} pinned vCPU and a pool of ${setup.pool} a service: mean ± σ (n) over ${setup.blocks} interleaved blocks, a ratio ± its standard error. The code measured is that day's, before the change that hands LibreOffice's free heap back after each conversion: ${CODE_NOTE}. [Benchmarks](${SITE}/benchmarks/) has every figure, the rows where Gotenberg wins, and the raw results.`,
+    `Measured by \`make compare\` on ${at(results)}, on an ${v(h.cpu_model)} (${v(h.arch)}), ${setup.cpus} pinned vCPU and a pool of ${setup.pool} a service: mean ± σ (n) over ${setup.blocks} interleaved blocks, a ratio ± its standard error. The code measured is that day's, before the heap trim, the change that hands LibreOffice's free heap back after each conversion: ${CODE_NOTE}. [Benchmarks](${SITE}/benchmarks/) has every figure, the rows where Gotenberg wins, and the raw results.`,
     '',
     END,
   ].join('\n')
@@ -280,7 +288,7 @@ const WIDTH = 120
 export function wrap(text) {
   const out = []
   for (const line of text.split('\n')) {
-    if (line.length <= WIDTH || line.startsWith('<!--')) {
+    if (line.length <= WIDTH || line.startsWith('<!--') || line.startsWith('|')) {
       out.push(line)
       continue
     }
@@ -311,6 +319,9 @@ export function wrap(text) {
 
 /** The README's block as it must read: the headline, unmarked and wrapped. */
 export const readmeBlock = (results) => wrap(plain(headline(results)))
+
+/** The comparison guide's block as it must read. */
+export const guideBlock = (results) => wrap(plain(guide(results)))
 
 // ---------------------------------------------------------------------------------------------------------------
 // The Benchmarks page
@@ -357,7 +368,7 @@ function chart(id, label, f, digits) {
 const VERDICT = { 1: 'oxidestack/docx-to-pdf ahead', 0: 'no difference at 2σ', '-1': 'Gotenberg ahead' }
 
 /** The rows where Gotenberg is ahead of oxidestack/docx-to-pdf, and those where neither is, from every table. */
-export function gotenbergRows(results) {
+export function gotenbergRows(results, base = '') {
   const f = speedFigures(results)
   const wins = []
   const ties = []
@@ -368,8 +379,8 @@ export function gotenbergRows(results) {
       if (!a?.sd || !b?.sd) continue
       const verdict = ahead(a, b, higher)
       const line = `${gname}, ${label}: ${record(b, digits)} against ${record(a, digits)}`
-      if (verdict === -1) wins.push(`${line} ([the row](#speed-${id}))`)
-      if (verdict === 0) ties.push(`${line} ([the row](#speed-${id}))`)
+      if (verdict === -1) wins.push(`${line} ([the row](${base}#speed-${id}))`)
+      if (verdict === 0) ties.push(`${line} ([the row](${base}#speed-${id}))`)
     }
   }
   const cases = [...new Set(results.torture.filter((t) => t.kind === 'one').map((t) => t.case))]
@@ -381,7 +392,7 @@ export function gotenbergRows(results) {
     if (got.seconds < ours.seconds) what.push(`answered in ${v(got.seconds)} s against ${v(ours.seconds)} s`)
     if (got.peak < ours.peak) what.push(`peaked at ${v(got.peak)} MiB against ${v(ours.peak)} MiB`)
     if (what.length)
-      wins.push(`Gotenberg, \`${v(c)}\` (the same answer, ${v(got.status)}, and the same pictures): ${what.join(', ')}, one run a side ([the row](#torture-${c}))`)
+      wins.push(`Gotenberg, \`${v(c)}\` (the same answer, ${v(got.status)}, and the same pictures): ${what.join(', ')}, one run a side ([the row](${base}#torture-${c}))`)
   }
   const level = (l) => `${v(fmt(l.mean, 0))} ± ${v(fmtSigma(l.mean, l.sd, 0))} MiB over ${v(l.n)} conversions`
   const soak = Object.fromEntries(
@@ -391,10 +402,40 @@ export function gotenbergRows(results) {
     if (!soak.ours || !soak[g]) continue
     if (ahead(soak.ours, soak[g], false) === -1)
       wins.push(
-        `${gname}, LibreOffice's resident memory over the soak's second half: ${level(soak[g])} against ${level(soak.ours)}, one soak a side ([the row](#soaks))`,
+        `${gname}, LibreOffice's resident memory over the soak's second half: ${level(soak[g])} against ${level(soak.ours)}, one soak a side ([the row](${base}#soaks))`,
       )
   }
   return { wins, ties }
+}
+
+// The four figures the ratio tables show.
+const RATIOS = ['throughput', 'cpu', 'p99', 'peak']
+
+/** Each service's figure over oxidestack/docx-to-pdf's, a row a figure; `head(id, label)` writes a row's first cell. */
+function ratioTable(f, head) {
+  const L = [`| | ${SPEED.slice(1).map(([, n]) => n).join(' | ')} |`, `| --- |${SPEED.slice(1).map(() => ' --- |').join('')}`]
+  for (const [id, label, , , higher] of ROWS.filter(([id]) => RATIOS.includes(id))) {
+    const cells = SPEED.slice(1).map(([s]) => {
+      const verdict = ahead(f.ours[id], f[s][id], higher)
+      return `${fmtRatio(ratio(f[s][id], f.ours[id]))} (${VERDICT[verdict].replace('Gotenberg', s === 'oracle' ? 'moalhaddar/docx-to-pdf' : 'Gotenberg')})`
+    })
+    L.push(`| ${head(id, label)} | ${cells.join(' | ')} |`)
+  }
+  return L
+}
+
+/** The torture cases, a row a case (the soaks apart); `head(case)` writes a row's first cell. */
+function tortureTable(results, head) {
+  const L = [`| Case | ${TORTURE.map(([, n]) => n).join(' | ')} |`, `| --- |${TORTURE.map(() => ' --- |').join('')}`]
+  const cases = [...new Set(results.torture.filter((t) => t.kind !== 'soak').map((t) => t.case))]
+  for (const c of cases) {
+    const cells = TORTURE.map(([s]) => {
+      const t = results.torture.find((x) => x.case === c && x.subject === s)
+      return t ? v(shortCell(t.cell)) : '—'
+    })
+    L.push(`| ${head(c)} | ${cells.join(' | ')} |`)
+  }
+  return L
 }
 
 export function page(results) {
@@ -439,16 +480,8 @@ export function page(results) {
     'Each service\'s figure over oxidestack/docx-to-pdf\'s, the ratio of the means ± its standard error, from the same',
     'interleaved run. A ratio measured inside one run holds from one host to the next better than an absolute figure.',
     '',
-    `| | ${SPEED.slice(1).map(([, n]) => n).join(' | ')} |`,
-    `| --- |${SPEED.slice(1).map(() => ' --- |').join('')}`,
+    ...ratioTable(f, (id, label) => `<a id="ratio-${id}"></a>${label}`),
   )
-  for (const [id, label, , , higher] of ROWS.filter(([id]) => ['throughput', 'cpu', 'p99', 'peak'].includes(id))) {
-    const cells = SPEED.slice(1).map(([s]) => {
-      const verdict = ahead(f.ours[id], f[s][id], higher)
-      return `${fmtRatio(ratio(f[s][id], f.ours[id]))} (${VERDICT[verdict].replace('Gotenberg', s === 'oracle' ? 'moalhaddar/docx-to-pdf' : 'Gotenberg')})`
-    })
-    L.push(`| <a id="ratio-${id}"></a>${label} | ${cells.join(' | ')} |`)
-  }
   const { wins, ties } = gotenbergRows(results)
   L.push(
     '',
@@ -469,17 +502,8 @@ export function page(results) {
     'Hostile and borderline documents, one run a side, each service as it ships: the answer, its time, the container\'s',
     'memory peak and, for a picture, how many pictures reached the PDF. Judged by the answer: the times and peaks have no σ.',
     '',
-    `| Case | ${TORTURE.map(([, n]) => n).join(' | ')} |`,
-    `| --- |${TORTURE.map(() => ' --- |').join('')}`,
+    ...tortureTable(results, (c) => `<a id="torture-${c}"></a>\`${v(c)}\``),
   )
-  const cases = [...new Set(results.torture.filter((t) => t.kind !== 'soak').map((t) => t.case))]
-  for (const c of cases) {
-    const cells = TORTURE.map(([s]) => {
-      const t = results.torture.find((x) => x.case === c && x.subject === s)
-      return t ? v(shortCell(t.cell)) : '—'
-    })
-    L.push(`| <a id="torture-${c}"></a>\`${v(c)}\` | ${cells.join(' | ')} |`)
-  }
   L.push(
     '',
     '## Soaks',
@@ -519,6 +543,70 @@ export function page(results) {
 
 // ---------------------------------------------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------------------------------------------
+// The comparison guide's block (docs/guide/comparison.md): its two measured sections, the ratios and the torture
+// cases, each row linking its figures on the Benchmarks page.
+
+// What each torture case is, in words; a case the results add later shows its name alone.
+const CASES = {
+  'pages-500000p': 'a deflate bomb: a document that inflates past any limit',
+  'px-8x1024mpx': 'a picture bomb: eight gigapixel pictures',
+  'tables-10000': 'a document that converts for minutes',
+  'png-g-32767': "a gray picture just inside LibreOffice's bound",
+  'png-g-32768': "a gray picture just past LibreOffice's bound",
+  'png-rgb-18918': "a colour picture just inside LibreOffice's bound",
+  'png-rgb-18919': "a colour picture just past LibreOffice's bound",
+  empty: 'an empty file',
+  'random-1mb': 'random bytes',
+  'random-10mb': 'more random bytes',
+  tdf38575: "a document that hangs moalhaddar/docx-to-pdf's LibreOffice",
+  pause: 'uploads that pause, then one that stalls halfway',
+  egress: 'linked pictures aimed at a listener, public and private addresses',
+}
+
+/** The image's tag of a pinned reference, `name:tag@sha256:…`. */
+const tag = (ref) => ref.split('@')[0].split(':').at(-1)
+
+export function guide(results) {
+  const f = speedFigures(results)
+  const setup = cellSetup(results)
+  const meta = results.meta
+  const h = meta.host
+  const { wins, ties } = gotenbergRows(results, `${SITE}/benchmarks/`)
+  // One logical line a paragraph or item; guideBlock() wraps them, and leaves the tables' rows whole.
+  return [
+    BEGIN,
+    '',
+    '## Speed and memory',
+    '',
+    `Measured by \`make compare\` on ${at(results)}, on an ${v(h.cpu_model)} (${v(h.arch)}) virtual machine under ${v(h.hypervisor)}: ${setup.cpus} pinned vCPU, a pool of ${setup.pool} and ${setup.memory} of memory a service; a closed load of the typical reports ${setup.docs}; ${setup.conversions} conversions a service in each of ${setup.blocks} blocks, every block running each service once in a shuffled order, so a drift of the host moves them alike. Gotenberg ${v(tag(meta.images.Gotenberg))} ran twice, as it ships and with LibreOffice's restarts turned off. oxidestack/docx-to-pdf was the code of that day, before the heap trim, the change that hands LibreOffice's free heap back after each conversion: ${CODE_NOTE}.`,
+    '',
+    `Each figure is the other service's over oxidestack/docx-to-pdf's, the ratio of the means ± its standard error, with the verdict of the 2σ test. A ratio measured inside one interleaved run holds from one host to the next better than an absolute figure; each row links the absolute figures on [Benchmarks](${SITE}/benchmarks/).`,
+    '',
+    ...ratioTable(f, (id, label) => `[${label}](${row(`ratio-${id}`)})`),
+    '',
+    'Where Gotenberg is ahead of oxidestack/docx-to-pdf in this run:',
+    '',
+    ...(wins.length ? wins.map((w) => `- ${w}`) : ['- nowhere']),
+    '',
+    'Where neither is ahead at 2σ:',
+    '',
+    ...(ties.length ? ties.map((t) => `- ${t}`) : ['- nowhere']),
+    '',
+    '## Hostile documents',
+    '',
+    `Each case went to each service once, each service as it ships, in a fresh container with ${v(meta.torture_memory.replace(/g$/, ' GiB'))} of memory on vCPUs ${v(meta.torture_cpus)}, waiting up to ${v(meta.cap)} s for the answer: the answer, its time, the container's memory peak and, for a picture, how many pictures reached the PDF. The answers are set by limits, and so repeat; the times and peaks are one run a side, with no σ.`,
+    '',
+    ...tortureTable(results, (c) => `[\`${v(c)}\`](${row(`torture-${c}`)})${CASES[c] ? `, ${CASES[c]}` : ''}`),
+    '',
+    `The soaks, thousands of conversions on one LibreOffice, are on [Benchmarks](${row('soaks')}).`,
+    '',
+    END,
+  ].join('\n')
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+
 /** The README with its block replaced by `block` (placed after the title's paragraph when it has none). */
 export function withBlock(readme, block) {
   const start = readme.indexOf(BEGIN)
@@ -527,17 +615,29 @@ export function withBlock(readme, block) {
   throw new Error(`README.md has no block between ${BEGIN} and ${END}`)
 }
 
-/** Every finding of the check: a stray digit in a generated text, a stale README block, a figure outside it. */
-export function check(results, readme) {
+/** A file's findings: no block, a block that is not `block`, a figure outside it. */
+function fileFindings(name, text, block) {
+  const findings = []
+  const start = text.indexOf(BEGIN)
+  const end = text.indexOf(END)
+  if (start === -1 || end === -1) findings.push(`${name} has no generated block`)
+  else if (text.slice(start, end + END.length) !== block)
+    findings.push(`${name}'s block is not what the results generate: run \`make evidence\``)
+  for (const s of readmeStrays(text)) findings.push(`${name} states a figure outside the generated block: ${s}`)
+  return findings
+}
+
+/**
+ * Every finding of the check: a stray digit in a generated text, a stale block, a figure outside it. The comparison
+ * guide is checked when it is given.
+ */
+export function check(results, readme, comparison) {
   const findings = []
   for (const s of strays(page(results))) findings.push(`the Benchmarks page has a number not read from the results: …${s}…`)
   for (const s of strays(headline(results))) findings.push(`the headline block has a number not read from the results: …${s}…`)
-  const start = readme.indexOf(BEGIN)
-  const end = readme.indexOf(END)
-  if (start === -1 || end === -1) findings.push('README.md has no generated headline block')
-  else if (readme.slice(start, end + END.length) !== readmeBlock(results))
-    findings.push('README.md\'s headline block is not what the results generate: run `make evidence`')
-  for (const s of readmeStrays(readme)) findings.push(`README.md states a figure outside the generated block: ${s}`)
+  for (const s of strays(guide(results))) findings.push(`the comparison block has a number not read from the results: …${s}…`)
+  findings.push(...fileFindings('README.md', readme, readmeBlock(results)))
+  if (comparison !== undefined) findings.push(...fileFindings('docs/guide/comparison.md', comparison, guideBlock(results)))
   return findings
 }
 
@@ -545,16 +645,17 @@ function main() {
   const results = JSON.parse(readFileSync(RESULTS, 'utf8'))
   if (process.argv.includes('--write-readme')) {
     writeFileSync(README, withBlock(readFileSync(README, 'utf8'), readmeBlock(results)))
-    console.log('README.md: the headline block rewritten from the results')
+    writeFileSync(GUIDE, withBlock(readFileSync(GUIDE, 'utf8'), guideBlock(results)))
+    console.log('README.md and docs/guide/comparison.md: the blocks rewritten from the results')
   }
-  const findings = check(results, readFileSync(README, 'utf8'))
+  const findings = check(results, readFileSync(README, 'utf8'), readFileSync(GUIDE, 'utf8'))
   if (findings.length) {
     for (const f of findings) console.error(`evidence: ${f}`)
     process.exit(1)
   }
   mkdirSync(dirname(PAGE), { recursive: true })
   writeFileSync(PAGE, plain(page(results)))
-  console.log(`evidence: the Benchmarks page and the README's block from results.json (${results.meta.stamp})`)
+  console.log(`evidence: the Benchmarks page and the two blocks from results.json (${results.meta.stamp})`)
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {

@@ -1,14 +1,17 @@
 # docx-to-pdf
 
+[![CI](https://github.com/oxidestack/docx-to-pdf/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/oxidestack/docx-to-pdf/actions/workflows/ci.yml?query=branch%3Amain)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/oxidestack/docx-to-pdf/badge)](https://scorecard.dev/viewer/?uri=github.com/oxidestack/docx-to-pdf)
 
 <!-- benchmarks:begin: `make evidence` writes this block from site/public/benchmarks/results.json -->
 
-> **docx-to-pdf turns office documents into PDF faster and with less memory than anything else, and no document —
-> however large, malicious or broken — can take it down, hang it or make it reach the network.**
+> **docx-to-pdf turns office documents into PDF faster and with less memory than Gotenberg and moalhaddar/docx-to-pdf on
+> the same documents, and no document — however large, malicious or broken — can take it down, hold it past its timeout
+> or make it reach the network.**
 
 - **Less CPU than Gotenberg**: Gotenberg uses 1.20 ± 0.04× the CPU a conversion as it ships, and 1.08 ± 0.03× without
-  its restarts ([the row](https://oxidestack.github.io/docx-to-pdf/benchmarks/#ratio-cpu)).
+  its restarts, measured on the code before the heap trim
+  ([the row](https://oxidestack.github.io/docx-to-pdf/benchmarks/#ratio-cpu)).
 - **Less memory than Gotenberg**: its container peaks at 1.76 ± 0.05× the memory as it ships, and 1.80 ± 0.02× without
   its restarts ([the row](https://oxidestack.github.io/docx-to-pdf/benchmarks/#ratio-peak)).
 - **The service it replaces, outrun**: 3.05 ± 0.08× moalhaddar/docx-to-pdf's throughput, which uses 3.11 ± 0.06× the CPU
@@ -16,13 +19,13 @@
   ([the row](https://oxidestack.github.io/docx-to-pdf/benchmarks/#ratio-throughput)).
 - **A deflate bomb stopped at once**: `pages-500000p`, a document that inflates past any limit, gets 413 in 0.01 s at a
   235 MiB peak; Gotenberg answers 503 in 30.01 s while its LibreOffice goes on to 7 610 MiB, and moalhaddar/docx-to-pdf
-  gives no answer in 300.02 s at 9 374 MiB
+  gives no answer in 300.02 s at 9 374 MiB, one run a side
   ([the row](https://oxidestack.github.io/docx-to-pdf/benchmarks/#torture-pages-500000p)).
 
 Measured by `make compare` on 2026-10-28 10:06 UTC, on an Intel(R) Xeon(R) Gold 6248R CPU @ 3.00GHz (x86_64), 1 pinned
 vCPU and a pool of 1 a service: mean ± σ (n) over 3 interleaved blocks, a ratio ± its standard error. The code measured
-is that day's, before the change that hands LibreOffice's free heap back after each conversion: a release image carries
-it, at a small CPU cost a conversion that this run did not measure.
+is that day's, before the heap trim, the change that hands LibreOffice's free heap back after each conversion: a release
+image carries it, at a small CPU cost a conversion that this run did not measure.
 [Benchmarks](https://oxidestack.github.io/docx-to-pdf/benchmarks/) has every figure, the rows where Gotenberg wins, and
 the raw results.
 
@@ -49,6 +52,10 @@ curl -F document=@report.docx http://localhost:8080/pdf -o report.pdf
 ```
 
 `report.pdf` is the document as LibreOffice lays it out. A test replays this `curl` against the service.
+
+Every release is signed and carries its SBOM and build provenance;
+[Verifying a release](docs/guide/installation.md#verifying-a-release) checks an image or a chart with `cosign` and
+`gh attestation verify`.
 
 ## What it gives
 
@@ -97,6 +104,8 @@ In a clone made without `--recursive`, run `git submodule update --init` once.
   and poppler on `PATH` (`pdfinfo`, `pdftotext`, `pdftoppm`: `brew install poppler` on macOS,
   `apt-get install poppler-utils` on Debian), and the tests that convert real documents need LibreOffice.
   `tools/instance-test/run.sh` runs them in a Linux container that carries all three.
+- `make lint` runs every quality gate the CI runs, each in its own pinned container; CONTRIBUTING.md's
+  [checks](CONTRIBUTING.md#the-checks) lists them, and the CI badge above is their state on `main`.
 
 ## Getting help
 

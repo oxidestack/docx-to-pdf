@@ -9,6 +9,8 @@ import {
   SPEED,
   check,
   gotenbergRows,
+  guide,
+  guideBlock,
   page,
   plain,
   readmeBlock,
@@ -26,6 +28,9 @@ const results = JSON.parse(readFileSync(RESULTS, 'utf8'))
 // the build's check itself (evidence.mjs, run by the prebuild), which names what it found.
 const shell = `# docx-to-pdf\n\n${BEGIN}\n<!-- benchmarks:end -->\n\nAn HTTP service.\n\n## Quick start\n\n\`\`\`sh\ndocker run -p 8080:8080 x\n\`\`\`\n`
 const readme = withBlock(shell, readmeBlock(results))
+// The comparison guide's shape: prose with settings in code, then the generated block.
+const guideShell = `# Compared\n\nThe timeout is \`180s\` by default.\n\n${BEGIN}\n<!-- benchmarks:end -->\n\n## Rendering\n`
+const comparison = withBlock(guideShell, guideBlock(results))
 
 test('the figures are the ones compare.py printed for the same run', () => {
   const f = speedFigures(results)
@@ -55,7 +60,7 @@ test('the generated page and block carry no number the results do not', () => {
 test('a number edited in the README block fails the check', () => {
   const edited = readme.replace(/Gotenberg uses \d\.\d\d/, 'Gotenberg uses 1.99')
   assert.notEqual(edited, readme)
-  assert.match(check(results, edited).join('\n'), /headline block is not what the results generate/)
+  assert.match(check(results, edited).join('\n'), /README\.md's block is not what the results generate/)
 })
 
 test('a figure typed into the README outside the block fails the check, a port in code does not', () => {
@@ -81,4 +86,28 @@ test('the page shows the rows where Gotenberg is ahead', () => {
   assert.match(p, /## Where Gotenberg wins/)
   for (const w of wins) assert.ok(p.includes(plain(w)))
   for (const [, name] of SPEED) assert.ok(p.includes(name))
+})
+
+test('the README block says the one sentence of the positioning, and no more', () => {
+  const block = readmeBlock(results)
+  assert.match(block.replace(/\n> /g, ' '), /than Gotenberg and moalhaddar\/docx-to-pdf on the same documents/)
+  assert.doesNotMatch(block, /anything else|hang it/)
+  assert.match(block, /before the heap trim/)
+})
+
+test('the comparison guide carries a generated block, held like the README', () => {
+  assert.deepEqual(strays(guide(results)), [])
+  assert.deepEqual(check(results, readme, comparison), [])
+  const edited = comparison.replace(/\d\.\d\d ± /, '1.99 ± ')
+  assert.notEqual(edited, comparison)
+  assert.match(check(results, readme, edited).join('\n'), /comparison\.md's block is not what the results generate/)
+  const typed = comparison.replace('## Rendering', 'Memory is about half, 1.9× less.\n\n## Rendering')
+  assert.match(check(results, readme, typed).join('\n'), /comparison\.md states a figure outside the generated block: 1\.9×/)
+})
+
+test('the guide block links each row to the Benchmarks page and keeps table rows whole', () => {
+  const block = guideBlock(results)
+  for (const id of ['ratio-cpu', 'ratio-peak', 'torture-pages-500000p']) assert.ok(block.includes(`/benchmarks/#${id}`), id)
+  for (const line of block.split('\n')) if (line.startsWith('|')) assert.ok(line.endsWith('|'), line)
+  assert.match(plain(block), /## Hostile documents/)
 })
