@@ -6,3 +6,4 @@
 ci/
 tests/
 README.md.gotmpl
+artifacthub-repo.yml

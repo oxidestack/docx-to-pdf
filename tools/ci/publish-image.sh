@@ -1,38 +1,34 @@
 #!/bin/sh
 # Publishes the release image: the per-architecture images the image job tested, saved by `docker save`, pushed by
-# digest into one multi-arch manifest list, tagged; and that manifest list copied, byte for byte, to a mirror.
-# .github/workflows/release-image.yml runs it; crane does the registry work, from its image pinned below, so nothing
-# is installed on the host. Docker is the only requirement.
+# digest into one multi-arch manifest list, tagged. tools/ci/release.sh signs it and copies it, with its signatures and
+# attestations, to the mirror. .github/workflows/release.yml runs both; crane does the registry work here, from its
+# image pinned below, so nothing is installed on the host. Docker is the only requirement.
 #
 #   sh tools/ci/publish-image.sh push   <repository> <version> <image.tar>...
 #       Pushes each tarball by its digest (no per-architecture tag is left behind), appends them to one manifest list
 #       and tags it <version>, and `latest` too unless <version> is a pre-release (it has a `-`). Prints the list's
 #       digest on the last line of stdout.
-#   sh tools/ci/publish-image.sh mirror <source repository> <mirror repository> <version>
-#       Copies <source>:<version> to the mirror (the same manifest list, so the same digest, and every image it
-#       names), tags `latest` the same way, and checks that both digests agree.
-#   sh tools/ci/publish-image.sh login  <registry> <username>
-#       Logs crane's config (below) in to <registry> with the password on stdin.
 #   sh tools/ci/publish-image.sh version <tag>
 #       Prints the version a release tag names (v1.2.3 → 1.2.3, v1.3.0-rc.1 → 1.3.0-rc.1); exit 2 for any other tag.
+#   sh tools/ci/publish-image.sh tags <version>
+#       The tags a version publishes: <version>, and `latest` unless it is a pre-release.
 #
 # Every registry call is tried three times, 10 s then 30 s apart: a dropped connection is not a failed release. What
-# fails all three exits 1; whether that fails the release is the caller's decision (the workflow: quay.io's push
-# does, the mirror's does not).
+# fails all three exits 1, which fails the release.
 #
-# Environment: CRANE_CONFIG, the directory of the registry credentials (a Docker config.json; default
-# $RUNNER_TEMP/crane or $TMPDIR/crane), mounted into crane's container; CRANE_FLAGS, extra flags for every crane call
-# (`--insecure` for a plain-HTTP test registry).
+# Environment: CRANE_CONFIG, the directory of the registry credentials (a Docker config.json, which
+# `tools/ci/release.sh login` writes; default $DOCKER_CONFIG or ~/.docker), mounted into crane's container read-only;
+# CRANE_FLAGS, extra flags for every crane call (`--insecure` for a plain-HTTP test registry).
 # Exit 0: done; 1: a registry call failed; 2: usage, or a tarball is missing.
 set -eu
 
 # crane v0.22.1, the manifest list's digest (linux/amd64 and linux/arm64).
 CRANE=gcr.io/go-containerregistry/crane:v0.22.1@sha256:1f968817b95790bed063f71175aa6b8ff879fa17064020415f3e18bb6e6a36e1
 
-CRANE_CONFIG=${CRANE_CONFIG:-${RUNNER_TEMP:-${TMPDIR:-/tmp}}/crane}
+CRANE_CONFIG=${CRANE_CONFIG:-${DOCKER_CONFIG:-$HOME/.docker}}
 
 usage() {
-	sed -n '7,19p' "$0" >&2
+	sed -n '7,14p' "$0" >&2
 	exit 2
 }
 
@@ -42,7 +38,7 @@ crane() {
 	mkdir -p "$CRANE_CONFIG"
 	[ -f "$CRANE_CONFIG/config.json" ] || printf '{}\n' > "$CRANE_CONFIG/config.json"
 	# shellcheck disable=SC2086 # CRANE_FLAGS is a list of flags
-	docker run --rm -i --network host -e DOCKER_CONFIG=/crane-config -v "$CRANE_CONFIG:/crane-config" \
+	docker run --rm -i --network host -e DOCKER_CONFIG=/crane-config -v "$CRANE_CONFIG:/crane-config:ro" \
 		${TARS:+-v "$TARS:/tars:ro"} "$CRANE" "$@" ${CRANE_FLAGS:-}
 }
 
@@ -83,10 +79,9 @@ version)
 		exit 2
 	fi
 	;;
-login)
-	[ $# -eq 2 ] || usage
-	# The password is read from stdin, never an argument a process listing shows.
-	crane auth login "$1" -u "$2" --password-stdin > /dev/null
+tags)
+	[ $# -eq 1 ] || usage
+	tags_for "$1"
 	;;
 push)
 	[ $# -ge 3 ] || usage
@@ -125,25 +120,6 @@ push)
 		retry "tag $repo:$tag" crane tag "$repo:$first" "$tag"
 	done
 	retry "digest of $repo:$first" crane digest "$repo:$first"
-	;;
-mirror)
-	[ $# -eq 3 ] || usage
-	src=$1 dst=$2 version=$3
-	# shellcheck disable=SC2046 # the tags are words
-	set -- $(tags_for "$version")
-	first=$1
-	shift
-	retry "copy to $dst:$first" crane copy "$src:$first" "$dst:$first"
-	for tag in "$@"; do
-		retry "tag $dst:$tag" crane tag "$dst:$first" "$tag"
-	done
-	want=$(retry "digest of $src:$first" crane digest "$src:$first")
-	got=$(retry "digest of $dst:$first" crane digest "$dst:$first")
-	[ "$want" = "$got" ] || {
-		echo "publish-image: $dst:$first is $got, $src:$first is $want" >&2
-		exit 1
-	}
-	echo "$got"
 	;;
 *) usage ;;
 esac

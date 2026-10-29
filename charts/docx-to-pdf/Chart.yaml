@@ -15,6 +15,15 @@ maintainers:
   # `name` is a GitHub account: chart-testing checks it (tools/lint/ct.yaml).
   - name: kustov-vitalik
     email: kustov.vitalik@gmail.com
+# Artifact Hub's annotations. The release adds the two that name its version, `artifacthub.io/images` (the image at
+# that tag, which Artifact Hub scans) and `artifacthub.io/prerelease`, to the packaged copy (tools/ci/release.sh chart).
 annotations:
   # The chart's licence, the code's: Artifact Hub shows it.
   artifacthub.io/license: Apache-2.0
+  artifacthub.io/links: |
+    - name: Documentation
+      url: https://oxidestack.github.io/docx-to-pdf/
+    - name: Image
+      url: https://quay.io/repository/oxidestack/docx-to-pdf
+    - name: Verifying a release
+      url: https://github.com/oxidestack/docx-to-pdf/blob/main/docs/guide/installation.md#verifying-a-release

@@ -1,0 +1,137 @@
+// Renovate (https://docs.renovatebot.com/), the GitHub app on this repository: pull requests that keep what the
+// repository pins current — the GitHub Actions (by commit, the release in the comment), the crates, the base images
+// of Dockerfile (by digest, the tag in the comment above each FROM), the rust image every CI job runs in, and the
+// snapshot.debian.org date that pins LibreOffice and every other package of the image and the test environment.
+//
+// Every commit is held to the commit gate (tools/lint/commits.py, CONTRIBUTING.md): a `build(deps)` Conventional
+// Commit, no release note, and the author's DCO sign-off last. The sign-off below names the hosted app's bot; a
+// self-hosted Renovate signs off as its own git author instead.
+//
+// The tool images and binaries of tools/lint/ are not here, but for the rust image: each moves with the gate it
+// serves, by hand, and tools/lint/check-pins.rb holds the CI jobs (both ci.yml and its GitRiver twin) to them. The
+// rust image moves everywhere at once, in one pull request; the msrv stage's toolchain (Cargo.toml's rust-version) is
+// a decision, never an update.
+{
+  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
+  extends: ['config:recommended', ':disableRateLimiting'],
+  enabledManagers: ['github-actions', 'cargo', 'dockerfile', 'custom.regex'],
+  // config:recommended's own list, plus what is pinned on purpose: the submodule is a read-only reference, and the
+  // bench and the comparison reproduce published measurements with the tools they name.
+  ignorePaths: ['**/node_modules/**', 'upstream/**', 'tools/bench/**', 'tools/compare/**', 'examples/compare/**'],
+  timezone: 'Etc/UTC',
+  // Monday mornings: one batch a week rather than a pull request whenever something is published.
+  schedule: ['* 0-6 * * 1'],
+  // A release younger than three days is often replaced by a fix; a pin waits for that.
+  minimumReleaseAge: '3 days',
+  semanticCommits: 'enabled',
+  commitBody: 'Signed-off-by: renovate[bot] <29139614+renovate[bot]@users.noreply.github.com>',
+  rebaseWhen: 'behind-base-branch',
+  lockFileMaintenance: {
+    enabled: true,
+    schedule: ['* 0-6 1 * *'],
+  },
+  customDatasources: {
+    // Every snapshot snapshot.debian.org has taken of the main archive, oldest first (its machine-readable API).
+    'debian-snapshot': {
+      defaultRegistryUrlTemplate: 'https://snapshot.debian.org/mr/timestamp/',
+      format: 'json',
+      transformTemplates: ['{"releases": [result.debian.{"version": $}]}'],
+    },
+  },
+  customManagers: [
+    {
+      // Dockerfile's bases: `# <image>:<tag>, by digest …` over `FROM <image>@sha256:…`. The tag is only a comment, so
+      // the dockerfile manager cannot see it; this moves the tag and the digest together.
+      customType: 'regex',
+      managerFilePatterns: ['/^Dockerfile$/'],
+      matchStrings: [
+        '# (?<depName>[a-z0-9./-]+):(?<currentValue>[^\\s,]+)[^\\n]*, by digest[^\\n]*\\n(?:#[^\\n]*\\n)*FROM (?:--platform=\\S+ )?[a-z0-9./-]+@(?<currentDigest>sha256:[a-f0-9]{64})',
+      ],
+      datasourceTemplate: 'docker',
+    },
+    {
+      // The rust image: the image job's, named by its tag in an argument, and the GitRiver jobs' `image:`, a key the
+      // github-actions manager does not read.
+      customType: 'regex',
+      managerFilePatterns: ['/^\\.github/workflows/[^/]+\\.ya?ml$/', '/^\\.gitriver/workflows/[^/]+\\.ya?ml$/'],
+      matchStrings: [
+        'image-job\\.sh host (?<depName>rust):(?<currentValue>[^\\s@]+)',
+        'image: (?<depName>rust):(?<currentValue>[^\\s@]+)(?:@(?<currentDigest>sha256:[a-f0-9]{64}))?',
+      ],
+      datasourceTemplate: 'docker',
+    },
+    {
+      // The snapshot date: the image's packages (Dockerfile) and the CI test environment's (tools/ci/test-deps.sh).
+      customType: 'regex',
+      managerFilePatterns: ['/^Dockerfile$/', '/^tools/ci/test-deps\\.sh$/', '/^image/test\\.sh$/'],
+      matchStrings: [
+        'ARG SNAPSHOT=(?<currentValue>\\d{8}T\\d{6}Z)',
+        'SNAPSHOT=\\$\\{SNAPSHOT:-(?<currentValue>\\d{8}T\\d{6}Z)\\}',
+        'snapshot\\.debian\\.org/archive/debian/(?<currentValue>\\d{8}T\\d{6}Z)/',
+      ],
+      depNameTemplate: 'debian-snapshot',
+      datasourceTemplate: 'custom.debian-snapshot',
+      versioningTemplate: 'regex:^(?<major>\\d{8})T(?<minor>\\d{6})Z$',
+    },
+  ],
+  packageRules: [
+    {
+      // After config:recommended's own rules: every update is `build(deps)`, never a `fix`, which would ask for a
+      // release note.
+      matchPackageNames: ['*'],
+      semanticCommitType: 'build',
+      semanticCommitScope: 'deps',
+    },
+    {
+      // Dockerfile's FROM lines carry a digest and no tag, which the dockerfile manager cannot move: the regex
+      // manager above does.
+      matchManagers: ['dockerfile'],
+      matchFileNames: ['Dockerfile'],
+      enabled: false,
+    },
+    {
+      // The gates' tool images, in tools/lint/images.Dockerfile and as the CI jobs' containers: by hand (above).
+      matchManagers: ['dockerfile', 'github-actions'],
+      matchFileNames: ['tools/lint/images.Dockerfile', '.github/workflows/**'],
+      matchDepTypes: ['final', 'stage', 'container', 'service'],
+      matchPackageNames: ['!rust'],
+      enabled: false,
+    },
+    {
+      matchPackageNames: ['rust'],
+      matchCurrentValue: '/^1\\.88\\./',
+      enabled: false,
+    },
+    {
+      // A runner label (ubuntu-24.04, ubuntu-24.04-arm) is a decision about where the image is built and tested.
+      matchDatasources: ['github-runners'],
+      enabled: false,
+    },
+    {
+      matchManagers: ['github-actions'],
+      matchDepTypes: ['action'],
+      groupName: 'github actions',
+      pinDigests: true,
+    },
+    {
+      // The toolchain of every CI job and of the image's build: one pull request for every file that names it.
+      matchDatasources: ['docker'],
+      matchPackageNames: ['rust'],
+      groupName: 'rust image',
+    },
+    {
+      matchManagers: ['cargo'],
+      matchUpdateTypes: ['minor', 'patch'],
+      groupName: 'rust crates',
+    },
+    {
+      // A new snapshot moves LibreOffice and every package of the image: a monthly pull request, whose CI (the
+      // image job, the corpus) says whether the rendering moved.
+      matchPackageNames: ['debian-snapshot'],
+      groupName: 'debian snapshot',
+      separateMajorMinor: false,
+      schedule: ['* 0-6 1-7 * 1'],
+      minimumReleaseAge: null,
+    },
+  ],
+}

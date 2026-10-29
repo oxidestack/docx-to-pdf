@@ -260,3 +260,49 @@ With that memory limit no document can get the container killed for memory: one 
 and answered `413`. The Helm chart computes the CPU request and the memory from `poolSize`; the compose files set
 `mem_limit` to the same formula. A typical business report converts in about a second on one core; to measure what
 your documents take on your machines, and how many pods a load needs, see [Operations](operations.md#sizing).
+
+## A classic Helm repository
+
+For a tool that installs charts from a repository URL rather than from an OCI registry, the same chart is indexed at
+`https://oxidestack.github.io/docx-to-pdf/charts`, each version downloading from its GitHub release:
+
+```sh
+helm repo add docx-to-pdf https://oxidestack.github.io/docx-to-pdf/charts
+helm install docx-to-pdf docx-to-pdf/docx-to-pdf --version 0.1.0 --namespace docx-to-pdf --create-namespace
+```
+
+The chart is listed on [Artifact Hub](https://artifacthub.io/) from its quay.io repository. A pre-release (`0.2.0-rc.1`)
+is in the index too; `helm search repo --devel` shows it, and nothing installs it unless its version is asked for.
+
+## Verifying a release
+
+Every release is built and published by the repository's release workflow from its tag, and that workflow signs what
+it publishes. The image and the chart carry a [cosign](https://docs.sigstore.dev/cosign/) signature with no key to
+distribute: the certificate names the workflow and the tag that made it, and the signature is recorded in Sigstore's
+public transparency log. To check that an image is the one the release made:
+
+```sh
+cosign verify quay.io/oxidestack/docx-to-pdf:0.1.0 \
+  --certificate-identity https://github.com/oxidestack/docx-to-pdf/.github/workflows/release.yml@refs/tags/v0.1.0 \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com
+cosign verify quay.io/oxidestack/charts/docx-to-pdf:0.1.0 \
+  --certificate-identity https://github.com/oxidestack/docx-to-pdf/.github/workflows/release.yml@refs/tags/v0.1.0 \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com
+```
+
+The image also carries attestations: its [SLSA build provenance](https://slsa.dev/spec/v1.0/provenance) (which
+commit, which workflow run) on the multi-architecture image, and an SPDX SBOM, the Debian packages and the crates it
+contains, on each architecture's image. The [GitHub CLI](https://cli.github.com/) checks them:
+
+```sh
+gh attestation verify oci://quay.io/oxidestack/docx-to-pdf:0.1.0 --repo oxidestack/docx-to-pdf
+gh attestation verify oci://quay.io/oxidestack/charts/docx-to-pdf:0.1.0 --repo oxidestack/docx-to-pdf
+```
+
+For an SBOM, name one architecture's image by its digest (`docker buildx imagetools inspect` lists them) and its
+predicate type, `--predicate-type https://spdx.dev/Document/v2.3`. The SBOMs are also attached to the GitHub release
+as files, in SPDX and CycloneDX, one per architecture, with the chart and the compose examples.
+
+The mirror on ghcr.io carries the same digests with the same signatures and attestations, copied with the image, so
+the same commands verify `ghcr.io/oxidestack/docx-to-pdf:0.1.0` and `ghcr.io/oxidestack/charts/docx-to-pdf:0.1.0`
+(add `--bundle-from-oci` to `gh attestation verify` to read the attestations from the registry itself).

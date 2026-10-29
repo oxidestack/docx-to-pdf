@@ -13,8 +13,9 @@ The rules (CONTRIBUTING.md's "Commit messages"), each a rule id the findings nam
   header-length: at most 72 characters; description-case: no capitalised first word (a name keeps its case, so a
   word with a capital inside, all capitals, a digit or `_` passes); description-stop: no full stop at the end;
 - body-blank-line: a blank line after the header; body-width: body lines at most 72 columns, except a line without a
-  space (a URL, a path), a line indented by four spaces or more, and lines in a fenced block other than the
-  release note (a command);
+  space (a URL, a path), a line indented by four spaces or more, a `Signed-off-by:` or `Co-authored-by:` line (a
+  name and an address, which no trailer can fold: a bot's sign-off runs to 78), and lines in a fenced block other
+  than the release note (a command);
 - breaking: `!` before the colon if and only if a `BREAKING-CHANGE:` footer; breaking-spelling: `BREAKING CHANGE:`
   with a space, which git's trailer parser does not take;
 - revert: `revert: <the reverted commit's header>` and a `Refs:` footer;
@@ -86,6 +87,8 @@ HEADER = re.compile(r"^(?P<type>\w+)(?:\((?P<scope>[^()]*)\))?(?P<bang>!)?: (?P<
 # is named rather than splitting the block.
 TRAILER = re.compile(r"^(?P<key>[A-Za-z0-9][A-Za-z0-9-]*|BREAKING CHANGE): (?P<value>.*)$")
 FENCE = re.compile(r"^(`{3,})(.*)$")
+# A trailer naming a person or a bot: exempt from the body width, since it cannot be wrapped.
+IDENTITY = re.compile(r"^(?:Signed-off-by|Co-authored-by): ")
 REF = re.compile(r"^(?:[0-9a-f]{7,40}|#[0-9]+)$")
 # A capitalised plain word (`Add`, `Fix`): a name with a capital inside, all capitals, a digit or `_` is not one.
 CAPITALISED = re.compile(r"^[A-Z][a-z]+[,:;]?$")
@@ -145,7 +148,12 @@ def check_message(message, signoff=False, author=None):
                 if f[2].strip() == "release-note":
                     note = (n, [], False)
                     notes.append(note)
-            elif len(line) > BODY_MAX and " " in line.strip() and not line.startswith("    "):
+            elif (
+                len(line) > BODY_MAX
+                and " " in line.strip()
+                and not line.startswith("    ")
+                and not IDENTITY.match(line)
+            ):
                 findings.append(("body-width", f"line {n} is {len(line)} columns, at most {BODY_MAX}"))
         else:
             current.append((n, line))

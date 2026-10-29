@@ -22,6 +22,13 @@ kubectl 1.34.0 arm64 00b182d103a8a73da7a4d11e7526d0543dcf352f06cc63a1fde25ce9243
 kubectl 1.34.0 amd64 cfda68cba5848bc3b6c6135ae2f20ba2c78de20059f68789c090166d6abc3e2c https://dl.k8s.io/release/v1.34.0/bin/linux/amd64/kubectl
 helm 4.3.1 arm64 8cf8f66ecbc252ac8f7f06cca68aba88508ddfde3a6a34feb1678ad1694b4f88 https://get.helm.sh/helm-v4.3.1-linux-arm64.tar.gz
 helm 4.3.1 amd64 0403a88ae20913d11b10a2467b50087721fea7581736da6b9d3992f5357fe54b https://get.helm.sh/helm-v4.3.1-linux-amd64.tar.gz
+# The release (.github/workflows/release.yml, tools/ci/release.sh): cosign signs and verifies the image and the chart
+# (keyless); oras copies a tag to the mirror together with its referrers (signatures, attestations) and pushes the
+# chart's Artifact Hub metadata. The release's helm is the one above.
+cosign 3.1.4 arm64 ade83b7aac62e131cacfe96d958948b2150cc9efec46a570a2649b8e27dedad2 https://github.com/sigstore/cosign/releases/download/v3.1.4/cosign-linux-arm64
+cosign 3.1.4 amd64 424e2c97d0b45fd7a6b608a87f090f35633f4c23ece5f092d48bba11aaf4bbfa https://github.com/sigstore/cosign/releases/download/v3.1.4/cosign-linux-amd64
+oras 1.3.6 arm64 b84269e78dfc2d5329a4aab373da3200de95e6c138338cf6c66c10c0a3f248c1 https://github.com/oras-project/oras/releases/download/v1.3.6/oras_1.3.6_linux_arm64.tar.gz
+oras 1.3.6 amd64 66fb0ad7206f3f6fa77ed5b552049d364ccf4b50b1684554f731f76302b52ca0 https://github.com/oras-project/oras/releases/download/v1.3.6/oras_1.3.6_linux_amd64.tar.gz
 # The Rust gates: run in the rust stage of images.Dockerfile, which has none of them. cargo-machete
 # publishes its arm64 build for glibc only, which the rust (Debian) image has.
 cargo-deny 0.20.2 arm64 995c82be0defc7a025cae49a2aa2644ce8245c9a3318fc4103907c6a285e8c7d https://github.com/EmbarkStudios/cargo-deny/releases/download/0.20.2/cargo-deny-0.20.2-aarch64-unknown-linux-musl.tar.gz

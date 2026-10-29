@@ -13,9 +13,12 @@
 #
 # The caller grants the deploy job's permissions, since a called workflow can narrow its caller's and never widen
 # them. `build` runs on every push and pull request: `make site` in the pinned node image, which checks the lockfile's
-# licences and fails on a broken internal link or anchor. `deploy` publishes the build on a push to `main` alone, and
-# only while the repository is public: GitHub Pages refuses a private repository of a Free organisation. It needs the
-# repository's Settings → Pages → Source set to GitHub Actions. Every action is pinned by commit.
+# licences and fails on a broken internal link or anchor; then the `helm repo add` repository is added to the build,
+# /charts/index.yaml, indexing the chart attached to each GitHub release (tools/ci/release.sh index), so every deploy
+# carries every release's chart. `deploy` publishes the build on a push to `main`, and on a release tag when
+# .github/workflows/release.yml calls this after its GitHub release; only while the repository is public: GitHub Pages
+# refuses a private repository of a Free organisation. It needs the repository's Settings → Pages → Source set to
+# GitHub Actions, and the `github-pages` environment to admit the `v*` tags. Every action is pinned by commit.
 name: site
 
 on:
@@ -35,13 +38,19 @@ jobs:
         with:
           persist-credentials: false
       - run: make site
+      - name: the helm repository's index
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: sh tools/ci/release.sh index site/dist/charts
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9  # v5.0.0
         with:
           path: site/dist
 
   deploy:
     name: deploy
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && !github.event.repository.private
+    if: >-
+      github.event_name == 'push' && !github.event.repository.private &&
+      (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
     needs: [build]
     runs-on: ubuntu-24.04
     timeout-minutes: 10

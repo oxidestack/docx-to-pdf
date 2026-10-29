@@ -37,7 +37,7 @@
 # socket. `--init` reaps orphans, as tools/instance-test/run.sh does (tools/ci/test-deps.sh says why that matters).
 #
 # Environment: IMAGE, the tag to build (default docx-to-pdf-ci:<job>, removed at exit); the workflow's CARGO_*. For a
-# release (.github/workflows/release-image.yml): IMAGE_VERSION and IMAGE_SOURCE, the OCI version and source labels;
+# release (.github/workflows/release.yml): IMAGE_VERSION and IMAGE_SOURCE, the OCI version and source labels;
 # IMAGE_SAVE, a path in the workspace where the image, once every test has passed, is written by `docker save`.
 set -eu
 

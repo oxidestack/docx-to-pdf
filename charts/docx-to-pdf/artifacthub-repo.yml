@@ -1,0 +1,8 @@
+# Artifact Hub's metadata for the chart's repository, oci://quay.io/oxidestack/charts/docx-to-pdf: every release pushes
+# it there as the tag `artifacthub.io` (tools/ci/release.sh artifacthub). Artifact Hub reads it to show the owners and,
+# once the repository is registered there, to mark them its verified publisher: the repositoryID it assigns at
+# registration goes below.
+# https://artifacthub.io/docs/topics/repositories/helm-charts/#oci-support
+owners:
+  - name: Vitaly Kustov
+    email: kustov.vitalik@gmail.com

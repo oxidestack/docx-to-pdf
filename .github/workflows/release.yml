@@ -1,0 +1,399 @@
+# The release: one version tag (`v1.2.3`, or `v1.3.0-rc.1` for a pre-release) publishes every artifact, quay.io first.
+#
+# - `gate`: the tag is a SemVer tag on `main`, and for a release the tree already says it (Chart.yaml's version and
+#   appVersion, Cargo.toml's version, CHANGELOG.md's section: tools/release/README.md); then it waits until ci.yml has
+#   passed on that commit. Nothing is built for a tag that fails here.
+# - `image`: the image job of ci.yml, the same script on the same runners (amd64 on `ubuntu-24.04`, arm64 on
+#   `ubuntu-24.04-arm`, never emulated), with the OCI version and source labels; the tested image saved by `docker
+#   save`, and its SBOMs (syft's SPDX and CycloneDX, made by the job's image gates), as artifacts. No credential
+#   reaches it: the tests run code from the tree.
+# - `publish`, on quay.io, what a release stands on: any failure here fails the release. It pushes both images by
+#   digest into one manifest list tagged `<version>` and `latest` (a pre-release leaves `latest` alone); signs the
+#   list with cosign, keyless (this job's GitHub identity, Fulcio's certificate, Rekor's log); attests its SLSA build
+#   provenance and each architecture's SPDX SBOM (actions/attest, pushed to quay.io as OCI referrers and kept by
+#   GitHub, so `gh attestation verify` finds them); then the chart: packaged at the tag's version and appVersion,
+#   pushed to oci://quay.io/oxidestack/charts/docx-to-pdf, signed and attested the same way, with Artifact Hub's
+#   repository metadata beside it. Each signature is verified before the job goes on. It logs in with no stored
+#   secret: the robot account (the repository variable QUAY_ROBOT) trusts this job's OIDC token through quay.io's
+#   robot federation, whose subject the `release` environment fixes (`…:environment:release`), whatever the tag.
+# - `mirror`: copies the image and the chart to ghcr.io/oxidestack with every referrer (oras cp -r): the same
+#   digests, the same signatures and attestations, verified there. The mirror never blocks a release: three failed
+#   tries of any step are a warning annotation and a line in the run's summary, and the job stays green. The
+#   repository variable MIRROR_REGISTRY replaces `ghcr.io/oxidestack` (a test tag aimed at a registry the token cannot
+#   write shows the failure path).
+# - `github-release`: the GitHub release of the tag, its body CHANGELOG.md's section and how to verify, with the
+#   SBOMs, the chart's .tgz and examples/compose/ attached; a pre-release is marked one and never `latest`.
+# - `site`: site.yml, which deploys the documentation of this commit and the `helm repo add` index built from the
+#   releases' charts (https://oxidestack.github.io/docx-to-pdf/charts).
+#
+# A manual run (`gh workflow run release.yml`, or Actions → Release → Run workflow) is the dry run: both architectures
+# built and tested, the chart packaged and the notes written at version 0.0.0-dry-run, nothing pushed or published.
+# Every action is pinned by its full commit, its release in a comment; every checkout keeps no credential.
+
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+# One run per tag at a time; a second run for the same tag waits rather than cancelling a publication half-way.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+# Nothing at the top: each job is granted what it uses.
+permissions: {}
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: "0"
+  CARGO_NET_RETRY: "3"
+  QUAY_REPOSITORY: quay.io/oxidestack/docx-to-pdf
+  QUAY_CHART: quay.io/oxidestack/charts/docx-to-pdf
+
+jobs:
+  gate:
+    # The same `if:` as every job of ci.yml: a private repository's tag push starts nothing billed, a manual run
+    # always runs.
+    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read  # actions/checkout reads the repository; the compare API
+      actions: read  # reads ci.yml's runs on the commit
+    # The wait for CI is most of it: ci.yml's image job takes up to three hours.
+    timeout-minutes: 200
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - name: the tag and the tree agree
+        id: version
+        env:
+          EVENT: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          if [ "$EVENT" = push ]; then
+            version=$(sh tools/ci/release.sh check "$REF_NAME")
+          else
+            version=0.0.0-dry-run
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - name: the commit is on main and passed CI
+        if: ${{ github.event_name == 'push' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          sh tools/ci/release.sh on-main "$REPOSITORY" "$SHA"
+          sh tools/ci/release.sh wait-ci "$REPOSITORY" "$SHA" 180
+
+  image:
+    needs: gate
+    name: image (${{ matrix.arch }})
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    permissions:
+      contents: read  # actions/checkout reads the repository
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+          submodules: true
+      # As in ci.yml: the image and its tests outgrow the runner's free disk without these.
+      - run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL
+          df -h /
+      # No cargo cache: a release builds from nothing a branch's run could have written.
+      - name: build and test
+        env:
+          IMAGE_VERSION: ${{ needs.gate.outputs.version }}
+          IMAGE_SOURCE: ${{ github.server_url }}/${{ github.repository }}
+          IMAGE_SAVE: ${{ github.event_name == 'push' && format('{0}/docx-to-pdf-{1}.tar', github.workspace, matrix.arch) || '' }}
+        run: sh tools/ci/image-job.sh host rust:1.98.0-trixie
+      - if: ${{ github.event_name == 'push' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
+        with:
+          name: image-${{ matrix.arch }}
+          path: docx-to-pdf-${{ matrix.arch }}.tar
+          if-no-files-found: error
+          compression-level: 1
+          retention-days: 1
+      # The image gates' SBOMs of the very image saved above (tools/lint/image.sh, `sbom`).
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
+        with:
+          name: sbom-${{ matrix.arch }}
+          path: |
+            target/sbom/docx-to-pdf-${{ matrix.arch }}.spdx.json
+            target/sbom/docx-to-pdf-${{ matrix.arch }}.cdx.json
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    if: ${{ github.event_name == 'push' && !github.event.repository.private }}
+    needs: [gate, image]
+    runs-on: ubuntu-24.04
+    # The robot's federation trusts this environment's subject; its protection rules decide which tags may deploy.
+    environment: release
+    permissions:
+      contents: read  # actions/checkout reads the repository
+      id-token: write  # the OIDC token quay.io exchanges for a robot token, and cosign's and actions/attest's identity
+      attestations: write  # actions/attest keeps each attestation at GitHub
+      artifact-metadata: write  # actions/attest records where the attested image is stored
+    timeout-minutes: 90
+    outputs:
+      digest: ${{ steps.image.outputs.digest }}
+      chart-digest: ${{ steps.chart.outputs.digest }}
+    env:
+      VERSION: ${{ needs.gate.outputs.version }}
+      REF_NAME: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
+        with:
+          pattern: image-*
+          merge-multiple: true
+          path: ${{ runner.temp }}/image
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
+        with:
+          pattern: sbom-*
+          merge-multiple: true
+          path: ${{ runner.temp }}/sbom
+      - name: log in to quay.io
+        env:
+          QUAY_ROBOT: ${{ vars.QUAY_ROBOT }}
+        run: sh tools/ci/release.sh quay-login "$QUAY_ROBOT"
+      - name: push, sign and verify the image
+        id: image
+        env:
+          IMAGES: ${{ runner.temp }}/image
+        run: |
+          export CRANE_CONFIG="$HOME/.docker"
+          digest=$(sh tools/ci/publish-image.sh push "$QUAY_REPOSITORY" "$VERSION" \
+            "$IMAGES/docx-to-pdf-amd64.tar" "$IMAGES/docx-to-pdf-arm64.tar" | tail -n 1)
+          sh tools/ci/release.sh sign "$QUAY_REPOSITORY@$digest"
+          sh tools/ci/release.sh verify "$QUAY_REPOSITORY:$VERSION" "$REF_NAME"
+          sh tools/ci/release.sh platforms "$QUAY_REPOSITORY@$digest" > "$RUNNER_TEMP/platforms"
+          {
+            echo "digest=$digest"
+            echo "amd64=$(sed -n 's#^linux/amd64 ##p' "$RUNNER_TEMP/platforms")"
+            echo "arm64=$(sed -n 's#^linux/arm64 ##p' "$RUNNER_TEMP/platforms")"
+          } >> "$GITHUB_OUTPUT"
+      - name: attest the image's provenance
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6  # v4.2.2
+        with:
+          subject-name: ${{ env.QUAY_REPOSITORY }}
+          subject-digest: ${{ steps.image.outputs.digest }}
+          push-to-registry: true
+      - name: attest the amd64 image's SBOM
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6  # v4.2.2
+        with:
+          subject-name: ${{ env.QUAY_REPOSITORY }}
+          subject-digest: ${{ steps.image.outputs.amd64 }}
+          sbom-path: ${{ runner.temp }}/sbom/docx-to-pdf-amd64.spdx.json
+          push-to-registry: true
+      - name: attest the arm64 image's SBOM
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6  # v4.2.2
+        with:
+          subject-name: ${{ env.QUAY_REPOSITORY }}
+          subject-digest: ${{ steps.image.outputs.arm64 }}
+          sbom-path: ${{ runner.temp }}/sbom/docx-to-pdf-arm64.spdx.json
+          push-to-registry: true
+      - name: push, sign and verify the chart
+        id: chart
+        env:
+          QUAY_ROBOT: ${{ vars.QUAY_ROBOT }}
+        run: |
+          # The robot token lives an hour, and the image's push may have used most of it.
+          sh tools/ci/release.sh quay-login "$QUAY_ROBOT"
+          chart=$(sh tools/ci/release.sh chart "$VERSION" "$RUNNER_TEMP/chart")
+          digest=$(sh tools/ci/release.sh push-chart "$QUAY_CHART" "$chart")
+          sh tools/ci/release.sh sign "$QUAY_CHART@$digest"
+          sh tools/ci/release.sh verify "$QUAY_CHART:$VERSION" "$REF_NAME"
+          # Artifact Hub's listing is a convenience, not part of the release: a registry that refuses its media types
+          # is a warning.
+          sh tools/ci/release.sh artifacthub "$QUAY_CHART" ||
+            echo "::warning title=Artifact Hub::the repository metadata was not pushed to $QUAY_CHART:artifacthub.io"
+          echo "digest=$digest" >> "$GITHUB_OUTPUT"
+      - name: attest the chart's provenance
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6  # v4.2.2
+        with:
+          subject-name: ${{ env.QUAY_CHART }}
+          subject-digest: ${{ steps.chart.outputs.digest }}
+          push-to-registry: true
+      - name: verify the attestations
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          AMD64: ${{ steps.image.outputs.amd64 }}
+          ARM64: ${{ steps.image.outputs.arm64 }}
+        run: |
+          gh attestation verify "oci://$QUAY_REPOSITORY:$VERSION" --repo "$REPOSITORY" > /dev/null
+          gh attestation verify "oci://$QUAY_CHART:$VERSION" --repo "$REPOSITORY" > /dev/null
+          for d in "$AMD64" "$ARM64"; do
+            gh attestation verify "oci://$QUAY_REPOSITORY@$d" --repo "$REPOSITORY" \
+              --predicate-type https://spdx.dev/Document/v2.3 > /dev/null
+          done
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
+        with:
+          name: chart
+          path: ${{ runner.temp }}/chart/docx-to-pdf-${{ needs.gate.outputs.version }}.tgz
+          if-no-files-found: error
+          retention-days: 7
+      - name: summary
+        env:
+          DIGEST: ${{ steps.image.outputs.digest }}
+          CHART_DIGEST: ${{ steps.chart.outputs.digest }}
+        run: |
+          {
+            echo "### quay.io"
+            echo
+            echo "- \`$QUAY_REPOSITORY:$VERSION\` is \`$DIGEST\` (linux/amd64, linux/arm64): signed, provenance and SBOMs attested."
+            echo "- \`oci://$QUAY_CHART:$VERSION\` is \`$CHART_DIGEST\`: signed, provenance attested."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  mirror:
+    if: ${{ github.event_name == 'push' && !github.event.repository.private }}
+    needs: [gate, publish]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read  # actions/checkout reads the repository
+      packages: write  # pushes to ghcr.io/oxidestack
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - name: copy to the mirror
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          VERSION: ${{ needs.gate.outputs.version }}
+          REF_NAME: ${{ github.ref_name }}
+          MIRROR: ${{ vars.MIRROR_REGISTRY || 'ghcr.io/oxidestack' }}
+        run: |
+          # quay.io is public: reading it needs no login. Each step is tried three times (release.sh); the first that
+          # still fails ends the mirror as a warning, never as a failed job.
+          fail() {
+            echo "::warning title=ghcr.io mirror::$1; the release stands on quay.io. Re-run this job to retry."
+            {
+              echo "### ghcr.io (mirror): not published"
+              echo
+              echo "$1 (the log of this job says why). The release stands on quay.io."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          }
+          printf '%s' "$GH_TOKEN" | sh tools/ci/release.sh login "${MIRROR%%/*}" "$GITHUB_ACTOR" ||
+            fail "the login to ${MIRROR%%/*} failed"
+          # shellcheck disable=SC2046 # the tags are words
+          digest=$(sh tools/ci/release.sh mirror "$QUAY_REPOSITORY" "$MIRROR/docx-to-pdf" \
+            $(sh tools/ci/publish-image.sh tags "$VERSION")) || fail "$MIRROR/docx-to-pdf:$VERSION was not copied"
+          chart=$(sh tools/ci/release.sh mirror "$QUAY_CHART" "$MIRROR/charts/docx-to-pdf" "$VERSION") ||
+            fail "$MIRROR/charts/docx-to-pdf:$VERSION was not copied"
+          sh tools/ci/release.sh verify "$MIRROR/docx-to-pdf:$VERSION" "$REF_NAME" ||
+            fail "the signature of $MIRROR/docx-to-pdf:$VERSION does not verify"
+          sh tools/ci/release.sh verify "$MIRROR/charts/docx-to-pdf:$VERSION" "$REF_NAME" ||
+            fail "the signature of $MIRROR/charts/docx-to-pdf:$VERSION does not verify"
+          # From the mirror's own referrers, not GitHub's copy: the attestations travelled with the image.
+          gh attestation verify "oci://$MIRROR/docx-to-pdf:$VERSION" --repo "$REPOSITORY" --bundle-from-oci > /dev/null ||
+            fail "the provenance of $MIRROR/docx-to-pdf:$VERSION does not verify from the mirror"
+          {
+            echo "### ghcr.io (mirror)"
+            echo
+            echo "- \`$MIRROR/docx-to-pdf:$VERSION\` is \`$digest\`, the same as quay.io, signature and attestations copied and verified."
+            echo "- \`oci://$MIRROR/charts/docx-to-pdf:$VERSION\` is \`$chart\`, the same as quay.io, signature verified."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  github-release:
+    if: ${{ github.event_name == 'push' && !github.event.repository.private }}
+    needs: [gate, publish]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write  # creates the release and uploads its files
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
+        with:
+          pattern: sbom-*
+          merge-multiple: true
+          path: ${{ runner.temp }}/files
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
+        with:
+          name: chart
+          path: ${{ runner.temp }}/files
+      - name: the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.gate.outputs.version }}
+          REF_NAME: ${{ github.ref_name }}
+          DIGEST: ${{ needs.publish.outputs.digest }}
+          FILES: ${{ runner.temp }}/files
+        run: |
+          sh tools/ci/release.sh notes "$VERSION" "$DIGEST" > "$RUNNER_TEMP/notes.md"
+          tar -czf "$FILES/docx-to-pdf-$VERSION-examples-compose.tar.gz" examples/compose
+          ls -l "$FILES"
+          case $VERSION in
+          *-*) kind="--prerelease --latest=false" ;;
+          *) kind="--latest" ;;
+          esac
+          if gh release view "$REF_NAME" > /dev/null 2>&1; then
+            # A re-run: the same release, its notes and files replaced.
+            # shellcheck disable=SC2086 # $kind is flags
+            gh release edit "$REF_NAME" --notes-file "$RUNNER_TEMP/notes.md" $kind
+            gh release upload "$REF_NAME" --clobber "$FILES"/*
+          else
+            # shellcheck disable=SC2086 # $kind is flags
+            gh release create "$REF_NAME" --verify-tag --title "$REF_NAME" --notes-file "$RUNNER_TEMP/notes.md" \
+              $kind "$FILES"/*
+          fi
+
+  site:
+    # The documentation of this commit and the `helm repo add` index with the release just made. `./`: ci.yml's
+    # `site` job says why.
+    if: ${{ github.event_name == 'push' && !github.event.repository.private }}
+    needs: github-release
+    uses: ./.github/workflows/site.yml  # zizmor: ignore[self-repository]
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+  dry-run:
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    needs: gate
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read  # actions/checkout reads the repository, gh reads the releases
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - name: the chart, the notes and the helm index, unpublished
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.gate.outputs.version }}
+        run: |
+          sh tools/ci/release.sh chart "$VERSION" "$RUNNER_TEMP/chart"
+          sh tools/ci/release.sh index "$RUNNER_TEMP/index"
+          {
+            echo "### Dry run: the release notes"
+            echo
+            sh tools/ci/release.sh notes "$VERSION"
+          } >> "$GITHUB_STEP_SUMMARY"
