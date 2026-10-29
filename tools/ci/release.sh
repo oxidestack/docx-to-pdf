@@ -51,7 +51,8 @@
 # Environment: DOCKER_CONFIG, the registry credentials every tool here reads (default ~/.docker; crane's CRANE_CONFIG
 # should name the same directory); REGISTRY_PLAIN_HTTP=1 for a plain-HTTP test registry; COSIGN_KEY/COSIGN_PUB (and
 # COSIGN_PASSWORD) to sign and verify with a key pair instead of keyless, CHANGELOG another changelog (the local tests);
-# QUAY_AUDIENCE, the audience quay-login asks GitHub's OIDC token for (default https://quay.io).
+# QUAY_AUDIENCE, the audience quay-login asks GitHub's OIDC token for (default `quay`, the one quay.io's federation form
+# proposes).
 # Exit 0: done; 1: a step failed; 2: usage.
 set -eu
 
@@ -272,7 +273,7 @@ chart)
 quay-login)
 	[ $# -eq 1 ] || usage
 	robot=$1
-	QUAY_AUDIENCE=${QUAY_AUDIENCE:-https://quay.io}
+	QUAY_AUDIENCE=${QUAY_AUDIENCE:-quay}
 	[ -n "$robot" ] || {
 		echo "::error title=quay.io::no repository variable QUAY_ROBOT (the robot account, oxidestack+<name>)"
 		exit 1

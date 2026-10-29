@@ -17,7 +17,7 @@
 #   secret: the robot account (the repository variable QUAY_ROBOT) trusts this job's OIDC token through quay.io's
 #   robot federation: GitHub's issuer, this job's subject, which the `release` environment fixes
 #   (`repo:oxidestack@<id>/docx-to-pdf@<id>:environment:release`, GitHub's immutable form), and the audience
-#   https://quay.io, which the token is asked for.
+#   `quay`, which the token is asked for.
 # - `mirror`: copies the image and the chart to ghcr.io/oxidestack with every referrer (oras cp -r): the same
 #   digests, the same signatures and attestations, verified there. The mirror never blocks a release: three failed
 #   tries of any step are a warning annotation and a line in the run's summary, and the job stays green. The
