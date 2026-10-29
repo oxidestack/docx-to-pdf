@@ -168,8 +168,8 @@ gate_run() {
 		# The commit messages: Conventional Commits in this project's form (tools/lint/commits.py says each rule).
 		# The gate's own fixtures first, then every commit after the base: COMMITS_BASE, or commits.py's BASE, which
 		# is empty until the public history starts, so until then the fixtures alone and the history before keeps its
-		# own style. A pull request's job sets COMMITS_BASE to the pull request's base. COMMITS_SIGNOFF=1 adds the
-		# sign-off rule. The python image has no git.
+		# own style. A pull request's job sets COMMITS_BASE to the pull request's base. The sign-off rule is on
+		# (COMMITS_SIGNOFF=0 turns it off). The python image has no git.
 		command -v git > /dev/null || apk add --no-cache -q git
 		safe_git python3 tools/lint/commits.py
 		;;

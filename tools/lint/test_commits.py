@@ -15,7 +15,7 @@ import commits  # noqa: E402
 SCRIPT = HERE / "commits.py"
 SIGNED = "Signed-off-by: Jane Doe <jane@example.org>"
 GOOD = f"docs: describe the pool settings\n\n{SIGNED}\n"
-BAD = "Describe the pool settings\n"
+BAD = f"Describe the pool settings\n\n{SIGNED}\n"
 
 
 class Fixtures(unittest.TestCase):
@@ -66,6 +66,7 @@ class Fixtures(unittest.TestCase):
 
 
 class Signoff(unittest.TestCase):
+    # check_message's own default is off, for the fixtures; the gate's (main) is on, as the Repository tests show.
     def test_off_by_default(self):
         self.assertEqual(commits.check_message("docs: describe the pool settings\n"), [])
 
@@ -102,9 +103,11 @@ class Repository(unittest.TestCase):
         self.git("commit", "-q", "--allow-empty", "--cleanup=verbatim", "-m", message)
         return self.git("rev-parse", "HEAD")
 
-    def gate(self, *args, base=None, stdin="", cwd=None):
+    def gate(self, *args, base=None, stdin="", cwd=None, signoff=None):
         env = {k: v for k, v in os.environ.items() if not k.startswith(("COMMITS_", "GIT_"))}
         env["COMMITS_BASE"] = base or "none"
+        if signoff is not None:
+            env["COMMITS_SIGNOFF"] = signoff
         return subprocess.run(
             [sys.executable, str(SCRIPT), *args],
             cwd=cwd or self.dir,
@@ -130,6 +133,34 @@ class Repository(unittest.TestCase):
         self.assertEqual(r.returncode, 1)
         self.assertIn(f"{bad[:12]}: header-form", r.stdout)
         self.assertEqual(len(r.stdout.splitlines()), 1, "the commits before the base are not checked")
+
+    def test_the_gate_requires_the_sign_off_by_default(self):
+        base = self.commit(GOOD)
+        unsigned = self.commit("docs: describe the pool settings\n")
+        r = self.gate(base=base)
+        self.assertEqual(r.returncode, 1)
+        self.assertEqual(len(r.stdout.splitlines()), 1, r.stdout)
+        self.assertIn(f"{unsigned[:12]}: signoff: the last footer is the author's `Signed-off-by:`", r.stdout)
+        self.assertEqual(self.gate(base=base, signoff="0").returncode, 0)
+
+    def test_the_gate_requires_the_authors_sign_off(self):
+        base = self.commit(GOOD)
+        other = self.commit(GOOD.replace("Jane Doe <jane@example.org>", "John Roe <john@example.org>"))
+        r = self.gate(base=base)
+        self.assertEqual(r.returncode, 1)
+        self.assertEqual(len(r.stdout.splitlines()), 1, r.stdout)
+        self.assertIn(f"{other[:12]}: signoff: no `Signed-off-by: Jane Doe <jane@example.org>`", r.stdout)
+
+    def test_a_message_requires_the_sign_off_by_default(self):
+        path = Path(self.dir) / "message.txt"
+        path.write_text("docs: describe the pool settings\n")
+        r = self.gate("--message", str(path))
+        self.assertEqual(r.returncode, 1)
+        self.assertIn(": signoff: ", r.stdout)
+        self.assertEqual(self.gate("--message", str(path), signoff="0").returncode, 0)
+        path.write_text(GOOD)
+        r = self.gate("--message", str(path))
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
 
     def test_a_root_base_is_checked_too(self):
         self.git("checkout", "-q", "--orphan", "public")

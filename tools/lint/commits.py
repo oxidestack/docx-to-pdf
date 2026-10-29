@@ -25,8 +25,9 @@ The rules (CONTRIBUTING.md's "Commit messages"), each a rule id the findings nam
 - footers-split: the footers are the last paragraph, one block; footer-key: one of FOOTERS; footer-order: in FOOTERS'
   order (so `Signed-off-by:` last); refs: a `Refs:` value is commit hashes or `#<n>`;
 - merge: no merge commit (pull requests are rebased onto main);
-- signoff: the last footer is the author's `Signed-off-by:`. Off until the DCO check lands: COMMITS_SIGNOFF=1 turns it
-  on, and the fixtures run without it.
+- signoff: the last footer is the author's `Signed-off-by:` (the DCO; a `--message` has no author, so any sign-off
+  last). On by default, here, in the CI jobs and in the pre-push hook; COMMITS_SIGNOFF=0 turns it off, and the
+  fixtures run without it.
 
 Whether a `NONE` is right, whether the description is imperative and whether a security fix names its advisory are
 the reviewer's to judge; no rule here guesses at them.
@@ -316,7 +317,7 @@ def descendants(base, revs):
 
 
 def main(argv):
-    signoff = os.environ.get("COMMITS_SIGNOFF", "") == "1"
+    signoff = os.environ.get("COMMITS_SIGNOFF", "1") != "0"
     base = (os.environ.get("COMMITS_BASE") or BASE).strip()
     if base == "none":
         base = ""

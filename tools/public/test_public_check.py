@@ -615,15 +615,16 @@ class TheHook(Case):
 
     def test_the_hook_refuses_a_commit_message_off_the_convention_after_the_base(self):
         r = self.repo()
-        # The base is the root commit, so it is checked too: it is in the convention's form.
-        env = self.hooked(r, "chore: start the public history")
+        # The base is the root commit, so it is checked too: it is in the convention's form, signed off by its author.
+        signed = "\n\nSigned-off-by: A <a@example.com>"
+        env = self.hooked(r, "chore: start the public history" + signed)
         env["COMMITS_BASE"] = git(r.root, "rev-parse", "HEAD")
         ok = self.push(r, env)
         self.assertEqual(ok.returncode, 0, ok.stdout + ok.stderr)
-        r.commit("docs: describe the pool settings")
+        r.commit("docs: describe the pool settings" + signed)
         ok = self.push(r, env)
         self.assertEqual(ok.returncode, 0, ok.stdout + ok.stderr)
-        r.commit("Describe the pool settings")
+        r.commit("Describe the pool settings" + signed)
         bad = self.push(r, env)
         self.assertNotEqual(bad.returncode, 0)
         self.assertIn("header-form", bad.stdout + bad.stderr)

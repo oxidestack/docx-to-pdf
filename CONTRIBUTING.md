@@ -107,6 +107,10 @@ git config user.email you@example.org
 git commit -s
 ```
 
+The `lint-commits` check on every pull request fails a commit whose last footer is not its author's `Signed-off-by:`,
+and so does the pre-push hook (`make hooks`); `make lint ONLY=commits` runs the same check on your branch, and
+`python3 tools/lint/commits.py --message <file>` on a message before you commit it.
+
 A commit you forgot to sign off is signed off again with `git commit --amend -s --no-edit`, or, for every commit of a
 branch, `git rebase --signoff main`; then push the branch with `--force-with-lease`.
 

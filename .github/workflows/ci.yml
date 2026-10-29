@@ -156,7 +156,8 @@ jobs:
   lint-commits:
     # The commit messages after the base (tools/lint/commits.py): a pull request's own base, else commits.py's BASE,
     # the public history's root. So the whole history, and a pull request's head rather than the merge commit GitHub
-    # makes, which the `merge` rule would refuse.
+    # makes, which the `merge` rule would refuse. This job is the DCO check: every commit's last footer is its author's
+    # `Signed-off-by:`. The gate's default; set here too, so the job says what it holds.
     if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
     runs-on: ubuntu-24.04
     permissions:
@@ -165,6 +166,7 @@ jobs:
     timeout-minutes: 5
     env:
       COMMITS_BASE: ${{ github.event.pull_request.base.sha }}
+      COMMITS_SIGNOFF: "1"
     steps:
       - run: apk add --no-cache make git
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
