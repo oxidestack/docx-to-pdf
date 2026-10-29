@@ -231,5 +231,14 @@ class Host(unittest.TestCase):
         self.assertEqual(compare.host_line({}), "not recorded by this run")
 
 
+class Pinned(unittest.TestCase):
+    def test_a_ref_given_by_digest_keeps_its_one_digest(self):
+        ref = "quay.io/oxidestack/docx-to-pdf:1.0.0@sha256:" + "a" * 64
+        self.assertEqual(compare.pinned(ref, "sha256:" + "a" * 64), ref)
+
+    def test_a_built_image_is_pinned_to_its_id(self):
+        self.assertEqual(compare.pinned("docx-to-pdf:compare", "sha256:1"), "docx-to-pdf:compare@sha256:1")
+
+
 if __name__ == "__main__":
     unittest.main()

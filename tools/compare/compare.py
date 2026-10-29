@@ -707,6 +707,11 @@ def revision_line(meta):
     return f"; the image labels revision `{rev}`" if rev else "; the image carries no revision label"
 
 
+def pinned(ref, digest):
+    """`ref` pinned to `digest`, unless it is pinned already (`IMAGE=<name>:<tag>@sha256:…`): one digest, never two."""
+    return ref if "@" in ref else f"{ref}@{digest}"
+
+
 def image_id(ref):
     return bench.sh("docker", "image", "inspect", "--format", "{{.Id}}", ref, check=False, quiet=True) or None
 
@@ -938,7 +943,7 @@ def main():
     say("host:", host_line(meta))
     pull(subjects)
     meta["images"] = {
-        NAMES["ours"]: f"{a.image}@{meta['image_id']}",
+        NAMES["ours"]: pinned(a.image, meta["image_id"]),
         "k6": bench.K6_IMAGE,
         "bench tools": f"{bench.TOOLS_IMAGE}@{image_id(bench.TOOLS_IMAGE)}",
         "torture driver": torture.PYTHON,

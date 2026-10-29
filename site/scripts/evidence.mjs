@@ -241,6 +241,28 @@ function cellSetup(results) {
 // pages name the day and the change since instead; say what that change costs once a run has measured it.
 const CODE_NOTE = 'a release image carries it, at a small CPU cost a conversion that this run did not measure'
 
+/**
+ * The release a run measured: its version when the image is a published release pulled by digest
+ * (`<registry>/oxidestack/docx-to-pdf:<version>@sha256:<digest>`, `make compare IMAGE=`), or null when the command
+ * built the image from a checkout. The texts below say which code was measured from it.
+ */
+export function release(meta) {
+  const m = /^[^@\s]*\/oxidestack\/docx-to-pdf:(\d+\.\d+\.\d+)@sha256:[0-9a-f]{64}$/.exec(meta.image ?? '')
+  return m ? m[1] : null
+}
+
+/** The README block's sentence on the code measured. */
+const measuredReadme = (meta) =>
+  release(meta)
+    ? `The image measured is release ${v(release(meta))}, pulled by digest.`
+    : `The code measured is that day's, before the heap trim, the change that hands LibreOffice's free heap back after each conversion: ${CODE_NOTE}.`
+
+/** The comparison guide's sentence on the code measured. */
+const measuredGuide = (meta) =>
+  release(meta)
+    ? `oxidestack/docx-to-pdf was release ${v(release(meta))}, its published image pulled by digest.`
+    : `oxidestack/docx-to-pdf was the code of that day, before the heap trim, the change that hands LibreOffice's free heap back after each conversion: ${CODE_NOTE}.`
+
 // The one sentence of the project's positioning: what the README opens with. Each clause stands on a figure the block
 // and the Benchmarks page show; it names the two services measured, never "anything else".
 const SENTENCE =
@@ -268,12 +290,12 @@ export function headline(results) {
     '',
     `> **${SENTENCE}**`,
     '',
-    `- **Less CPU than Gotenberg**: Gotenberg uses ${r('gotenberg', 'ours', 'cpu')} the CPU a conversion as it ships, and ${r('g-norestart', 'ours', 'cpu')} without its restarts, measured on the code before the heap trim ([the row](${row('ratio-cpu')})).`,
+    `- **Less CPU than Gotenberg**: Gotenberg uses ${r('gotenberg', 'ours', 'cpu')} the CPU a conversion as it ships, and ${r('g-norestart', 'ours', 'cpu')} without its restarts${release(results.meta) ? '' : ', measured on the code before the heap trim'} ([the row](${row('ratio-cpu')})).`,
     `- **Less memory than Gotenberg**: its container peaks at ${r('gotenberg', 'ours', 'peak')} the memory as it ships, and ${r('g-norestart', 'ours', 'peak')} without its restarts ([the row](${row('ratio-peak')})).`,
     `- **The service it replaces, outrun**: ${r('ours', 'oracle', 'throughput')} moalhaddar/docx-to-pdf's throughput, which uses ${r('oracle', 'ours', 'cpu')} the CPU a conversion and ${r('oracle', 'ours', 'peak')} the memory ([the row](${row('ratio-throughput')})).`,
     `- **A deflate bomb stopped at once**: \`${v(BOMB)}\`, a document that inflates past any limit, gets ${answer(deflate.ours)} at a ${mib(deflate.ours.peak)} MiB peak; Gotenberg answers ${answer(deflate.gotenberg)} while its LibreOffice goes on to ${mib(deflate.gotenberg.peak)} MiB, and moalhaddar/docx-to-pdf gives ${answer(deflate.moalhaddar)} at ${mib(deflate.moalhaddar.peak)} MiB, one run a side ([the row](${row(`torture-${BOMB}`)})).`,
     '',
-    `Measured by \`make compare\` on ${at(results)}, on an ${v(h.cpu_model)} (${v(h.arch)}), ${setup.cpus} pinned vCPU and a pool of ${setup.pool} a service: mean ± σ (n) over ${setup.blocks} interleaved blocks, a ratio ± its standard error. The code measured is that day's, before the heap trim, the change that hands LibreOffice's free heap back after each conversion: ${CODE_NOTE}. [Benchmarks](${SITE}/benchmarks/) has every figure, the rows where Gotenberg wins, and the raw results.`,
+    `Measured by \`make compare\` on ${at(results)}, on an ${v(h.cpu_model)} (${v(h.arch)}), ${setup.cpus} pinned vCPU and a pool of ${setup.pool} a service: mean ± σ (n) over ${setup.blocks} interleaved blocks, a ratio ± its standard error. ${measuredReadme(results.meta)} [Benchmarks](${SITE}/benchmarks/) has every figure, the rows where Gotenberg wins, and the raw results.`,
     '',
     END,
   ].join('\n')
@@ -457,7 +479,9 @@ export function page(results) {
     '| --- | --- |',
     `| When | ${at(results)}, ${v(Math.round(meta.elapsed_s / 60))} minutes |`,
     `| Command | \`make compare\` (\`${v(meta.command.trim())}\`), the full mode |`,
-    `| Code | the code of that day, built by the command into \`${v(meta.images['oxidestack/docx-to-pdf'])}\`. It predates the change that hands LibreOffice's free heap back to the system after each conversion, so it is not a release image; ${CODE_NOTE} |`,
+    release(meta)
+      ? `| Code | release ${v(release(meta))}, its published image \`${v(meta.image)}\`, built from commit \`${v(meta.image_revision)}\` |`
+      : `| Code | the code of that day, built by the command into \`${v(meta.images['oxidestack/docx-to-pdf'])}\`. It predates the change that hands LibreOffice's free heap back to the system after each conversion, so it is not a release image; ${CODE_NOTE} |`,
     `| Host | ${host(results)} |`,
     `| The speed cell | ${setup.cpus} pinned vCPU, a pool of ${setup.pool}, ${setup.memory} and \`/tmp\` on the host's disk a service; a closed load of the typical reports ${setup.docs}; ${setup.conversions} conversions a cell after a warm-up; ${setup.blocks} blocks, each running every cell once in a shuffled order (seed ${setup.seed}) |`,
     `| The torture cases | each case at ${v(meta.torture_memory.replace(/g$/, ' GiB'))} on vCPUs ${v(meta.torture_cpus)}, each case waiting up to ${v(meta.cap)} s; soaks of ${v(meta.soak)} conversions (${v(meta.soak_moalhaddar)} for moalhaddar/docx-to-pdf) alongside |`,
@@ -579,7 +603,7 @@ export function guide(results) {
     '',
     '## Speed and memory',
     '',
-    `Measured by \`make compare\` on ${at(results)}, on an ${v(h.cpu_model)} (${v(h.arch)}) virtual machine under ${v(h.hypervisor)}: ${setup.cpus} pinned vCPU, a pool of ${setup.pool} and ${setup.memory} of memory a service; a closed load of the typical reports ${setup.docs}; ${setup.conversions} conversions a service in each of ${setup.blocks} blocks, every block running each service once in a shuffled order, so a drift of the host moves them alike. Gotenberg ${v(tag(meta.images.Gotenberg))} ran twice, as it ships and with LibreOffice's restarts turned off. oxidestack/docx-to-pdf was the code of that day, before the heap trim, the change that hands LibreOffice's free heap back after each conversion: ${CODE_NOTE}.`,
+    `Measured by \`make compare\` on ${at(results)}, on an ${v(h.cpu_model)} (${v(h.arch)}) virtual machine under ${v(h.hypervisor)}: ${setup.cpus} pinned vCPU, a pool of ${setup.pool} and ${setup.memory} of memory a service; a closed load of the typical reports ${setup.docs}; ${setup.conversions} conversions a service in each of ${setup.blocks} blocks, every block running each service once in a shuffled order, so a drift of the host moves them alike. Gotenberg ${v(tag(meta.images.Gotenberg))} ran twice, as it ships and with LibreOffice's restarts turned off. ${measuredGuide(meta)}`,
     '',
     `Each figure is the other service's over oxidestack/docx-to-pdf's, the ratio of the means ± its standard error, with the verdict of the 2σ test. A ratio measured inside one interleaved run holds from one host to the next better than an absolute figure; each row links the absolute figures on [Benchmarks](${SITE}/benchmarks/).`,
     '',

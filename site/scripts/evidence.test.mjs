@@ -14,6 +14,7 @@ import {
   page,
   plain,
   readmeBlock,
+  release,
   readmeStrays,
   record,
   speedFigures,
@@ -36,13 +37,13 @@ test('the figures are the ones compare.py printed for the same run', () => {
   const f = speedFigures(results)
   const shown = (s, id, digits) => plain(record(f[s][id], digits))
   // tables.md of the committed run, row for row.
-  assert.equal(shown('ours', 'throughput', 3), '0.896 ± 0.042 (3)')
-  assert.equal(shown('gotenberg', 'cpu', 3), '1.276 ± 0.050 (3)')
-  assert.equal(shown('g-norestart', 'p99', 2), '4.00 ± 0.07 (3)')
+  assert.equal(shown('ours', 'throughput', 3), '0.942 ± 0.023 (3)')
+  assert.equal(shown('gotenberg', 'cpu', 3), '1.216 ± 0.025 (3)')
+  assert.equal(shown('g-norestart', 'p99', 2), '4.01 ± 0.22 (3)')
   assert.equal(shown('ours', 'peak', 0), '413 ± 0.3 (3)')
-  assert.equal(shown('oracle', 'peak', 0), '967 ± 5 (3)')
-  assert.equal(shown('oracle', 'ready', 2), '14.36 ± 0.96 (3)')
-  assert.equal(shown('ours', 'written', 1), '28.2 ± 0.2 (3)')
+  assert.equal(shown('oracle', 'peak', 0), '938 ± 50 (3)')
+  assert.equal(shown('oracle', 'ready', 2), '13.38 ± 0.93 (3)')
+  assert.equal(shown('ours', 'written', 1), '28.3 ± 0.2 (3)')
 })
 
 test('a marked value passes, a digit typed into a template does not', () => {
@@ -74,7 +75,7 @@ test('the block rewrites in place and wraps to the width without splitting a num
   const block = readmeBlock(results)
   assert.equal(withBlock(readme, block), readme)
   for (const line of block.split('\n')) if (!line.startsWith('<!--')) assert.ok(line.length <= 120, line)
-  assert.ok(block.includes('7 610 MiB'))
+  assert.ok(block.includes('7 609 MiB'))
   assert.doesNotMatch(block, /\[the\n/)
   assert.equal(wrap(`- ${'word '.repeat(30)}7 610 MiB`).split('\n')[1].trim().startsWith('word'), true)
 })
@@ -92,7 +93,7 @@ test('the README block says the one sentence of the positioning, and no more', (
   const block = readmeBlock(results)
   assert.match(block.replace(/\n> /g, ' '), /than Gotenberg and moalhaddar\/docx-to-pdf on the same documents/)
   assert.doesNotMatch(block, /anything else|hang it/)
-  assert.match(block, /before the heap trim/)
+  assert.match(block.replace(/\n/g, " "), release(results.meta) ? /The image measured is release/ : /before the heap trim/)
 })
 
 test('the comparison guide carries a generated block, held like the README', () => {
@@ -110,4 +111,13 @@ test('the guide block links each row to the Benchmarks page and keeps table rows
   for (const id of ['ratio-cpu', 'ratio-peak', 'torture-pages-500000p']) assert.ok(block.includes(`/benchmarks/#${id}`), id)
   for (const line of block.split('\n')) if (line.startsWith('|')) assert.ok(line.endsWith('|'), line)
   assert.match(plain(block), /## Hostile documents/)
+})
+
+test('a published release pulled by digest is named as the code measured; an image the command built is not', () => {
+  assert.equal(release(results.meta), '1.0.0')
+  assert.doesNotMatch(readmeBlock(results) + guide(results) + page(results), /before the heap trim|not a release image/)
+  const built = { ...results, meta: { ...results.meta, image: 'docx-to-pdf:compare' } }
+  assert.equal(release(built.meta), null)
+  assert.match(readmeBlock(built), /measured on the code before the heap trim/)
+  assert.deepEqual(strays(page(built)), [])
 })

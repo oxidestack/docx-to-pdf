@@ -169,7 +169,7 @@ fn the_page_says_what_the_figures_leave_open() {
     );
     for phrase in [
         "one run a side",
-        "before the heap trim",
+        "release is measured by a later run",
         "Gotenberg's rendering has never been measured",
     ] {
         assert!(page.contains(phrase), "{PAGE}: does not say \"{phrase}\"");

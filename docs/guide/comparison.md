@@ -53,13 +53,12 @@ below; Gotenberg's and moalhaddar/docx-to-pdf's are as each ships.
 
 ## Speed and memory
 
-Measured by `make compare` on 2026-10-28 10:06 UTC, on an Intel(R) Xeon(R) Gold 6248R CPU @ 3.00GHz (x86_64) virtual
+Measured by `make compare` on 2026-10-29 17:16 UTC, on an Intel(R) Xeon(R) Gold 6248R CPU @ 3.00GHz (x86_64) virtual
 machine under VMware: 1 pinned vCPU, a pool of 1 and 16 GiB of memory a service; a closed load of the typical reports
 `report-img30-10mb`, `report-img45-12mb`, `report-img60-15mb`, `report-img60-20mb`; 52 conversions a service in each of
 3 blocks, every block running each service once in a shuffled order, so a drift of the host moves them alike. Gotenberg
-8.38.1 ran twice, as it ships and with LibreOffice's restarts turned off. oxidestack/docx-to-pdf was the code of that
-day, before the heap trim, the change that hands LibreOffice's free heap back after each conversion: a release image
-carries it, at a small CPU cost a conversion that this run did not measure.
+8.38.1 ran twice, as it ships and with LibreOffice's restarts turned off. oxidestack/docx-to-pdf was release 1.0.0, its
+published image pulled by digest.
 
 Each figure is the other service's over oxidestack/docx-to-pdf's, the ratio of the means ± its standard error, with the
 verdict of the 2σ test. A ratio measured inside one interleaved run holds from one host to the next better than an
@@ -68,29 +67,27 @@ absolute figure; each row links the absolute figures on
 
 | | Gotenberg, as shipped | Gotenberg, no restarts | moalhaddar/docx-to-pdf |
 | --- | --- | --- | --- |
-| [conversions/s](https://oxidestack.github.io/docx-to-pdf/benchmarks/#ratio-throughput) | 0.80 ± 0.03× (oxidestack/docx-to-pdf ahead) | 0.91 ± 0.03× (oxidestack/docx-to-pdf ahead) | 0.33 ± 0.01× (oxidestack/docx-to-pdf ahead) |
-| [CPU-s a conversion](https://oxidestack.github.io/docx-to-pdf/benchmarks/#ratio-cpu) | 1.20 ± 0.04× (oxidestack/docx-to-pdf ahead) | 1.08 ± 0.03× (oxidestack/docx-to-pdf ahead) | 3.11 ± 0.06× (oxidestack/docx-to-pdf ahead) |
-| [p99 latency, s](https://oxidestack.github.io/docx-to-pdf/benchmarks/#ratio-p99) | 1.31 ± 0.05× (oxidestack/docx-to-pdf ahead) | 1.06 ± 0.03× (no difference at 2σ) | 3.04 ± 0.11× (oxidestack/docx-to-pdf ahead) |
-| [container `memory.peak`, MiB](https://oxidestack.github.io/docx-to-pdf/benchmarks/#ratio-peak) | 1.76 ± 0.05× (oxidestack/docx-to-pdf ahead) | 1.80 ± 0.02× (oxidestack/docx-to-pdf ahead) | 2.34 ± 0.01× (oxidestack/docx-to-pdf ahead) |
+| [conversions/s](https://oxidestack.github.io/docx-to-pdf/benchmarks/#ratio-throughput) | 0.82 ± 0.02× (oxidestack/docx-to-pdf ahead) | 0.87 ± 0.03× (oxidestack/docx-to-pdf ahead) | 0.31 ± 0.01× (oxidestack/docx-to-pdf ahead) |
+| [CPU-s a conversion](https://oxidestack.github.io/docx-to-pdf/benchmarks/#ratio-cpu) | 1.21 ± 0.02× (oxidestack/docx-to-pdf ahead) | 1.13 ± 0.04× (oxidestack/docx-to-pdf ahead) | 3.32 ± 0.06× (oxidestack/docx-to-pdf ahead) |
+| [p99 latency, s](https://oxidestack.github.io/docx-to-pdf/benchmarks/#ratio-p99) | 1.34 ± 0.03× (oxidestack/docx-to-pdf ahead) | 1.15 ± 0.04× (oxidestack/docx-to-pdf ahead) | 3.34 ± 0.06× (oxidestack/docx-to-pdf ahead) |
+| [container `memory.peak`, MiB](https://oxidestack.github.io/docx-to-pdf/benchmarks/#ratio-peak) | 1.65 ± 0.03× (oxidestack/docx-to-pdf ahead) | 1.86 ± 0.04× (oxidestack/docx-to-pdf ahead) | 2.27 ± 0.07× (oxidestack/docx-to-pdf ahead) |
 
 Where Gotenberg is ahead of oxidestack/docx-to-pdf in this run:
 
-- Gotenberg, `png-g-32767` (the same answer, 200, and the same pictures): answered in 9.88 s against 12.39 s, one run a
+- Gotenberg, no restarts, written a conversion, MB: 27.9 ± 0.2 (3) against 28.3 ± 0.2 (3)
+  ([the row](https://oxidestack.github.io/docx-to-pdf/benchmarks/#speed-written))
+- Gotenberg, `png-g-32767` (the same answer, 200, and the same pictures): answered in 9.78 s against 11.34 s, one run a
   side ([the row](https://oxidestack.github.io/docx-to-pdf/benchmarks/#torture-png-g-32767))
-- Gotenberg, as shipped, LibreOffice's resident memory over the soak's second half: 291 ± 60 MiB over 1350 conversions
-  against 530 ± 6 MiB over 1500 conversions, one soak a side
+- Gotenberg, as shipped, LibreOffice's resident memory over the soak's second half: 289 ± 61 MiB over 1350 conversions
+  against 391 ± 1 MiB over 1500 conversions, one soak a side
   ([the row](https://oxidestack.github.io/docx-to-pdf/benchmarks/#soaks))
-- Gotenberg, no restarts, LibreOffice's resident memory over the soak's second half: 379 ± 53 MiB over 1500 conversions
-  against 530 ± 6 MiB over 1500 conversions, one soak a side
+- Gotenberg, no restarts, LibreOffice's resident memory over the soak's second half: 347 ± 65 MiB over 1500 conversions
+  against 391 ± 1 MiB over 1500 conversions, one soak a side
   ([the row](https://oxidestack.github.io/docx-to-pdf/benchmarks/#soaks))
 
 Where neither is ahead at 2σ:
 
-- Gotenberg, as shipped, written a conversion, MB: 28.0 ± 0.3 (3) against 28.2 ± 0.2 (3)
-  ([the row](https://oxidestack.github.io/docx-to-pdf/benchmarks/#speed-written))
-- Gotenberg, no restarts, p99 latency, s: 4.00 ± 0.07 (3) against 3.78 ± 0.20 (3)
-  ([the row](https://oxidestack.github.io/docx-to-pdf/benchmarks/#speed-p99))
-- Gotenberg, no restarts, written a conversion, MB: 28.0 ± 0.3 (3) against 28.2 ± 0.2 (3)
+- Gotenberg, as shipped, written a conversion, MB: 28.3 ± 0.001 (3) against 28.3 ± 0.2 (3)
   ([the row](https://oxidestack.github.io/docx-to-pdf/benchmarks/#speed-written))
 
 ## Hostile documents
@@ -102,18 +99,18 @@ pictures reached the PDF. The answers are set by limits, and so repeat; the time
 
 | Case | oxidestack/docx-to-pdf | Gotenberg | moalhaddar/docx-to-pdf |
 | --- | --- | --- | --- |
-| [`pages-500000p`](https://oxidestack.github.io/docx-to-pdf/benchmarks/#torture-pages-500000p), a deflate bomb: a document that inflates past any limit | 413 in 0.01 s; peak 235 MiB; alongside none; first 200 after the answer: 0.75 s | 503 in 30.01 s; peak 7 610 MiB; alongside 1 × 503; first 200 after the answer: 218.46 s | no answer in 300.02 s; peak 9 374 MiB; alongside 1 × TimeoutError: timed out; first 200 after the answer: none |
-| [`px-8x1024mpx`](https://oxidestack.github.io/docx-to-pdf/benchmarks/#torture-px-8x1024mpx), a picture bomb: eight gigapixel pictures | 413 in 0.04 s; peak 236 MiB; alongside none; first 200 after the answer: 0.7 s | 503 in 30.01 s; peak 8 067 MiB; alongside 1 × 503; first 200 after the answer: 34.73 s | no answer in 300.07 s; peak 2 523 MiB; alongside 1 × TimeoutError: timed out; first 200 after the answer: 270.21 s |
-| [`tables-10000`](https://oxidestack.github.io/docx-to-pdf/benchmarks/#torture-tables-10000), a document that converts for minutes | 504 in 180.08 s; peak 1 332 MiB; alongside 2 × 503, 1 × 200; first 200 after the answer: 0.77 s | 503 in 30.0 s; peak 1 807 MiB; alongside 1 × 503; first 200 after the answer: 218.3 s | no answer in 300.06 s; peak 3 971 MiB; alongside 1 × TimeoutError: timed out; first 200 after the answer: none |
-| [`png-g-32767`](https://oxidestack.github.io/docx-to-pdf/benchmarks/#torture-png-g-32767), a gray picture just inside LibreOffice's bound | 200 in 12.39 s; peak 348 MiB; pictures in the PDF 1; docx-to-pdf-pictures: downscaled=1, replaced=0 | 200 in 9.88 s; peak 1 139 MiB; pictures in the PDF 1 | 200 in 109.35 s; peak 1 487 MiB; pictures in the PDF 1 |
-| [`png-g-32768`](https://oxidestack.github.io/docx-to-pdf/benchmarks/#torture-png-g-32768), a gray picture just past LibreOffice's bound | 200 in 11.46 s; peak 348 MiB; pictures in the PDF 1; docx-to-pdf-pictures: downscaled=1, replaced=0 | 200 in 0.75 s; peak 108 MiB; pictures in the PDF 0 | 200 in 0.47 s; peak 338 MiB; pictures in the PDF 0 |
-| [`png-rgb-18918`](https://oxidestack.github.io/docx-to-pdf/benchmarks/#torture-png-rgb-18918), a colour picture just inside LibreOffice's bound | 200 in 4.26 s; peak 153 MiB; pictures in the PDF 1; docx-to-pdf-pictures: downscaled=1, replaced=0 | 200 in 11.15 s; peak 1 138 MiB; pictures in the PDF 1 | 200 in 23.9 s; peak 1 394 MiB; pictures in the PDF 1 |
-| [`png-rgb-18919`](https://oxidestack.github.io/docx-to-pdf/benchmarks/#torture-png-rgb-18919), a colour picture just past LibreOffice's bound | 200 in 4.91 s; peak 153 MiB; pictures in the PDF 1; docx-to-pdf-pictures: downscaled=1, replaced=0 | 200 in 0.93 s; peak 108 MiB; pictures in the PDF 0 | 200 in 0.48 s; peak 379 MiB; pictures in the PDF 0 |
-| [`empty`](https://oxidestack.github.io/docx-to-pdf/benchmarks/#torture-empty), an empty file | 415 in 0.03 s; peak 34 MiB | 200 in 1.17 s; peak 101 MiB; pictures in the PDF 0 | 200 in 0.7 s; peak 359 MiB; pictures in the PDF 0 |
-| [`random-1mb`](https://oxidestack.github.io/docx-to-pdf/benchmarks/#torture-random-1mb), random bytes | 415 in 0.03 s; peak 36 MiB | 500 in 1.01 s; peak 102 MiB | no answer in 300.1 s; peak 395 MiB |
-| [`random-10mb`](https://oxidestack.github.io/docx-to-pdf/benchmarks/#torture-random-10mb), more random bytes | 415 in 0.03 s; peak 46 MiB | 500 in 1.0 s; peak 140 MiB | no answer in 300.78 s; peak 450 MiB |
-| [`tdf38575`](https://oxidestack.github.io/docx-to-pdf/benchmarks/#torture-tdf38575), a document that hangs moalhaddar/docx-to-pdf's LibreOffice | 200 in 0.68 s; peak 91 MiB; pictures in the PDF 1 | 200 in 1.15 s; peak 107 MiB; pictures in the PDF 1 | no answer in 300.09 s; peak 359 MiB |
-| [`pause`](https://oxidestack.github.io/docx-to-pdf/benchmarks/#torture-pause), uploads that pause, then one that stalls halfway | pauses: HTTP/1.1 200 OK in 7.19 s, HTTP/1.1 200 OK in 6.82 s, HTTP/1.1 200 OK in 6.85 s; stalled: HTTP/1.1 408 Request Timeout in 120.01 s | pauses: HTTP/1.1 200 OK in 7.5 s, HTTP/1.1 200 OK in 6.88 s, HTTP/1.1 200 OK in 6.89 s; stalled: HTTP/1.1 500 Internal Server Error in 30.01 s | pauses: HTTP/1.1 200  in 9.04 s, HTTP/1.1 200  in 8.5 s, HTTP/1.1 200  in 8.5 s; stalled: TimeoutError: timed out in 200.1 s |
+| [`pages-500000p`](https://oxidestack.github.io/docx-to-pdf/benchmarks/#torture-pages-500000p), a deflate bomb: a document that inflates past any limit | 413 in 0.01 s; peak 236 MiB; alongside none; first 200 after the answer: 0.77 s | 503 in 30.0 s; peak 7 609 MiB; alongside 1 × 503; first 200 after the answer: 218.53 s | no answer in 300.04 s; peak 9 373 MiB; alongside 1 × TimeoutError: timed out; first 200 after the answer: none |
+| [`px-8x1024mpx`](https://oxidestack.github.io/docx-to-pdf/benchmarks/#torture-px-8x1024mpx), a picture bomb: eight gigapixel pictures | 413 in 0.02 s; peak 237 MiB; alongside none; first 200 after the answer: 0.78 s | 503 in 30.0 s; peak 8 076 MiB; alongside 1 × 503; first 200 after the answer: 35.43 s | no answer in 300.11 s; peak 2 505 MiB; alongside 1 × TimeoutError: timed out; first 200 after the answer: 227.54 s |
+| [`tables-10000`](https://oxidestack.github.io/docx-to-pdf/benchmarks/#torture-tables-10000), a document that converts for minutes | 504 in 180.09 s; peak 1 401 MiB; alongside 2 × 503, 1 × 200; first 200 after the answer: 0.83 s | 503 in 30.0 s; peak 1 850 MiB; alongside 1 × 503; first 200 after the answer: 218.42 s | no answer in 300.1 s; peak 4 076 MiB; alongside 1 × TimeoutError: timed out; first 200 after the answer: 451.4 s |
+| [`png-g-32767`](https://oxidestack.github.io/docx-to-pdf/benchmarks/#torture-png-g-32767), a gray picture just inside LibreOffice's bound | 200 in 11.34 s; peak 348 MiB; pictures in the PDF 1; docx-to-pdf-pictures: downscaled=1, replaced=0 | 200 in 9.78 s; peak 1 138 MiB; pictures in the PDF 1 | 200 in 93.6 s; peak 1 524 MiB; pictures in the PDF 1 |
+| [`png-g-32768`](https://oxidestack.github.io/docx-to-pdf/benchmarks/#torture-png-g-32768), a gray picture just past LibreOffice's bound | 200 in 11.2 s; peak 347 MiB; pictures in the PDF 1; docx-to-pdf-pictures: downscaled=1, replaced=0 | 200 in 0.83 s; peak 108 MiB; pictures in the PDF 0 | 200 in 0.47 s; peak 322 MiB; pictures in the PDF 0 |
+| [`png-rgb-18918`](https://oxidestack.github.io/docx-to-pdf/benchmarks/#torture-png-rgb-18918), a colour picture just inside LibreOffice's bound | 200 in 4.59 s; peak 152 MiB; pictures in the PDF 1; docx-to-pdf-pictures: downscaled=1, replaced=0 | 200 in 11.44 s; peak 1 139 MiB; pictures in the PDF 1 | 200 in 18.75 s; peak 1 442 MiB; pictures in the PDF 1 |
+| [`png-rgb-18919`](https://oxidestack.github.io/docx-to-pdf/benchmarks/#torture-png-rgb-18919), a colour picture just past LibreOffice's bound | 200 in 4.39 s; peak 152 MiB; pictures in the PDF 1; docx-to-pdf-pictures: downscaled=1, replaced=0 | 200 in 0.75 s; peak 108 MiB; pictures in the PDF 0 | 200 in 0.45 s; peak 409 MiB; pictures in the PDF 0 |
+| [`empty`](https://oxidestack.github.io/docx-to-pdf/benchmarks/#torture-empty), an empty file | 415 in 0.0 s; peak 34 MiB | 200 in 0.76 s; peak 102 MiB; pictures in the PDF 0 | 200 in 0.31 s; peak 339 MiB; pictures in the PDF 0 |
+| [`random-1mb`](https://oxidestack.github.io/docx-to-pdf/benchmarks/#torture-random-1mb), random bytes | 415 in 0.01 s; peak 37 MiB | 500 in 0.63 s; peak 101 MiB | no answer in 300.04 s; peak 447 MiB |
+| [`random-10mb`](https://oxidestack.github.io/docx-to-pdf/benchmarks/#torture-random-10mb), more random bytes | 415 in 0.02 s; peak 46 MiB | 500 in 0.7 s; peak 138 MiB | no answer in 300.15 s; peak 455 MiB |
+| [`tdf38575`](https://oxidestack.github.io/docx-to-pdf/benchmarks/#torture-tdf38575), a document that hangs moalhaddar/docx-to-pdf's LibreOffice | 200 in 0.36 s; peak 91 MiB; pictures in the PDF 1 | 200 in 0.84 s; peak 107 MiB; pictures in the PDF 1 | no answer in 300.1 s; peak 350 MiB |
+| [`pause`](https://oxidestack.github.io/docx-to-pdf/benchmarks/#torture-pause), uploads that pause, then one that stalls halfway | pauses: HTTP/1.1 200 OK in 7.04 s, HTTP/1.1 200 OK in 6.77 s, HTTP/1.1 200 OK in 6.76 s; stalled: HTTP/1.1 408 Request Timeout in 120.01 s | pauses: HTTP/1.1 200 OK in 7.5 s, HTTP/1.1 200 OK in 6.93 s, HTTP/1.1 200 OK in 6.89 s; stalled: HTTP/1.1 500 Internal Server Error in 30.0 s | pauses: HTTP/1.1 200  in 8.68 s, HTTP/1.1 200  in 8.44 s, HTTP/1.1 200  in 8.29 s; stalled: TimeoutError: timed out in 200.1 s |
 | [`egress`](https://oxidestack.github.io/docx-to-pdf/benchmarks/#torture-egress), linked pictures aimed at a listener, public and private addresses | 68 documents: 68 × 200; connections the listener logged: 0 | 68 documents: 68 × 200; connections the listener logged: 0 | 68 documents: 51 × 200, 17 × TimeoutError: timed out; connections the listener logged: 36 (27 public, 9 private); 150 s a document |
 
 The soaks, thousands of conversions on one LibreOffice, are on
@@ -128,9 +125,8 @@ The soaks, thousands of conversions on one LibreOffice, are on
 - **One host.** An absolute time or CPU figure moves between virtual machines of one definition; a ratio measured
   inside one interleaved run is the figure that carries to another host. The run was on amd64: moalhaddar/docx-to-pdf
   has no arm64 image, and no arm64 run is in the results.
-- **The code before the heap trim.** The run measured oxidestack/docx-to-pdf as it was that day, not a release image;
-  until a run of a release image replaces the results, the ratios against Gotenberg without its restarts are the
-  earlier code's.
+- **One image.** The run measured the one image of oxidestack/docx-to-pdf that the section above names; a later
+  release is measured by a later run.
 - **One run a side for each hostile document.** The answers repeat, because limits set them; a time or a peak is a
   single measurement.
 - **Memory over thousands of conversions.** The soaks on [Benchmarks](https://oxidestack.github.io/docx-to-pdf/benchmarks/#soaks)
