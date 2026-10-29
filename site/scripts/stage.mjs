@@ -12,6 +12,8 @@
 //   2. Links that resolve. `[Configuration](configuration.md#server)` is right on GitHub and a 404 here, where the
 //      page is /docx-to-pdf/configuration/. A link to a staged file becomes its page; a link to any other file of the
 //      repository becomes a link to that file on GitHub, since the site does not carry it.
+//      A link to the site's own address (the README's to the Benchmarks page, which only the site has) becomes a
+//      path under the base, so the build checks it like any other.
 //   3. Angle brackets that survive: outside code a renderer reads `<name>` as an HTML tag and drops it, so it is
 //      escaped there. Code, fenced or inline, is left exactly as written, so an example copied from a page still runs.
 
@@ -26,6 +28,8 @@ const DOCS = join(here, '..', 'src', 'content', 'docs')
 /** The site's base path (astro.config.mjs `base`): every internal link carries it. */
 const BASE = '/docx-to-pdf'
 const GITHUB = 'https://github.com/oxidestack/docx-to-pdf'
+/** The site's origin (astro.config.mjs `site`). */
+const SITE = 'https://oxidestack.github.io'
 
 /** The staged files: repository path → page slug ('' is the site's home page). */
 function pages() {
@@ -100,6 +104,9 @@ function escapeAngles(text) {
 
 /** One link target, as seen from the repository file `from`. */
 function retarget(href, from, staged) {
+  // The site's own address, as the README writes it to link a page GitHub does not carry: a path under the base on
+  // the site, so the validator checks the page and the anchor it names.
+  if (href.startsWith(`${SITE}${BASE}/`)) return href.slice(SITE.length)
   if (/^([a-z][a-z0-9+.-]*:|#|\/)/i.test(href)) return href
   const [path, hash = ''] = href.split('#')
   const anchor = hash ? `#${hash}` : ''

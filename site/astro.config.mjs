@@ -33,6 +33,7 @@ export default defineConfig({
         { label: 'Troubleshooting', slug: 'troubleshooting' },
         { label: 'Migrating from moalhaddar/docx-to-pdf', slug: 'migration' },
         { label: 'Comparison', slug: 'comparison' },
+        { label: 'Benchmarks', slug: 'benchmarks' },
       ],
       plugins: [
         // A broken internal link or anchor fails the build: every page is staged from a file of the repository, so a

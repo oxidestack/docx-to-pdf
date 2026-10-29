@@ -2,6 +2,32 @@
 
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/oxidestack/docx-to-pdf/badge)](https://scorecard.dev/viewer/?uri=github.com/oxidestack/docx-to-pdf)
 
+<!-- benchmarks:begin: `make evidence` writes this block from site/public/benchmarks/results.json -->
+
+> **docx-to-pdf turns office documents into PDF faster and with less memory than anything else, and no document —
+> however large, malicious or broken — can take it down, hang it or make it reach the network.**
+
+- **Less CPU than Gotenberg**: Gotenberg uses 1.20 ± 0.04× the CPU a conversion as it ships, and 1.08 ± 0.03× without
+  its restarts ([the row](https://oxidestack.github.io/docx-to-pdf/benchmarks/#ratio-cpu)).
+- **Less memory than Gotenberg**: its container peaks at 1.76 ± 0.05× the memory as it ships, and 1.80 ± 0.02× without
+  its restarts ([the row](https://oxidestack.github.io/docx-to-pdf/benchmarks/#ratio-peak)).
+- **The service it replaces, outrun**: 3.05 ± 0.08× moalhaddar/docx-to-pdf's throughput, which uses 3.11 ± 0.06× the CPU
+  a conversion and 2.34 ± 0.01× the memory
+  ([the row](https://oxidestack.github.io/docx-to-pdf/benchmarks/#ratio-throughput)).
+- **A deflate bomb stopped at once**: `pages-500000p`, a document that inflates past any limit, gets 413 in 0.01 s at a
+  235 MiB peak; Gotenberg answers 503 in 30.01 s while its LibreOffice goes on to 7 610 MiB, and moalhaddar/docx-to-pdf
+  gives no answer in 300.02 s at 9 374 MiB
+  ([the row](https://oxidestack.github.io/docx-to-pdf/benchmarks/#torture-pages-500000p)).
+
+Measured by `make compare` on 2026-10-28 10:06 UTC, on an Intel(R) Xeon(R) Gold 6248R CPU @ 3.00GHz (x86_64), 1 pinned
+vCPU and a pool of 1 a service: mean ± σ (n) over 3 interleaved blocks, a ratio ± its standard error. The code measured
+is that day's, before the change that hands LibreOffice's free heap back after each conversion: a release image carries
+it, at a small CPU cost a conversion that this run did not measure.
+[Benchmarks](https://oxidestack.github.io/docx-to-pdf/benchmarks/) has every figure, the rows where Gotenberg wins, and
+the raw results.
+
+<!-- benchmarks:end -->
+
 An HTTP service that turns an office document into a PDF with LibreOffice.
 
 It answers the same requests as [moalhaddar/docx-to-pdf](https://github.com/moalhaddar/docx-to-pdf) 2.1.0-13, so a

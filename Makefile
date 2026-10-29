@@ -54,6 +54,14 @@ chart-docs: ## regenerate charts/docx-to-pdf/README.md from README.md.gotmpl and
 		$$(sh tools/lint/lint.sh --list | awk '$$1 == "chart-docs" { print $$3 }') \
 		sh -c '"$$(sh tools/lint/fetch-tool.sh helm-docs)" --chart-search-root charts --log-level warning'
 
+# The README's headline numbers, rewritten from the committed results of the latest full `make compare` run
+# (site/public/benchmarks/results.json) by site/scripts/evidence.mjs in the same pinned node image; `make site` fails
+# on a README whose block differs from what this writes.
+.PHONY: evidence
+evidence: ## rewrite the README's headline block from site/public/benchmarks/results.json
+	docker run --rm --name docx-to-pdf-evidence-$$$$ --user "$$(id -u):$$(id -g)" -e HOME=/tmp -v "$(CURDIR):/src" -w /src \
+		$$(sh tools/lint/lint.sh --list | awk '$$1 == "markdownlint" { print $$3 }') node site/scripts/evidence.mjs --write-readme
+
 # The documentation site (site/README.md): README.md and docs/guide/ built with Astro Starlight into site/dist/, a
 # broken internal link or anchor failing the build. Node runs only in the `markdownlint` gate's pinned node image
 # (tools/lint/images.Dockerfile), never on the host; the CI's `site` job runs site/build.sh in that same image.

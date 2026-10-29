@@ -36,6 +36,24 @@ Nothing is copied into this directory by hand. Every build runs [`scripts/stage.
 `docs/guide/…`, never a staged page. A new guide page is staged by being there; it appears in the navigation once
 [`astro.config.mjs`](astro.config.mjs)'s `sidebar` names it.
 
+## The Benchmarks page and the README's numbers
+
+[`public/benchmarks/results.json`](public/benchmarks/results.json) is the raw output of the latest full run of
+`make compare` ([`examples/compare/`](../examples/compare/)), committed as it was written and served beside the page
+for download. [`scripts/evidence.mjs`](scripts/evidence.mjs) reads it on every build and writes the Benchmarks page
+(the speed and memory table with its charts, the ratios, the rows where Gotenberg is ahead, the torture cases, the
+soaks, the machine, the versions and the documents) and the README's headline block, which the site shows as its home
+page. Nothing in either is typed by hand, and the build fails when something is:
+
+| Where | What fails the build |
+| --- | --- |
+| The README's block between `benchmarks:begin` and `benchmarks:end` | any difference from what the results generate: `make evidence` rewrites it |
+| The README outside that block | a number with a unit of measure (×, %, s, MiB, MB, conversions), outside code |
+| The generator itself | a digit in the text of a page that is not a value read from the results, so a figure written into a template |
+
+A new run replaces `results.json` (the run's own `.bench/compare/<stamp>/results.json`), then `make evidence` and
+`make site`.
+
 ## The checks
 
 [starlight-links-validator](https://github.com/HiDeoo/starlight-links-validator) fails the build on an internal link
