@@ -4,7 +4,7 @@
 # `make image-corpus`, `make chart-kind` and the image gates of `make image-lint` against it) in a
 # GitRiver job container that its runner has given the host's Docker socket (the `image` job of
 # .gitriver/workflows/ci.yml names that runner). No other runner gives one, and nothing is pushed
-# anywhere.
+# anywhere: a release saves the tested image to a file (IMAGE_SAVE) for another job to push.
 #
 #   sh tools/ci/image-job.sh                 from the repository root, in the job's container (`rust:1.98.0-trixie`)
 #   sh tools/ci/image-job.sh host <image>    from the repository root, on a CI host that runs Docker itself (GitHub's
@@ -36,7 +36,9 @@
 # parent (the CI slice), on the host network, with the job's workspace mounted at its path on the VM and the
 # socket. `--init` reaps orphans, as tools/instance-test/run.sh does (tools/ci/test-deps.sh says why that matters).
 #
-# Environment: IMAGE, the tag to build (default docx-to-pdf-ci:<job>, removed at exit); the workflow's CARGO_*.
+# Environment: IMAGE, the tag to build (default docx-to-pdf-ci:<job>, removed at exit); the workflow's CARGO_*. For a
+# release (.github/workflows/release-image.yml): IMAGE_VERSION and IMAGE_SOURCE, the OCI version and source labels;
+# IMAGE_SAVE, a path in the workspace where the image, once every test has passed, is written by `docker save`.
 set -eu
 
 SOCK=/var/run/docker.sock
@@ -69,7 +71,21 @@ if [ "${1:-}" = inner ]; then
 	# container, so the first one's safe.directory (tools/ci/test-deps.sh) is not here: without it git refuses a
 	# workspace owned by another uid, and the image would be built with no revision label at all.
 	git config --global --add safe.directory '*'
-	make image-ci IMAGE="$IMAGE"
+	# A release build adds the OCI version and source labels beside the revision (the Makefile's IMAGE_LABELS,
+	# extended on make's command line, so every sub-make builds with the same ones).
+	if [ -n "${IMAGE_VERSION:-}" ]; then
+		# shellcheck disable=SC2016 # $(IMAGE_REVISION) is make's, expanded there
+		make image-ci IMAGE="$IMAGE" IMAGE_LABELS='$(if $(IMAGE_REVISION),--label org.opencontainers.image.revision=$(IMAGE_REVISION))'" --label org.opencontainers.image.version=$IMAGE_VERSION${IMAGE_SOURCE:+ --label org.opencontainers.image.source=$IMAGE_SOURCE}"
+	else
+		make image-ci IMAGE="$IMAGE"
+	fi
+	# The release workflow publishes the image every test above ran against, not a rebuild: it is saved here, the
+	# job having passed, before the trap removes it.
+	# Readable by the runner's user, which uploads it (this container runs as root).
+	if [ -n "${IMAGE_SAVE:-}" ]; then
+		docker save -o "$IMAGE_SAVE" "$IMAGE"
+		chmod 644 "$IMAGE_SAVE"
+	fi
 	exit 0
 fi
 
@@ -158,4 +174,5 @@ echo "image job: $IMAGE in $NAME ($JOB_IMAGE, workspace $WS, limits:${limits:- n
 docker run --rm --init --name "$NAME" --network host $limits \
 	-v "$HOST_SOCK:$SOCK" -v "$WS:$WS" -w "$WS" \
 	-e CARGO_HOME="$WS/.cargo" -e CARGO_TERM_COLOR -e CARGO_INCREMENTAL -e CARGO_NET_RETRY -e IMAGE="$IMAGE" \
+	-e IMAGE_VERSION -e IMAGE_SOURCE -e IMAGE_SAVE \
 	"$JOB_IMAGE" sh tools/ci/image-job.sh inner

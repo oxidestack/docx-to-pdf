@@ -1,0 +1,189 @@
+# The release image: a version tag (`v1.2.3`, `v1.3.0-rc.1`) builds and tests the image natively on each architecture,
+# then publishes the very images it tested as one multi-arch manifest list to quay.io, the primary registry, and copies
+# that manifest list, the same digest, to the mirror on ghcr.io.
+#
+# - `image`: the image job of ci.yml, the same script on the same runners (amd64 on `ubuntu-24.04`, arm64 on
+#   `ubuntu-24.04-arm`, never emulated), with the OCI version and source labels, and the tested image saved by
+#   `docker save` into an artifact. No credential reaches it: the tests run code from the tree.
+# - `publish`: pushes both images by digest to quay.io/oxidestack/docx-to-pdf, one manifest list, tagged `<version>`
+#   and `latest` (a pre-release, with a `-`, leaves `latest` alone). quay.io is what a release stands on: a push that
+#   fails three tries fails the release. It logs in with no stored secret: the robot account trusts this workflow's
+#   OIDC token (quay.io's robot federation), which it exchanges for a robot token valid one hour. The robot's name is
+#   the repository variable QUAY_ROBOT (`oxidestack+<robot>`); its federation names GitHub's issuer and this job's
+#   subject, which the `release` environment fixes (`…:environment:release`), whatever the tag.
+# - `mirror`: copies the manifest list to ghcr.io/oxidestack/docx-to-pdf with GITHUB_TOKEN (`packages: write`) and
+#   checks the digests agree. The mirror never blocks a release: three failed tries are a warning annotation and a line
+#   in the run's summary, and the job stays green. The repository variable IMAGE_MIRROR replaces the mirror's
+#   reference (a test tag aimed at a repository the token cannot write shows the failure path).
+#
+# A manual run (`gh workflow run release-image.yml`, or Actions → Release image → Run workflow) is the dry run: both
+# architectures built and tested, nothing saved, nothing pushed.
+#
+# Signatures, the SBOM and provenance are not made here: the release pipeline adds them to the digest this publishes.
+# Every action is pinned by its full commit, its release in a comment; every checkout keeps no credential.
+
+name: Release image
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+# One run per tag at a time; a second run for the same tag waits rather than cancelling a publication half-way.
+concurrency:
+  group: release-image-${{ github.ref }}
+  cancel-in-progress: false
+
+# Nothing at the top: each job is granted what it uses.
+permissions: {}
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: "0"
+  CARGO_NET_RETRY: "3"
+  QUAY_REPOSITORY: quay.io/oxidestack/docx-to-pdf
+
+jobs:
+  image:
+    # The same `if:` as every job of ci.yml: a private repository's tag push starts nothing billed, a manual run
+    # always runs.
+    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
+    name: image (${{ matrix.arch }})
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    permissions:
+      contents: read  # actions/checkout reads the repository
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+          submodules: true
+      # As in ci.yml: the image and its tests outgrow the runner's free disk without these.
+      - run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL
+          df -h /
+      # No cargo cache: a release builds from nothing a branch's run could have written.
+      - name: version
+        id: version
+        env:
+          EVENT: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          if [ "$EVENT" = push ]; then
+            version=$(sh tools/ci/publish-image.sh version "$REF_NAME")
+          else
+            version=0.0.0-dry-run
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - name: build and test
+        env:
+          IMAGE_VERSION: ${{ steps.version.outputs.version }}
+          IMAGE_SOURCE: ${{ github.server_url }}/${{ github.repository }}
+          IMAGE_SAVE: ${{ github.event_name == 'push' && format('{0}/docx-to-pdf-{1}.tar', github.workspace, matrix.arch) || '' }}
+        run: sh tools/ci/image-job.sh host rust:1.98.0-trixie
+      - if: ${{ github.event_name == 'push' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
+        with:
+          name: image-${{ matrix.arch }}
+          path: docx-to-pdf-${{ matrix.arch }}.tar
+          if-no-files-found: error
+          compression-level: 1
+          retention-days: 1
+
+  publish:
+    if: ${{ github.event_name == 'push' && !github.event.repository.private }}
+    needs: image
+    runs-on: ubuntu-24.04
+    # The robot's federation trusts this environment's subject; its protection rules decide which tags may deploy.
+    environment: release
+    permissions:
+      contents: read  # actions/checkout reads the repository
+      id-token: write  # the OIDC token quay.io exchanges for a robot token
+    timeout-minutes: 60
+    outputs:
+      version: ${{ steps.push.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
+        with:
+          pattern: image-*
+          merge-multiple: true
+          path: ${{ runner.temp }}/image
+      - name: push to quay.io
+        id: push
+        env:
+          QUAY_ROBOT: ${{ vars.QUAY_ROBOT }}
+          REF_NAME: ${{ github.ref_name }}
+          IMAGES: ${{ runner.temp }}/image
+        run: |
+          version=$(sh tools/ci/publish-image.sh version "$REF_NAME")
+          [ -n "$QUAY_ROBOT" ] || {
+            echo "::error title=quay.io::no repository variable QUAY_ROBOT (the robot account, oxidestack+<name>)"
+            exit 1
+          }
+          # GitHub's OIDC token for this job, exchanged at quay.io for a robot token. Both are masked, and neither is
+          # ever an argument: curl reads the robot's credentials from its config on stdin.
+          oidc=$(curl -fsS --retry 3 -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL" | jq -r .value)
+          echo "::add-mask::$oidc"
+          token=$(printf 'user = "%s:%s"\n' "$QUAY_ROBOT" "$oidc" |
+            curl -fsS --retry 3 -K - https://quay.io/oauth2/federation/robot/token | jq -r .token)
+          [ -n "$token" ] && [ "$token" != null ] || {
+            echo "::error title=quay.io::the robot token exchange returned no token"
+            exit 1
+          }
+          echo "::add-mask::$token"
+          printf '%s' "$token" | sh tools/ci/publish-image.sh login quay.io "$QUAY_ROBOT"
+          digest=$(sh tools/ci/publish-image.sh push "$QUAY_REPOSITORY" "$version" \
+            "$IMAGES/docx-to-pdf-amd64.tar" "$IMAGES/docx-to-pdf-arm64.tar" | tail -n 1)
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          {
+            echo "### quay.io"
+            echo
+            echo "\`$QUAY_REPOSITORY:$version\` is \`$digest\` (linux/amd64, linux/arm64)."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  mirror:
+    if: ${{ github.event_name == 'push' && !github.event.repository.private }}
+    needs: publish
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read  # actions/checkout reads the repository
+      packages: write  # pushes to ghcr.io/oxidestack/docx-to-pdf
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - name: copy to the mirror
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.publish.outputs.version }}
+          MIRROR: ${{ vars.IMAGE_MIRROR || 'ghcr.io/oxidestack/docx-to-pdf' }}
+        run: |
+          # quay.io is public: reading it needs no login.
+          if printf '%s' "$GH_TOKEN" | sh tools/ci/publish-image.sh login "${MIRROR%%/*}" "$GITHUB_ACTOR" &&
+            digest=$(sh tools/ci/publish-image.sh mirror "$QUAY_REPOSITORY" "$MIRROR" "$VERSION" | tail -n 1); then
+            {
+              echo "### ghcr.io (mirror)"
+              echo
+              echo "\`$MIRROR:$VERSION\` is \`$digest\`, the same as quay.io."
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "::warning title=ghcr.io mirror::$MIRROR:$VERSION was not published; the release stands on quay.io. Re-run this job, or copy it by hand: crane copy $QUAY_REPOSITORY:$VERSION $MIRROR:$VERSION"
+            {
+              echo "### ghcr.io (mirror): not published"
+              echo
+              echo "\`$MIRROR:$VERSION\` failed after three tries (the log of this job says why). The release stands on quay.io."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
