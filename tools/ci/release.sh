@@ -50,7 +50,8 @@
 #
 # Environment: DOCKER_CONFIG, the registry credentials every tool here reads (default ~/.docker; crane's CRANE_CONFIG
 # should name the same directory); REGISTRY_PLAIN_HTTP=1 for a plain-HTTP test registry; COSIGN_KEY/COSIGN_PUB (and
-# COSIGN_PASSWORD) to sign and verify with a key pair instead of keyless, CHANGELOG another changelog (the local tests).
+# COSIGN_PASSWORD) to sign and verify with a key pair instead of keyless, CHANGELOG another changelog (the local tests);
+# QUAY_AUDIENCE, the audience quay-login asks GitHub's OIDC token for (default https://quay.io).
 # Exit 0: done; 1: a step failed; 2: usage.
 set -eu
 
@@ -271,6 +272,7 @@ chart)
 quay-login)
 	[ $# -eq 1 ] || usage
 	robot=$1
+	QUAY_AUDIENCE=${QUAY_AUDIENCE:-https://quay.io}
 	[ -n "$robot" ] || {
 		echo "::error title=quay.io::no repository variable QUAY_ROBOT (the robot account, oxidestack+<name>)"
 		exit 1
@@ -279,8 +281,10 @@ quay-login)
 		say "no OIDC token in this job (it needs id-token: write)"
 		exit 1
 	}
-	oidc=$(curl -fsS --retry 3 -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
-		"$ACTIONS_ID_TOKEN_REQUEST_URL" | jq -r .value)
+	# The token is asked for quay.io's audience, which the robot's federation names: a token for quay.io cannot be
+	# replayed at another service that trusts GitHub's issuer.
+	oidc=$(curl -fsS --retry 3 -G -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+		--data-urlencode "audience=$QUAY_AUDIENCE" "$ACTIONS_ID_TOKEN_REQUEST_URL" | jq -r .value)
 	echo "::add-mask::$oidc"
 	# curl reads the robot's credentials from its config on stdin, never from an argument.
 	answer=$(mktemp)
