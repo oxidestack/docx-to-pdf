@@ -33,6 +33,8 @@ jobs:
     timeout-minutes: 10
     permissions:
       contents: read  # actions/checkout reads the repository
+    outputs:
+      artifact-id: ${{ steps.upload.outputs.artifact_id }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
@@ -42,7 +44,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: sh tools/ci/release.sh index site/dist/charts
-      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9  # v5.0.0
+      - id: upload
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9  # v5.0.0
         with:
           path: site/dist
 
@@ -53,10 +56,11 @@ jobs:
       (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
     needs: [build]
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 15
     permissions:
-      pages: write  # deploy-pages publishes the uploaded build to the repository's Pages site
-      id-token: write  # deploy-pages proves the run's identity to Pages with an OIDC token
+      contents: read  # actions/checkout reads the repository
+      pages: write  # tools/ci/deploy-pages.sh publishes the uploaded build to the repository's Pages site
+      id-token: write  # tools/ci/deploy-pages.sh proves the run's identity to Pages with an OIDC token
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -65,5 +69,14 @@ jobs:
       group: pages
       cancel-in-progress: false
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      # Not actions/deploy-pages: it names a deployment by the commit, and Pages keeps the first deployment of a
+      # commit, so a release tag's build on a commit `main` already deployed was never published
+      # (tools/ci/deploy-pages.sh says more).
       - id: deployment
-        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346  # v5.0.1
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARTIFACT: ${{ needs.build.outputs.artifact-id }}
+        run: sh tools/ci/deploy-pages.sh "$ARTIFACT"
