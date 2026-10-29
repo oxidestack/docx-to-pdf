@@ -10,8 +10,9 @@ on every machine. `--untagged` leaves out the tag: the history of a first releas
 import os
 import subprocess
 import sys
+import tomllib
 
-# The repository's CHANGELOG.md is the file the draft is prepended to, header and all.
+# The repository's root: cliff.toml's header is the fixture's CHANGELOG.md, the file the draft is prepended to.
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 SIGN_OFF = "Signed-off-by: Jane Doe <jane@example.org>"
@@ -92,10 +93,11 @@ def git(repo, *args, when=None):
 
 
 def build(repo, tagged=True):
-    """Builds the history in `repo`, an empty directory; its CHANGELOG.md is the repository's."""
+    """Builds the history in `repo`, an empty directory; its CHANGELOG.md is the repository's head alone (cliff.toml's
+    header), without the releases the repository's file has drafted since."""
     git(repo, "init", "-q", "-b", "main")
-    with open(os.path.join(ROOT, "CHANGELOG.md"), encoding="utf-8") as src:
-        changelog = src.read()
+    with open(os.path.join(ROOT, "cliff.toml"), "rb") as src:
+        changelog = tomllib.load(src)["changelog"]["header"]
     for n, (message, tag) in enumerate(COMMITS):
         when = f"2026-01-{n + 1:02d}T12:00:00+00:00"
         name = "CHANGELOG.md" if n == 0 else f"change-{n:02d}.txt"
