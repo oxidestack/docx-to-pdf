@@ -14,14 +14,24 @@ its section below.
 
 ## [1.1.0] - 2026-10-29
 
+A small release: a fix for a malformed PNG picture, and release files you can verify. Nothing to change in a
+deployment; the image and the chart upgrade in place from 1.0.0.
+
 ### Features
 
-- The chart is described for Artifact Hub: its category, links to the benchmarks and the issues, and a changelog of each chart version. (chart, 813e500)
-- Every file attached to a GitHub release now has a Sigstore bundle beside it (`<file>.sigstore.json`) and the release carries their SLSA build provenance (`docx-to-pdf-<version>.intoto.jsonl`): `cosign verify-blob` and `gh attestation verify` check them. (release, 91f640f)
+- Every file attached to a GitHub release (the SBOMs, the chart's archive, the compose examples and the Helm
+  repository's `index.yaml`) has a Sigstore bundle beside it, `<file>.sigstore.json`, and the release carries their
+  SLSA build provenance, `docx-to-pdf-<version>.intoto.jsonl`: `cosign verify-blob` and `gh attestation verify` check
+  them, as the installation guide's "Verifying a release" shows. (release, 91f640f)
+- The chart is described for Artifact Hub: its category, links to the documentation, the benchmarks and the issues,
+  and a changelog of each chart version written from the release's notes. (chart, 813e500)
 
 ### Bug fixes
 
-- An indexed PNG past the bitmap threshold whose palette is malformed (its length not a multiple of 3, or more entries than its bit depth indexes) is refused by the downscale and keeps the placeholder, instead of panicking inside the PNG decoder. (pictures, 0c34312)
+- A PNG picture too large to decode in memory whose palette is malformed (its length not a multiple of 3, or more
+  entries than its bit depth can index) is refused before it is decoded and replaced by a placeholder, as any picture
+  that cannot be scaled down safely is. The PDF is the same as before, when the PNG decoder panicked on it and the
+  service caught the panic. (pictures, 0c34312)
 
 [1.1.0]: https://github.com/oxidestack/docx-to-pdf/compare/v1.0.0...v1.1.0
 
