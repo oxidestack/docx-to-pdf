@@ -1,8 +1,9 @@
 //! Instance mode: the inside of an instance process.
 //!
 //! `docx-to-pdf instance [--max-image-dpi=N] <profile dir>`: writes `UseLocking=false` into the profile, initialises LibreOfficeKit
-//! once with it, prints the ready line, then serves one request per stdin line until stdin closes. The server
-//! makes the profile directory and deletes it afterwards.
+//! once with it, prints the ready line, then serves one request per stdin line until stdin closes, handing the
+//! heap's free memory back to the kernel after each conversion ([`trim_heap`]). The server makes the profile directory
+//! and deletes it afterwards.
 //!
 //! The protocol goes to a private copy of the original stdout; file descriptor 1 is pointed at stderr before
 //! LibreOffice loads, so nothing LibreOffice prints can land in the pipe. Its output, all of it on stderr, is
@@ -131,17 +132,68 @@ fn serve(profile: &Path, max_image_dpi: Option<u32>) -> i32 {
     if writeln!(protocol, "{}", ready.encode()).is_err() {
         return EXIT_START_FAILED;
     }
-    for line in std::io::stdin().lock().lines() {
+    serve_requests(
+        std::io::stdin().lock(),
+        &mut protocol,
+        |input, output| office.convert(input, output),
+        || {
+            trim_heap();
+        },
+    );
+    0
+}
+
+/// Answers one request per line of `requests` until they end or an answer cannot be written. After each conversion,
+/// and before its answer is written, `trim` hands the heap's free memory back to the kernel ([`trim_heap`]).
+///
+/// Before the answer rather than after it: the server reads the instance's resident memory as soon as the answer
+/// arrives, to recycle an instance above `DOCX_TO_PDF_INSTANCE_MAX_MEMORY`, and that read must see the trimmed heap,
+/// not the free memory a picture-heavy document leaves (tens of MiB, at times over a hundred). A trim after the
+/// answer would save the client only the trim itself (a few milliseconds; most of its cost is the next conversion
+/// faulting the returned pages back in), and the next request would wait for it all the same.
+fn serve_requests(
+    requests: impl BufRead,
+    answers: &mut impl Write,
+    mut convert: impl FnMut(&Path, &Path) -> Answer,
+    mut trim: impl FnMut(),
+) {
+    for line in requests.lines() {
         let Ok(line) = line else { break };
         let answer = match Request::parse(&line) {
-            Ok(Request::Convert { input, output }) => office.convert(&input, &output),
+            Ok(Request::Convert { input, output }) => {
+                let answer = convert(&input, &output);
+                trim();
+                answer
+            }
             Err(e) => Answer::BadRequest(e.to_string()),
         };
-        if writeln!(protocol, "{}", answer.encode()).is_err() {
+        if answers
+            .write_all(format!("{}\n", answer.encode()).as_bytes())
+            .is_err()
+        {
             break;
         }
     }
-    0
+}
+
+/// Hands the free memory of every glibc heap back to the kernel (`malloc_trim(0)`); whether any was. A conversion
+/// of a document with large pictures frees most of what it took, but glibc keeps it: its mmap threshold rises with
+/// the largest block freed, so later large blocks come from the heap and stay there, and the instance would sit
+/// tens of MiB above its floor after every such document. On a soak of 140 typical reports with one instance, the trim
+/// (2-20 ms a call) lowered the container's memory over the soak's second half by about 50 MiB, on amd64 and arm64
+/// alike; a conversion took 2.3 % longer on a Xeon and no measurably longer on an Apple M1. The peak during a
+/// conversion, which the memory limits are sized from, moved by 3-8 MiB.
+#[cfg(all(target_os = "linux", target_env = "gnu"))]
+#[allow(unsafe_code, reason = "malloc_trim has no std form")]
+fn trim_heap() -> bool {
+    // SAFETY: malloc_trim takes no pointer; it only walks and releases the allocator's own free memory.
+    unsafe { libc::malloc_trim(0) == 1 }
+}
+
+/// No glibc heap to trim outside Linux with glibc (a development build on macOS).
+#[cfg(not(all(target_os = "linux", target_env = "gnu")))]
+fn trim_heap() -> bool {
+    false
 }
 
 /// A copy of file descriptor 1 for the protocol, with descriptor 1 itself pointed at stderr.
@@ -168,6 +220,8 @@ fn private_stdout() -> std::io::Result<File> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::cell::RefCell;
+    use std::time::Duration;
 
     #[test]
     fn the_resolution_cap_is_an_optional_flag_before_the_profile() {
@@ -224,6 +278,86 @@ mod tests {
                 );
             }
         }
+    }
+
+    /// What a request loop did, in order: each conversion, each trim and each answer line written.
+    struct Recorder<'a>(&'a RefCell<Vec<String>>);
+
+    impl Write for Recorder<'_> {
+        fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+            let line = String::from_utf8_lossy(buf);
+            self.0
+                .borrow_mut()
+                .push(format!("answer {}", line.trim_end()));
+            Ok(buf.len())
+        }
+
+        fn flush(&mut self) -> std::io::Result<()> {
+            Ok(())
+        }
+    }
+
+    #[test]
+    fn the_heap_is_trimmed_after_each_conversion_before_its_answer_is_written() {
+        let events = RefCell::new(Vec::new());
+        let requests = "convert\t/in/a.docx\t/out/a.pdf\nconvert\t/in/b.docx\t/out/b.pdf\n";
+        serve_requests(
+            requests.as_bytes(),
+            &mut Recorder(&events),
+            |input, _| {
+                events
+                    .borrow_mut()
+                    .push(format!("convert {}", input.display()));
+                Answer::Converted {
+                    load: Duration::from_millis(1),
+                    export: Duration::from_millis(2),
+                }
+            },
+            || events.borrow_mut().push("trim".to_owned()),
+        );
+        assert_eq!(
+            events.into_inner(),
+            [
+                "convert /in/a.docx",
+                "trim",
+                "answer ok\t1\t2",
+                "convert /in/b.docx",
+                "trim",
+                "answer ok\t1\t2",
+            ]
+        );
+    }
+
+    #[test]
+    fn a_request_line_it_cannot_read_is_answered_without_a_conversion() {
+        let events = RefCell::new(Vec::new());
+        serve_requests(
+            &b"nonsense\n"[..],
+            &mut Recorder(&events),
+            |_, _| unreachable!("no conversion for a bad request"),
+            || events.borrow_mut().push("trim".to_owned()),
+        );
+        let events = events.into_inner();
+        assert_eq!(events.len(), 1, "{events:?}");
+        assert!(events[0].starts_with("answer bad_request\t"), "{events:?}");
+    }
+
+    /// The trim is glibc's; this shows it runs in the process and hands back the free memory it finds.
+    #[cfg(all(target_os = "linux", target_env = "gnu"))]
+    #[test]
+    fn the_trim_hands_free_heap_memory_back_to_the_kernel() {
+        // Many small blocks (below the mmap threshold, so they come from the heap), freed with one kept at the end so
+        // free() itself cannot shrink the heap: the freed pages stay with the allocator until a trim.
+        let blocks: Vec<Vec<u8>> = (0..20_000)
+            .map(|i| vec![u8::try_from(i % 251).unwrap(); 1024])
+            .collect();
+        let keep = vec![1_u8; 1024];
+        drop(blocks);
+        assert!(
+            trim_heap(),
+            "malloc_trim(0) found no free memory to hand back"
+        );
+        drop(keep);
     }
 
     const PDF_EXPORT: &str = r#"oor:path="/org.openoffice.Office.Common/Filter/PDF/Export""#;

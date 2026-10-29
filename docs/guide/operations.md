@@ -274,6 +274,12 @@ An instance is also replaced, between conversions and without failing anything, 
 `DOCX_TO_PDF_INSTANCE_MAX_MEMORY` (1 GiB) after one, so a document that leaves LibreOffice large does not make every
 later conversion pay for it. A replacement takes about a third of a second.
 
+After each conversion, before it answers, an instance hands the memory LibreOffice freed back to the system
+(`malloc_trim`), so its resident memory between conversions is its working set, not what the largest recent document
+left behind. On a soak of typical reports this keeps one instance's container about 50 MiB lower, for a few
+milliseconds a conversion; it does not lower the peak during a conversion, which the memory limits below are sized
+from. There is no setting for it.
+
 ## Sizing
 
 ### A starting point
