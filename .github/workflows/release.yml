@@ -120,7 +120,8 @@ jobs:
         env:
           IMAGE_VERSION: ${{ needs.gate.outputs.version }}
           IMAGE_SOURCE: ${{ github.server_url }}/${{ github.repository }}
-          IMAGE_SAVE: ${{ github.event_name == 'push' && format('{0}/docx-to-pdf-{1}.tar', github.workspace, matrix.arch) || '' }}
+          IMAGE_SAVE: >-
+            ${{ github.event_name == 'push' && format('{0}/docx-to-pdf-{1}.tar', github.workspace, matrix.arch) || '' }}
         run: sh tools/ci/image-job.sh host rust:1.98.0-trixie
       - if: ${{ github.event_name == 'push' }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
@@ -261,7 +262,8 @@ jobs:
           {
             echo "### quay.io"
             echo
-            echo "- \`$QUAY_REPOSITORY:$VERSION\` is \`$DIGEST\` (linux/amd64, linux/arm64): signed, provenance and SBOMs attested."
+            echo "- \`$QUAY_REPOSITORY:$VERSION\` is \`$DIGEST\` (linux/amd64, linux/arm64):" \
+              "signed, provenance and SBOMs attested."
             echo "- \`oci://$QUAY_CHART:$VERSION\` is \`$CHART_DIGEST\`: signed, provenance attested."
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -308,13 +310,16 @@ jobs:
           sh tools/ci/release.sh verify "$MIRROR/charts/docx-to-pdf:$VERSION" "$REF_NAME" ||
             fail "the signature of $MIRROR/charts/docx-to-pdf:$VERSION does not verify"
           # From the mirror's own referrers, not GitHub's copy: the attestations travelled with the image.
-          gh attestation verify "oci://$MIRROR/docx-to-pdf:$VERSION" --repo "$REPOSITORY" --bundle-from-oci > /dev/null ||
+          gh attestation verify "oci://$MIRROR/docx-to-pdf:$VERSION" --repo "$REPOSITORY" \
+            --bundle-from-oci > /dev/null ||
             fail "the provenance of $MIRROR/docx-to-pdf:$VERSION does not verify from the mirror"
           {
             echo "### ghcr.io (mirror)"
             echo
-            echo "- \`$MIRROR/docx-to-pdf:$VERSION\` is \`$digest\`, the same as quay.io, signature and attestations copied and verified."
-            echo "- \`oci://$MIRROR/charts/docx-to-pdf:$VERSION\` is \`$chart\`, the same as quay.io, signature verified."
+            echo "- \`$MIRROR/docx-to-pdf:$VERSION\` is \`$digest\`, the same as quay.io," \
+              "signature and attestations copied and verified."
+            echo "- \`oci://$MIRROR/charts/docx-to-pdf:$VERSION\` is \`$chart\`," \
+              "the same as quay.io, signature verified."
           } >> "$GITHUB_STEP_SUMMARY"
 
   github-release:
