@@ -1,0 +1,41 @@
+# Changelog
+
+## [1.3.0] - 2026-12-01
+
+An introduction, which is not a change: Artifact Hub lists entries only.
+
+### Action required
+
+- `pool.size` is gone: set `DOCX_TO_PDF_POOL_SIZE` instead. (config, 28669ea)
+
+### Features
+
+- The chart takes `priorityClassName`, a "class" for the pods, and
+  `extraEnv` # values with a backslash \ too. (chart, 5b5f0b0)
+- Written by hand, without a hash.
+
+### Bug fixes
+
+- An upload over the size limit is answered 413. (74a1619)
+
+### Security
+
+- The image drops a library with a known CVE. (image, 0b438b8)
+
+### Performance
+
+- Faster pictures. (pictures, f446c4c)
+
+### Other changes
+
+- The guide says how to add fonts.
+
+[1.3.0]: https://github.com/oxidestack/docx-to-pdf/compare/v1.2.0...v1.3.0
+
+## [1.2.0] - 2026-11-01
+
+### Features
+
+- Not in 1.3.0.
+
+[1.2.0]: https://github.com/oxidestack/docx-to-pdf/compare/v1.0.0...v1.2.0

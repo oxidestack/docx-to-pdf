@@ -19,7 +19,13 @@
 #       Then how to verify the image and the chart, naming quay.io (and the digest, when given).
 #   sh tools/ci/release.sh chart <version> <directory>
 #       Packages charts/docx-to-pdf as <directory>/docx-to-pdf-<version>.tgz, its version and appVersion <version>,
-#       with the Artifact Hub annotations that depend on it (the image, pre-release); prints the path.
+#       with the Artifact Hub annotations that depend on it (the image, pre-release, and the changes `changes`
+#       prints, none when it prints nothing); prints the path.
+#   sh tools/ci/release.sh changes <version>
+#       Artifact Hub's changelog of the chart version, the YAML list of `artifacthub.io/changes`, on stdout: one entry
+#       per item of CHANGELOG.md's `## [<version>]` section, its kind the section's (Features added, Bug fixes fixed,
+#       Security security, Deprecated deprecated, Removed removed, any other changed), without the introduction and
+#       the trailing `(scope, hash)`. Nothing for a version without a section.
 #   sh tools/ci/release.sh quay-login <robot>
 #       Exchanges this GitHub Actions job's OIDC token at quay.io for the robot's one-hour token (quay.io's robot
 #       federation: no stored secret) and logs in to quay.io. Both tokens are masked in the log, neither is an argument.
@@ -65,7 +71,7 @@ AUTH=${DOCKER_CONFIG:-$HOME/.docker}/config.json
 CHANGELOG=${CHANGELOG:-$ROOT/CHANGELOG.md}
 
 usage() {
-	sed -n '7,46p' "$0" >&2
+	sed -n '7,52p' "$0" >&2
 	exit 2
 }
 
@@ -127,6 +133,58 @@ section() {
 			while (s <= n && lines[s] ~ /^[ \t]*$/) s++
 			for (i = s; i <= n; i++) print lines[i]
 		}
+	'
+}
+
+# changes <version>: the `artifacthub.io/changes` list of <version>'s section (the usage above).
+changes() {
+	section "$1" | awk '
+		# A YAML double-quoted string: the backslash and the quote escaped.
+		function quote(s, out, i, c) {
+			out = ""
+			for (i = 1; i <= length(s); i++) {
+				c = substr(s, i, 1)
+				if (c == "\\" || c == "\"") out = out "\\"
+				out = out c
+			}
+			return "\"" out "\""
+		}
+		function flush() {
+			if (text == "") return
+			# git-cliff ends an entry with the commit'"'"'s scope and short hash, which mean nothing on Artifact Hub.
+			sub(/ \(([^(),]+, )?[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]+\)$/, "", text)
+			print "- kind: " kind
+			print "  description: " quote(text)
+			text = ""
+		}
+		/^### / {
+			flush()
+			h = substr($0, 5)
+			if (h == "Features") kind = "added"
+			else if (h == "Bug fixes") kind = "fixed"
+			else if (h == "Security") kind = "security"
+			else if (h == "Deprecated") kind = "deprecated"
+			else if (h == "Removed") kind = "removed"
+			else kind = "changed"
+			next
+		}
+		# An entry; before the first `###` is the introduction.
+		/^- / {
+			flush()
+			if (kind != "") text = substr($0, 3)
+			next
+		}
+		# A wrapped entry continues on an indented line.
+		/^[ \t]+[^ \t]/ {
+			if (text != "") {
+				line = $0
+				sub(/^[ \t]+/, "", line)
+				text = text " " line
+			}
+			next
+		}
+		{ flush() }
+		END { flush() }
 	'
 }
 
@@ -249,8 +307,14 @@ chart)
 	*-*) prerelease=true ;;
 	*) prerelease=false ;;
 	esac
-	# The annotations that name this version: Artifact Hub's image list (its security scan) and pre-release flag.
-	awk -v image="$IMAGE_REPOSITORY:$version" -v pre="$prerelease" '
+	if grep -q '^  artifacthub.io/changes:' "$CHART/Chart.yaml"; then
+		say "charts/docx-to-pdf/Chart.yaml has artifacthub.io/changes: the release writes it from CHANGELOG.md"
+		exit 1
+	fi
+	changes "$version" > "$work/changes"
+	# The annotations that name this version: Artifact Hub's image list (its security scan), pre-release flag and
+	# changelog of the version.
+	awk -v image="$IMAGE_REPOSITORY:$version" -v pre="$prerelease" -v changes="$work/changes" '
 		{ print }
 		/^annotations:/ {
 			print "  artifacthub.io/prerelease: \"" pre "\""
@@ -260,6 +324,12 @@ chart)
 			print "      platforms:"
 			print "        - linux/amd64"
 			print "        - linux/arm64"
+			first = 1
+			while ((getline line < changes) > 0) {
+				if (first) print "  artifacthub.io/changes: |"
+				first = 0
+				print "    " line
+			}
 		}
 	' "$CHART/Chart.yaml" > "$work/docx-to-pdf/Chart.yaml"
 	grep -q '^  artifacthub.io/images:' "$work/docx-to-pdf/Chart.yaml" || {
@@ -269,6 +339,10 @@ chart)
 	"$HELM" lint "$work/docx-to-pdf" > /dev/null
 	"$HELM" package "$work/docx-to-pdf" --version "$version" --app-version "$version" -d "$out" > /dev/null
 	echo "$out/docx-to-pdf-$version.tgz"
+	;;
+changes)
+	[ $# -eq 1 ] || usage
+	changes "$1"
 	;;
 quay-login)
 	[ $# -eq 1 ] || usage

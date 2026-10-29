@@ -25,8 +25,15 @@ that edited section is what the GitHub release says.
    `gh attestation verify` commands that check its signatures and attestations (`tools/ci/release.sh notes`). It
    never uses git-cliff's output and never GitHub's generated notes.
 
+6. **The chart's changelog on Artifact Hub is that section too**: `tools/ci/release.sh chart` writes the packaged
+   chart's `artifacthub.io/changes` from it, one entry per item, its kind the item's section: Features `added`, Bug
+   fixes `fixed`, Action required, Performance and Other changes `changed` (a hand-added Security, Deprecated or
+   Removed section gives its own kind). The introduction and the entries' `(scope, hash)` are left out.
+   `charts/docx-to-pdf/Chart.yaml` carries no `changes` of its own: the packaging refuses one.
+
 A pre-release tag (`vX.Y.Z-rc.N`) needs none of steps 1-3: no section in `CHANGELOG.md` and no version bump, its
-chart is packaged at the tag's version, its body says it is a pre-release, and `latest` stays on the last release.
+chart is packaged at the tag's version without `artifacthub.io/changes`, its body says it is a pre-release, and
+`latest` stays on the last release.
 
 To see what the next release would say without touching anything, run step 1 and `git checkout CHANGELOG.md`.
 
@@ -62,3 +69,8 @@ release and before any, runs `make release-notes REPO=<it>` and compares the res
 it fails instead. CI runs them in the `release-notes` job, on the runner that gives its jobs the host's Docker socket,
 with `RELEASE_NOTES_VOLUMES_FROM` naming the job's own container (`tools/release/release-notes.sh` says why). A change
 to `cliff.toml`'s template or to `CHANGELOG.md`'s head changes those files in the same commit.
+
+`tools/release/test_chart_changes.py`, in the same runs, checks the chart's `artifacthub.io/changes` (step 6):
+`release.sh changes` on `expected-tagged.txt` as drafted, on `changes-changelog.txt` (wrapped entries, quotes, a
+backslash, hand-written entries, a Security section, the next release's section) and on `CHANGELOG.md`'s first
+release, and that a pre-release without a section gets none. It needs only `sh` and `awk`.
