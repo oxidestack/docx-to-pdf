@@ -2,8 +2,8 @@
 # its own security, for tools and people who assess it (CLOMonitor reads it from this path).
 header:
   schema-version: 2.2.0
-  last-updated: "2026-10-28"
-  last-reviewed: "2026-10-28"
+  last-updated: "2026-10-29"
+  last-reviewed: "2026-10-29"
   url: https://raw.githubusercontent.com/oxidestack/docx-to-pdf/main/security-insights.yml
 
 project:
@@ -41,12 +41,15 @@ project:
     detailed-guide: https://oxidestack.github.io/docx-to-pdf/
     code-of-conduct: https://github.com/oxidestack/docx-to-pdf/blob/main/CODE_OF_CONDUCT.md
     support-policy: https://github.com/oxidestack/docx-to-pdf/blob/main/SECURITY.md#supported-versions
+    release-process: https://github.com/oxidestack/docx-to-pdf/blob/main/tools/release/README.md
+    signature-verification: https://oxidestack.github.io/docx-to-pdf/installation/#verifying-a-release
 
 repository:
   url: https://github.com/oxidestack/docx-to-pdf
-  # repostatus.org: in development, no release yet.
-  status: WIP
+  # repostatus.org: a usable release, under active development.
+  status: active
   accepts-change-request: true
+  # Renovate is configured (.github/renovate.json5) but has not opened a pull request yet.
   accepts-automated-change-request: false
   bug-fixes-only: false
   no-third-party-packages: false
@@ -73,6 +76,8 @@ repository:
         email: kustov.vitalik@gmail.com
         social: https://github.com/kustov-vitalik
         primary: true
+    # A release tag waits for ci.yml to pass on its commit (release.yml's gate), so every tool below that runs in CI
+    # also runs before each release; the release's own image job runs Trivy again on the image it publishes.
     tools:
       - name: cargo-deny
         type: SCA
@@ -82,7 +87,7 @@ repository:
         integration:
           adhoc: false
           ci: true
-          release: false
+          release: true
         results: {}
       - name: Trivy
         type: container
@@ -92,7 +97,7 @@ repository:
         integration:
           adhoc: false
           ci: true
-          release: false
+          release: true
         results: {}
       - name: Gitleaks
         type: secret
@@ -102,7 +107,7 @@ repository:
         integration:
           adhoc: false
           ci: true
-          release: false
+          release: true
         results: {}
       - name: cargo-fuzz
         type: fuzzing
@@ -112,5 +117,44 @@ repository:
         integration:
           adhoc: true
           ci: true
-          release: false
+          release: true
         results: {}
+  release:
+    # .github/workflows/release.yml: a version tag builds, tests, signs, attests and publishes everything.
+    automated-pipeline: true
+    distribution-points:
+      - uri: oci://quay.io/oxidestack/docx-to-pdf
+        comment: >-
+          The container image, linux/amd64 and linux/arm64 in one manifest list, tagged with each version and latest;
+          the primary registry, which a release stands on.
+      - uri: oci://quay.io/oxidestack/charts/docx-to-pdf
+        comment: The Helm chart, tagged with each version, on the primary registry.
+      - uri: https://github.com/oxidestack/docx-to-pdf/releases
+        comment: >-
+          Each version's notes, its SBOMs (SPDX and CycloneDX, one per architecture), the chart's .tgz, the compose
+          examples, and the index.yaml of the Helm repository at releases/latest/download.
+      - uri: oci://ghcr.io/oxidestack/docx-to-pdf
+        comment: >-
+          The mirror: the image here and the chart at ghcr.io/oxidestack/charts/docx-to-pdf, the same digests with the
+          same signatures and attestations; a release does not wait for it.
+    changelog: https://github.com/oxidestack/docx-to-pdf/blob/main/CHANGELOG.md
+    attestations:
+      - name: The image's SLSA build provenance
+        location: https://quay.io/repository/oxidestack/docx-to-pdf
+        predicate-uri: https://slsa.dev/provenance/v1
+        comment: >-
+          On the multi-architecture image, an OCI referrer on quay.io and kept by GitHub:
+          `gh attestation verify oci://quay.io/oxidestack/docx-to-pdf:<version> --repo oxidestack/docx-to-pdf`.
+      - name: The image's SPDX SBOM
+        location: https://quay.io/repository/oxidestack/docx-to-pdf
+        predicate-uri: https://github.com/in-toto/attestation/blob/main/spec/predicates/spdx.md
+        comment: >-
+          On each architecture's image: name that image by its digest and add `--predicate-type
+          https://spdx.dev/Document/v2.3` (the predicate type, an identifier rather than a page) to the same `gh
+          attestation verify`.
+      - name: The chart's SLSA build provenance
+        location: https://quay.io/repository/oxidestack/charts/docx-to-pdf
+        predicate-uri: https://slsa.dev/provenance/v1
+        comment: >-
+          On the chart: `gh attestation verify oci://quay.io/oxidestack/charts/docx-to-pdf:<version> --repo
+          oxidestack/docx-to-pdf`.
