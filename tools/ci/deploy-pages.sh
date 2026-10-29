@@ -23,10 +23,28 @@ version="$GITHUB_SHA.$GITHUB_RUN_ID.$GITHUB_RUN_ATTEMPT"
 oidc=$(curl -fsS --retry 3 -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL" |
 	jq -r .value)
 echo "::add-mask::$oidc"
+# What the deployment names: the artifact's name and run, so a refusal can be told from a wrong artifact.
+gh api "repos/$repo/actions/artifacts/$artifact" --jq '"deploy-pages: artifact \(.id) \(.name), run \(.workflow_run.id)"' ||
+	echo "deploy-pages: artifact $artifact not found"
 # The token travels in the request's body, read from stdin, never as an argument.
-deployment=$(jq -n --argjson artifact "$artifact" --arg version "$version" --arg token "$oidc" \
+answer=$(mktemp)
+# The token goes in a header read from a file of the job's own, not in curl's arguments.
+headers=$(mktemp)
+printf 'Authorization: Bearer %s\n' "$GH_TOKEN" > "$headers"
+status=$(jq -n --argjson artifact "$artifact" --arg version "$version" --arg token "$oidc" \
 	'{artifact_id: $artifact, pages_build_version: $version, oidc_token: $token}' |
-	gh api -X POST "repos/$repo/pages/deployments" --input -)
+	curl -sS -o "$answer" -w '%{http_code}' -X POST -H @"$headers" \
+		-H 'Accept: application/vnd.github+json' -H 'X-GitHub-Api-Version: 2022-11-28' \
+		--data-binary @- "${GITHUB_API_URL:-https://api.github.com}/repos/$repo/pages/deployments")
+deployment=$(cat "$answer")
+rm -f "$answer" "$headers"
+case $status in
+2??) ;;
+*)
+	echo "::error title=GitHub Pages::creating the deployment answered HTTP $status: $(printf '%s' "$deployment" | head -c 500)"
+	exit 1
+	;;
+esac
 id=$(printf '%s' "$deployment" | jq -r '.id // (.status_url // "" | split("/") | last) // empty')
 [ -n "$id" ] || id=$version
 echo "deploy-pages: deployment $id of build $version"
