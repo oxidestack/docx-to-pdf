@@ -14,12 +14,21 @@ its section below.
 
 ## [1.0.0] - 2026-10-29
 
-### Bug fixes
+The first release. docx-to-pdf is an HTTP service that turns office documents (DOCX, DOC, ODT and RTF) into PDF with
+LibreOffice. A pool of LibreOffice instances, each in a process of its own, converts one document at a time. Every
+conversion has a timeout and a memory limit, and a document that runs past either is stopped without touching the
+other conversions. Documents are checked before LibreOffice sees them: a format outside the allowlist, a deflate or
+picture bomb, or a document past the size limit is refused with an RFC 9457 problem answer, and no document can make
+LibreOffice reach the network. Health checks, Prometheus metrics and OpenTelemetry traces and logs come built in.
 
-- The classic Helm repository moves to https://github.com/oxidestack/docx-to-pdf/releases/latest/download. (release, 8be8ee2)
+It ships as a multi-architecture image (linux/amd64, linux/arm64) on `quay.io/oxidestack/docx-to-pdf`, mirrored to
+`ghcr.io/oxidestack/docx-to-pdf`, and as a Helm chart on `oci://quay.io/oxidestack/charts/docx-to-pdf`. Both are
+signed with cosign and carry SLSA provenance; the image carries an SPDX SBOM for each architecture.
 
 ### Performance
 
-- An instance now returns the memory a conversion freed to the system before it answers, so a pod converting picture-heavy documents sits about 50 MiB lower between conversions. Peak memory and the sizing formula are unchanged. (instance, 04ebdc7)
+- An instance returns the memory a conversion freed to the system before it answers, so a pod converting
+  picture-heavy documents sits about 50 MiB lower between conversions. Peak memory and the sizing formula are
+  unchanged. (instance, 04ebdc7)
 
 [1.0.0]: https://github.com/oxidestack/docx-to-pdf/releases/tag/v1.0.0
