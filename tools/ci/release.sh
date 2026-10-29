@@ -283,12 +283,21 @@ quay-login)
 		"$ACTIONS_ID_TOKEN_REQUEST_URL" | jq -r .value)
 	echo "::add-mask::$oidc"
 	# curl reads the robot's credentials from its config on stdin, never from an argument.
-	token=$(printf 'user = "%s:%s"\n' "$robot" "$oidc" |
-		curl -fsS --retry 3 -K - https://quay.io/oauth2/federation/robot/token | jq -r .token)
-	[ -n "$token" ] && [ "$token" != null ] || {
-		echo "::error title=quay.io::the robot token exchange returned no token"
+	answer=$(mktemp)
+	status=$(printf 'user = "%s:%s"\n' "$robot" "$oidc" |
+		curl -sS --retry 3 -o "$answer" -w '%{http_code}' -K - https://quay.io/oauth2/federation/robot/token) || status=000
+	token=$(jq -r '.token // empty' "$answer" 2> /dev/null || true)
+	[ "$status" = 200 ] && [ -n "$token" ] || {
+		# What quay.io said, and the claims it matched against the robot's federation: the issuer, the subject and the
+		# audience are not secret, the token's signature is never printed.
+		claims=$(printf '%s' "$oidc" | cut -d. -f2 | tr '_-' '/+' | awk '{ while (length($0) % 4) $0 = $0 "="; print }' |
+			base64 -d 2> /dev/null | jq -c '{iss, sub, aud}' 2> /dev/null || echo '?')
+		echo "::error title=quay.io::the robot token exchange answered HTTP $status: $(head -c 500 "$answer")"
+		echo "::error title=quay.io::the job's OIDC claims: $claims"
+		rm -f "$answer"
 		exit 1
 	}
+	rm -f "$answer"
 	echo "::add-mask::$token"
 	printf '%s' "$token" | sh "$0" login quay.io "$robot"
 	;;
