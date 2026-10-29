@@ -1,7 +1,7 @@
 # docx-to-pdf on this machine only: http://127.0.0.1:8080 (docs/guide/installation.md).
 services:
   docx-to-pdf:
-    image: quay.io/oxidestack/docx-to-pdf:0.1.0
+    image: quay.io/oxidestack/docx-to-pdf:1.0.0
     ports:
       - "127.0.0.1:8080:8080"
     environment:

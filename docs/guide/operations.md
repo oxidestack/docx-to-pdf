@@ -27,7 +27,7 @@ It is made to run locked down, and is tested that way:
 docker run --rm -p 8080:8080 \
   --user 10001:10001 --read-only --cap-drop ALL --security-opt no-new-privileges \
   --mount type=volume,dst=/tmp \
-  quay.io/oxidestack/docx-to-pdf:0.1.0
+  quay.io/oxidestack/docx-to-pdf:1.0.0
 ```
 
 ### `/tmp`: on disk or in memory
@@ -103,7 +103,7 @@ spec:
       terminationGracePeriodSeconds: 225
       containers:
         - name: docx-to-pdf
-          image: quay.io/oxidestack/docx-to-pdf:0.1.0
+          image: quay.io/oxidestack/docx-to-pdf:1.0.0
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
@@ -383,7 +383,7 @@ licence for there, read-only, for example Microsoft's own fonts where the substi
 docker run --rm -p 8080:8080 --user 10001:10001 --read-only --cap-drop ALL \
   --mount type=volume,dst=/tmp \
   -v "$PWD/fonts:/usr/share/fonts/custom:ro" \
-  quay.io/oxidestack/docx-to-pdf:0.1.0
+  quay.io/oxidestack/docx-to-pdf:1.0.0
 ```
 
 On Kubernetes, mount a Secret, a ConfigMap or any volume at the same path (the Helm chart's `fonts` value does it).
