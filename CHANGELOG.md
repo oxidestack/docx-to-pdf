@@ -12,6 +12,19 @@ required, Features, Bug fixes, Performance and Other changes. The versions follo
 The changes since the last release are the release notes of the commits after its tag; a release gathers them into
 its section below.
 
+## [1.1.0] - 2026-10-29
+
+### Features
+
+- The chart is described for Artifact Hub: its category, links to the benchmarks and the issues, and a changelog of each chart version. (chart, 813e500)
+- Every file attached to a GitHub release now has a Sigstore bundle beside it (`<file>.sigstore.json`) and the release carries their SLSA build provenance (`docx-to-pdf-<version>.intoto.jsonl`): `cosign verify-blob` and `gh attestation verify` check them. (release, 91f640f)
+
+### Bug fixes
+
+- An indexed PNG past the bitmap threshold whose palette is malformed (its length not a multiple of 3, or more entries than its bit depth indexes) is refused by the downscale and keeps the placeholder, instead of panicking inside the PNG decoder. (pictures, 0c34312)
+
+[1.1.0]: https://github.com/oxidestack/docx-to-pdf/compare/v1.0.0...v1.1.0
+
 ## [1.0.0] - 2026-10-29
 
 The first release. docx-to-pdf is an HTTP service that turns office documents (DOCX, DOC, ODT and RTF) into PDF with
