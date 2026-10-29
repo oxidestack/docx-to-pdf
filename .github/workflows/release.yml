@@ -13,11 +13,12 @@
 #   provenance and each architecture's SPDX SBOM (actions/attest, pushed to quay.io as OCI referrers and kept by
 #   GitHub, so `gh attestation verify` finds them); then the chart: packaged at the tag's version and appVersion,
 #   pushed to oci://quay.io/oxidestack/charts/docx-to-pdf, signed and attested the same way, with Artifact Hub's
-#   repository metadata beside it. Each signature is verified before the job goes on. It logs in with no stored
-#   secret: the robot account (the repository variable QUAY_ROBOT) trusts this job's OIDC token through quay.io's
-#   robot federation: GitHub's issuer, this job's subject, which the `release` environment fixes
-#   (`repo:oxidestack@<id>/docx-to-pdf@<id>:environment:release`, GitHub's immutable form), and the audience
-#   `quay`, which the token is asked for.
+#   repository metadata beside it (charts/docx-to-pdf/artifacthub-repo.yml at the tag `artifacthub.io`). Each
+#   signature is verified before the job goes on. It logs in with no stored secret: the robot account (the
+#   repository variable QUAY_ROBOT) trusts this job's OIDC token through quay.io's robot federation: GitHub's issuer,
+#   this job's subject, which the `release` environment fixes
+#   (`repo:oxidestack@<id>/docx-to-pdf@<id>:environment:release`, GitHub's immutable form), and the audience `quay`,
+#   which the token is asked for.
 # - `mirror`: copies the image and the chart to ghcr.io/oxidestack with every referrer (oras cp -r): the same
 #   digests, the same signatures and attestations, verified there. The mirror never blocks a release: three failed
 #   tries of any step are a warning annotation and a line in the run's summary, and the job stays green. The
@@ -228,10 +229,8 @@ jobs:
           digest=$(sh tools/ci/release.sh push-chart "$QUAY_CHART" "$chart")
           sh tools/ci/release.sh sign "$QUAY_CHART@$digest"
           sh tools/ci/release.sh verify "$QUAY_CHART:$VERSION" "$REF_NAME"
-          # Artifact Hub's listing is a convenience, not part of the release: a registry that refuses its media types
-          # is a warning.
-          sh tools/ci/release.sh artifacthub "$QUAY_CHART" ||
-            echo "::warning title=Artifact Hub::the repository metadata was not pushed to $QUAY_CHART:artifacthub.io"
+          # Artifact Hub's repository metadata, a quay.io push like the others: its failure fails the release.
+          sh tools/ci/release.sh artifacthub "$QUAY_CHART"
           echo "digest=$digest" >> "$GITHUB_OUTPUT"
       - name: attest the chart's provenance
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6  # v4.2.2

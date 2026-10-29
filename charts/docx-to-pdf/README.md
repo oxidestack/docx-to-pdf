@@ -1,6 +1,12 @@
 # docx-to-pdf
 
-An HTTP service that converts DOCX, DOC, ODT and RTF documents to PDF with LibreOffice.
+An HTTP service that converts Word documents — DOCX, DOCM, DOTX, DOC, ODT, OTT, flat ODT and RTF — to PDF with
+LibreOffice 26.8, through `POST /pdf`. Each conversion has a time limit and a memory limit, and a document is never
+allowed to open a network connection. A hostile document gets an error answer, and the next one converts.
+
+How it compares with Gotenberg and moalhaddar/docx-to-pdf on CPU, memory and hostile documents, with the command that
+repeats the measurement: [Benchmarks](https://oxidestack.github.io/docx-to-pdf/benchmarks/). The
+[documentation](https://oxidestack.github.io/docx-to-pdf/) covers the API, operations and migration.
 
 ![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.0.0](https://img.shields.io/badge/AppVersion-1.0.0-informational?style=flat-square)
 

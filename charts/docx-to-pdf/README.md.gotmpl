@@ -1,6 +1,12 @@
 {{ template "chart.header" . }}
 
-{{ template "chart.description" . }}
+An HTTP service that converts Word documents — DOCX, DOCM, DOTX, DOC, ODT, OTT, flat ODT and RTF — to PDF with
+LibreOffice 26.8, through `POST /pdf`. Each conversion has a time limit and a memory limit, and a document is never
+allowed to open a network connection. A hostile document gets an error answer, and the next one converts.
+
+How it compares with Gotenberg and moalhaddar/docx-to-pdf on CPU, memory and hostile documents, with the command that
+repeats the measurement: [Benchmarks](https://oxidestack.github.io/docx-to-pdf/benchmarks/). The
+[documentation](https://oxidestack.github.io/docx-to-pdf/) covers the API, operations and migration.
 
 {{ template "chart.versionBadge" . }}{{ template "chart.typeBadge" . }}{{ template "chart.appVersionBadge" . }}
 

@@ -20,10 +20,22 @@ maintainers:
 annotations:
   # The chart's licence, the code's: Artifact Hub shows it.
   artifacthub.io/license: Apache-2.0
+  # One of Artifact Hub's fixed categories; without it a model guesses one from the name and keywords.
+  artifacthub.io/category: data-processing
+  # `support` is the name Artifact Hub highlights as the place to report an issue.
   artifacthub.io/links: |
     - name: Documentation
       url: https://oxidestack.github.io/docx-to-pdf/
+    - name: Benchmarks
+      url: https://oxidestack.github.io/docx-to-pdf/benchmarks/
+    - name: support
+      url: https://github.com/oxidestack/docx-to-pdf/issues
     - name: Image
       url: https://quay.io/repository/oxidestack/docx-to-pdf
     - name: Verifying a release
       url: https://github.com/oxidestack/docx-to-pdf/blob/main/docs/guide/installation.md#verifying-a-release
+  # What this chart version changed, Artifact Hub's changelog of the chart: rewritten with every version bump, kinds
+  # added, changed, deprecated, removed, fixed or security.
+  artifacthub.io/changes: |
+    - kind: added
+      description: First release
