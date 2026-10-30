@@ -299,7 +299,7 @@ gh attestation verify oci://$ref --repo $repo
 cosign verify $CHART_REPOSITORY:$version --certificate-identity $identity --certificate-oidc-issuer https://token.actions.githubusercontent.com
 \`\`\`
 
-Each file below is signed the same way, its Sigstore bundle beside it (\`<file>.sigstore.json\`), and \`docx-to-pdf-$version.intoto.jsonl\` is the build provenance of them all. For the chart's archive, as for any other:
+Each file below is signed the same way, its Sigstore bundle beside it (\`<file>.sigstore.json\`), and \`docx-to-pdf-$version.intoto.jsonl\` is the build provenance of them all. The bundles are in Sigstore's current bundle format: \`cosign verify-blob\` needs cosign 3 or later (cosign 2 needs \`--new-bundle-format\` added, or it answers \`bundle does not contain cert for verification\`). For the chart's archive, as for any other:
 
 \`\`\`sh
 cosign verify-blob docx-to-pdf-$version.tgz --bundle docx-to-pdf-$version.tgz.sigstore.json --certificate-identity $identity --certificate-oidc-issuer https://token.actions.githubusercontent.com

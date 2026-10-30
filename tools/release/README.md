@@ -22,8 +22,8 @@ that edited section is what the GitHub release says.
 5. **The release body is that section**: the workflow takes the text of `## [X.Y.Z]` in `CHANGELOG.md` at the tag,
    from the line after the heading up to the next `## [`, without the compare link at its end, and appends an
    Install and a Verify block: the `docker run` and `helm install` of the version, and the `cosign verify` and
-   `gh attestation verify` commands that check its signatures and attestations (`tools/ci/release.sh notes`). It
-   never uses git-cliff's output and never GitHub's generated notes.
+   `gh attestation verify` commands that check its signatures and attestations, with the cosign the files' Sigstore
+   bundles need (`tools/ci/release.sh notes`). It never uses git-cliff's output and never GitHub's generated notes.
 
 6. **The chart's changelog on Artifact Hub is that section too**: `tools/ci/release.sh chart` writes the packaged
    chart's `artifacthub.io/changes` from it, one entry per item, its kind the item's section: Features `added`, Bug
@@ -80,3 +80,8 @@ to `cliff.toml`'s template or to `CHANGELOG.md`'s head changes those files in th
 `release.sh changes` on `expected-tagged.txt` as drafted, on `changes-changelog.txt` (wrapped entries, quotes, a
 backslash, hand-written entries, a Security section, the next release's section) and on `CHANGELOG.md`'s first
 release, and that a pre-release without a section gets none. It needs only `sh` and `awk`.
+
+`tools/release/test_release_body.py`, in the same runs, checks the release body (step 5): `release.sh notes` on
+`expected-tagged.txt` gives the section without its compare link, then the Install and Verify blocks with the version,
+the digest and the workflow's identity, and the Verify block says that the files' bundles need cosign 3 or later
+(cosign 2 only with `--new-bundle-format`). It needs only `sh` and `awk`.

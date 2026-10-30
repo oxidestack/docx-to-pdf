@@ -305,8 +305,10 @@ predicate type, `--predicate-type https://spdx.dev/Document/v2.3`. The SBOMs are
 as files, in SPDX and CycloneDX, one per architecture, with the chart and the compose examples.
 
 Every file attached to the GitHub release is signed the same way, its Sigstore bundle attached beside it as
-`<file>.sigstore.json`, and `docx-to-pdf-1.1.0.intoto.jsonl` is the build provenance of them all. Download the file
-and its bundle, then check either or both:
+`<file>.sigstore.json`, and `docx-to-pdf-1.1.0.intoto.jsonl` is the build provenance of them all. The bundles are in
+Sigstore's current bundle format, which `cosign verify-blob` reads by default from cosign 3 on. cosign 2 reads them
+only when `--new-bundle-format` is added to the command; without it, it answers `bundle does not contain cert for
+verification`. Download the file and its bundle, then check either or both:
 
 ```sh
 cosign verify-blob docx-to-pdf-1.1.0.tgz --bundle docx-to-pdf-1.1.0.tgz.sigstore.json \
