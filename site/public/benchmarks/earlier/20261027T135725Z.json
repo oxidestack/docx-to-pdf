@@ -1,0 +1,5617 @@
+{
+ "meta": {
+  "stamp": "20261027T135725Z",
+  "mode": "full",
+  "docker_arch": "x86_64",
+  "vm_cpus": 8,
+  "vm_memory": 33654333440,
+  "image": "docx-to-pdf:compare",
+  "subjects": [
+   "ours",
+   "gotenberg",
+   "moalhaddar"
+  ],
+  "blocks": 3,
+  "conversions": 52,
+  "torture_memory": "12g",
+  "torture_cpus": "2-3",
+  "soak": 3000,
+  "soak_moalhaddar": 1000,
+  "notes": [],
+  "image_id": "sha256:c239e36dc80970ba89dfadf61909deb95922c5c21afb90eae2c9ba86f4d94825",
+  "soak_alongside": true,
+  "elapsed_s": 11635
+ },
+ "speed": {
+  "cells": {
+   "ours": [
+    {
+     "run": "/data/compare/20261027T135725Z/speed/ours/r1",
+     "name": "ours",
+     "subject": "ours",
+     "docs": "report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb",
+     "pool": 1,
+     "cpus": 1,
+     "memory": "16g",
+     "tmp": "disk",
+     "tracing": "off",
+     "mode": "closed",
+     "rate": null,
+     "vus": null,
+     "io_bps": null,
+     "window_s": 57.0263729095459,
+     "requests": 52,
+     "completions": 52,
+     "errors": 0,
+     "error_rate": 0.0,
+     "statuses": {
+      "200": 52
+     },
+     "dropped_iterations": 0,
+     "throughput": 0.9488073996485701,
+     "offered": null,
+     "latency": {
+      "p50": 3.1052559415,
+      "p90": 3.3919435469000003,
+      "p95": 3.4259423028,
+      "p99": 3.4979926499,
+      "max": 3.535274828,
+      "mean": 3.0526790275961537,
+      "n": 52
+     },
+     "latency_by_doc": {
+      "report-img30-10mb": {
+       "p50": 3.171390576,
+       "p90": 3.2652324958,
+       "p95": 3.2895526812,
+       "p99": 3.30441955704,
+       "max": 3.3081362760000004,
+       "mean": 2.9909818946153846,
+       "n": 13
+      },
+      "report-img45-12mb": {
+       "p50": 3.0698560109999997,
+       "p90": 3.1737423748,
+       "p95": 3.2061006495999997,
+       "p99": 3.22900379152,
+       "max": 3.234729577,
+       "mean": 3.0678648862307694,
+       "n": 13
+      },
+      "report-img60-15mb": {
+       "p50": 2.805446595,
+       "p90": 2.9583621358000003,
+       "p95": 2.9810958208000002,
+       "p99": 3.0001418497600003,
+       "max": 3.0049033570000003,
+       "mean": 2.7808257426923073,
+       "n": 13
+      },
+      "report-img60-20mb": {
+       "p50": 3.388923641,
+       "p90": 3.4560340962,
+       "p95": 3.491413442,
+       "p99": 3.5265025508,
+       "max": 3.535274828,
+       "mean": 3.3710435868461537,
+       "n": 13
+      }
+     },
+     "cpu_seconds_per_conversion": 1.0129444807692307,
+     "cpu_utilisation": 0.9575367105502217,
+     "throttled_s": 0.0,
+     "memory_peak": 434860032,
+     "memory_current_max": 423206912,
+     "anon_max": 340512768,
+     "shmem_max": 0,
+     "oom_kill": 0,
+     "oom_killed": false,
+     "read_bytes_per_conversion": 0.0,
+     "write_bytes_per_conversion": 28073196.307692308,
+     "write_rate": 26537600.586642995,
+     "pressure_cpu_some": 0.24974795463393715,
+     "pressure_memory_some": 0.0,
+     "pressure_memory_full": 0.0,
+     "pressure_io_some": 0.01013405539198279,
+     "vm_cpu_some_avg10_max": 24.24,
+     "instance_hwm_max": 648798208,
+     "instance_anon_max": 329461760,
+     "instances_seen": 1,
+     "instance_starts": {
+      "initial": 0.0
+     },
+     "server_peak_mean": 586680863.3469387,
+     "server_conversion_mean_s": 1.0266530612244895,
+     "server_wait_mean_s": 1.9815016726041665,
+     "backlog_slope_per_s": -0.028729753934363483,
+     "vm_warning": null,
+     "host_load_start": 0.8017578125,
+     "host_load_end": 1.1904296875,
+     "throughput_raw": 0.9118588005321918,
+     "precision_by_conversions": {},
+     "plateaus": [],
+     "ready_seconds": 0.5
+    },
+    {
+     "run": "/data/compare/20261027T135725Z/speed/ours/r2",
+     "name": "ours",
+     "subject": "ours",
+     "docs": "report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb",
+     "pool": 1,
+     "cpus": 1,
+     "memory": "16g",
+     "tmp": "disk",
+     "tracing": "off",
+     "mode": "closed",
+     "rate": null,
+     "vus": null,
+     "io_bps": null,
+     "window_s": 54.67824077606201,
+     "requests": 52,
+     "completions": 52,
+     "errors": 0,
+     "error_rate": 0.0,
+     "statuses": {
+      "200": 52
+     },
+     "dropped_iterations": 0,
+     "throughput": 0.9797242893459364,
+     "offered": null,
+     "latency": {
+      "p50": 2.9602726759999998,
+      "p90": 3.2493170956,
+      "p95": 3.3301229573,
+      "p99": 3.47155205424,
+      "max": 3.51484839,
+      "mean": 2.9214470376153843,
+      "n": 52
+     },
+     "latency_by_doc": {
+      "report-img30-10mb": {
+       "p50": 3.044909057,
+       "p90": 3.1927206518,
+       "p95": 3.2357334596,
+       "p99": 3.25215294392,
+       "max": 3.256257815,
+       "mean": 2.953625500615384,
+       "n": 13
+      },
+      "report-img45-12mb": {
+       "p50": 2.882315055,
+       "p90": 3.0600859674,
+       "p95": 3.1131471497999996,
+       "p99": 3.16003216836,
+       "max": 3.171753423,
+       "mean": 2.7804640088461534,
+       "n": 13
+      },
+      "report-img60-15mb": {
+       "p50": 2.6661331180000003,
+       "p90": 2.863177694,
+       "p95": 2.8920089948,
+       "p99": 2.92263744776,
+       "max": 2.930294561,
+       "mean": 2.7171375360769234,
+       "n": 13
+      },
+      "report-img60-20mb": {
+       "p50": 3.2357885740000003,
+       "p90": 3.4109364366,
+       "p95": 3.4639115244,
+       "p99": 3.50466101688,
+       "max": 3.51484839,
+       "mean": 3.2345611049230767,
+       "n": 13
+      }
+     },
+     "cpu_seconds_per_conversion": 0.9764958461538461,
+     "cpu_utilisation": 0.9578320266702326,
+     "throttled_s": 0.0,
+     "memory_peak": 433242112,
+     "memory_current_max": 412299264,
+     "anon_max": 340881408,
+     "shmem_max": 0,
+     "oom_kill": 0,
+     "oom_killed": false,
+     "read_bytes_per_conversion": 0.0,
+     "write_bytes_per_conversion": 28442151.384615384,
+     "write_rate": 27898534.96140283,
+     "pressure_cpu_some": 0.24152522590270223,
+     "pressure_memory_some": 0.0,
+     "pressure_memory_full": 0.0,
+     "pressure_io_some": 0.011652635087095888,
+     "vm_cpu_some_avg10_max": 23.82,
+     "instance_hwm_max": 649322496,
+     "instance_anon_max": 330002432,
+     "instances_seen": 1,
+     "instance_starts": {
+      "initial": 0.0
+     },
+     "server_peak_mean": 584203185.2307693,
+     "server_conversion_mean_s": 0.9800384615384617,
+     "server_wait_mean_s": 1.837979475634615,
+     "backlog_slope_per_s": -0.02544683827806094,
+     "vm_warning": null,
+     "host_load_start": 0.8486328125,
+     "host_load_end": 1.42626953125,
+     "throughput_raw": 0.9510181611908308,
+     "precision_by_conversions": {},
+     "plateaus": [],
+     "ready_seconds": 0.5
+    },
+    {
+     "run": "/data/compare/20261027T135725Z/speed/ours/r3",
+     "name": "ours",
+     "subject": "ours",
+     "docs": "report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb",
+     "pool": 1,
+     "cpus": 1,
+     "memory": "16g",
+     "tmp": "disk",
+     "tracing": "off",
+     "mode": "closed",
+     "rate": null,
+     "vus": null,
+     "io_bps": null,
+     "window_s": 53.21020722389221,
+     "requests": 52,
+     "completions": 52,
+     "errors": 0,
+     "error_rate": 0.0,
+     "statuses": {
+      "200": 52
+     },
+     "dropped_iterations": 0,
+     "throughput": 1.007253623927329,
+     "offered": null,
+     "latency": {
+      "p50": 2.9317511229999997,
+      "p90": 3.1690466221999998,
+      "p95": 3.192871159,
+      "p99": 3.26186956528,
+      "max": 3.2672629029999998,
+      "mean": 2.8476606647307694,
+      "n": 52
+     },
+     "latency_by_doc": {
+      "report-img30-10mb": {
+       "p50": 2.971046816,
+       "p90": 3.0096302384,
+       "p95": 3.0202611216,
+       "p99": 3.03251032032,
+       "max": 3.03557262,
+       "mean": 2.8117353282307693,
+       "n": 13
+      },
+      "report-img45-12mb": {
+       "p50": 2.856787712,
+       "p90": 2.9294958413999996,
+       "p95": 2.9444670721999997,
+       "p99": 2.94932209604,
+       "max": 2.950535852,
+       "mean": 2.7766873339230767,
+       "n": 13
+      },
+      "report-img60-15mb": {
+       "p50": 2.623593887,
+       "p90": 2.711398631,
+       "p95": 2.7356728606,
+       "p99": 2.76331199212,
+       "max": 2.770221775,
+       "mean": 2.6423345740769233,
+       "n": 13
+      },
+      "report-img60-20mb": {
+       "p50": 3.154425152,
+       "p90": 3.2455892006,
+       "p95": 3.2609177998,
+       "p99": 3.2659938823599997,
+       "max": 3.2672629029999998,
+       "mean": 3.1598854226923083,
+       "n": 13
+      }
+     },
+     "cpu_seconds_per_conversion": 0.9462581538461539,
+     "cpu_utilisation": 0.9646132064165677,
+     "throttled_s": 0.0,
+     "memory_peak": 432402432,
+     "memory_current_max": 379781120,
+     "anon_max": 311934976,
+     "shmem_max": 0,
+     "oom_kill": 0,
+     "oom_killed": false,
+     "read_bytes_per_conversion": 0.0,
+     "write_bytes_per_conversion": 28072566.153846152,
+     "write_rate": 28617104.053409703,
+     "pressure_cpu_some": 0.23607803505963257,
+     "pressure_memory_some": 0.0,
+     "pressure_memory_full": 0.0,
+     "pressure_io_some": 0.01172761945311143,
+     "vm_cpu_some_avg10_max": 22.14,
+     "instance_hwm_max": 646266880,
+     "instance_anon_max": 302047232,
+     "instances_seen": 1,
+     "instance_starts": {
+      "initial": 0.0
+     },
+     "server_peak_mean": 586873383.3846154,
+     "server_conversion_mean_s": 0.9528269230769228,
+     "server_wait_mean_s": 1.7914789116538459,
+     "backlog_slope_per_s": -0.033808117285456914,
+     "vm_warning": "VM cpu pressure some avg10 above 5.0 % before the run",
+     "host_load_start": 1.1005859375,
+     "host_load_end": 1.46435546875,
+     "throughput_raw": 0.9772561076712212,
+     "precision_by_conversions": {},
+     "plateaus": [],
+     "ready_seconds": 0.5
+    }
+   ],
+   "gotenberg": [
+    {
+     "run": "/data/compare/20261027T135725Z/speed/gotenberg/r1",
+     "name": "gotenberg",
+     "subject": "gotenberg",
+     "docs": "report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb",
+     "pool": 1,
+     "cpus": 1,
+     "memory": "16g",
+     "tmp": "disk",
+     "tracing": "off",
+     "mode": "closed",
+     "rate": null,
+     "vus": null,
+     "io_bps": null,
+     "window_s": 69.80213356018066,
+     "requests": 52,
+     "completions": 52,
+     "errors": 0,
+     "error_rate": 0.0,
+     "statuses": {
+      "200": 52
+     },
+     "dropped_iterations": 0,
+     "throughput": 0.7352465704204177,
+     "offered": null,
+     "latency": {
+      "p50": 3.7455858475,
+      "p90": 4.6114278258,
+      "p95": 4.69672980005,
+      "p99": 4.75918648954,
+      "max": 4.786910266,
+      "mean": 3.7819272248653846,
+      "n": 52
+     },
+     "latency_by_doc": {
+      "report-img30-10mb": {
+       "p50": 3.821199751,
+       "p90": 4.609332547599999,
+       "p95": 4.6611338304,
+       "p99": 4.71826670208,
+       "max": 4.73254992,
+       "mean": 3.910212319,
+       "n": 13
+      },
+      "report-img45-12mb": {
+       "p50": 3.505669883,
+       "p90": 4.225863563600001,
+       "p95": 4.4698388008,
+       "p99": 4.602031473759999,
+       "max": 4.635079642,
+       "mean": 3.654418349153846,
+       "n": 13
+      },
+      "report-img60-15mb": {
+       "p50": 3.380400404,
+       "p90": 4.3768362222,
+       "p95": 4.4101143376,
+       "p99": 4.41932737792,
+       "max": 4.421630638,
+       "mean": 3.5206719828461535,
+       "n": 13
+      },
+      "report-img60-20mb": {
+       "p50": 3.9386588099999997,
+       "p90": 4.7086882462,
+       "p95": 4.7440770928000005,
+       "p99": 4.778343631359999,
+       "max": 4.786910266,
+       "mean": 4.042406248461538,
+       "n": 13
+      }
+     },
+     "cpu_seconds_per_conversion": 1.2618679807692308,
+     "cpu_utilisation": 0.9647722384260399,
+     "throttled_s": 0.0,
+     "memory_peak": 769040384,
+     "memory_current_max": 750690304,
+     "anon_max": 679624704,
+     "shmem_max": 0,
+     "oom_kill": 0,
+     "oom_killed": false,
+     "read_bytes_per_conversion": 0.0,
+     "write_bytes_per_conversion": 28327542.153846152,
+     "write_rate": 21658070.94670403,
+     "pressure_cpu_some": 0.29989563612581815,
+     "pressure_memory_some": 0.0,
+     "pressure_memory_full": 0.0,
+     "pressure_io_some": 0.009473368431233656,
+     "vm_cpu_some_avg10_max": 29.5,
+     "instance_hwm_max": 665255936,
+     "instance_anon_max": 505716736,
+     "instances_seen": 8,
+     "instance_starts": {},
+     "server_peak_mean": null,
+     "server_conversion_mean_s": null,
+     "server_wait_mean_s": null,
+     "backlog_slope_per_s": null,
+     "vm_warning": null,
+     "host_load_start": 0.8515625,
+     "host_load_end": 1.3544921875,
+     "throughput_raw": 0.7449629022466432,
+     "precision_by_conversions": {},
+     "plateaus": [],
+     "ready_seconds": 1.01
+    },
+    {
+     "run": "/data/compare/20261027T135725Z/speed/gotenberg/r2",
+     "name": "gotenberg",
+     "subject": "gotenberg",
+     "docs": "report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb",
+     "pool": 1,
+     "cpus": 1,
+     "memory": "16g",
+     "tmp": "disk",
+     "tracing": "off",
+     "mode": "closed",
+     "rate": null,
+     "vus": null,
+     "io_bps": null,
+     "window_s": 66.08429336547852,
+     "requests": 52,
+     "completions": 52,
+     "errors": 0,
+     "error_rate": 0.0,
+     "statuses": {
+      "200": 52
+     },
+     "dropped_iterations": 0,
+     "throughput": 0.7861691750460568,
+     "offered": null,
+     "latency": {
+      "p50": 3.4906750415,
+      "p90": 4.3519781834,
+      "p95": 4.44681387085,
+      "p99": 4.51563122373,
+      "max": 4.515663903,
+      "mean": 3.5596195189807696,
+      "n": 52
+     },
+     "latency_by_doc": {
+      "report-img30-10mb": {
+       "p50": 3.4853854799999997,
+       "p90": 4.3615431062,
+       "p95": 4.3934266792,
+       "p99": 4.42475707984,
+       "max": 4.43258968,
+       "mean": 3.5956776169999993,
+       "n": 13
+      },
+      "report-img45-12mb": {
+       "p50": 3.350079867,
+       "p90": 4.0055841216,
+       "p95": 4.234844928199999,
+       "p99": 4.32975461684,
+       "max": 4.353482039,
+       "mean": 3.373655149615384,
+       "n": 13
+      },
+      "report-img60-15mb": {
+       "p50": 3.142236454,
+       "p90": 4.0370836784,
+       "p95": 4.0579013236,
+       "p99": 4.063080028720001,
+       "max": 4.0643747050000005,
+       "mean": 3.4522568030769234,
+       "n": 13
+      },
+      "report-img60-20mb": {
+       "p50": 3.634378959,
+       "p90": 4.5053196594,
+       "p95": 4.5156254568,
+       "p99": 4.51565621376,
+       "max": 4.515663903,
+       "mean": 3.81688850623077,
+       "n": 13
+      }
+     },
+     "cpu_seconds_per_conversion": 1.176450076923077,
+     "cpu_utilisation": 0.9708878231527082,
+     "throttled_s": 0.0,
+     "memory_peak": 752742400,
+     "memory_current_max": 744878080,
+     "anon_max": 663404544,
+     "shmem_max": 0,
+     "oom_kill": 0,
+     "oom_killed": false,
+     "read_bytes_per_conversion": 0.0,
+     "write_bytes_per_conversion": 27956302.769230768,
+     "write_rate": 23071471.090388834,
+     "pressure_cpu_some": 0.2923003582645494,
+     "pressure_memory_some": 0.0,
+     "pressure_memory_full": 0.0,
+     "pressure_io_some": 0.01143467386059655,
+     "vm_cpu_some_avg10_max": 29.5,
+     "instance_hwm_max": 655368192,
+     "instance_anon_max": 476639232,
+     "instances_seen": 6,
+     "instance_starts": {},
+     "server_peak_mean": null,
+     "server_conversion_mean_s": null,
+     "server_wait_mean_s": null,
+     "backlog_slope_per_s": null,
+     "vm_warning": null,
+     "host_load_start": 1.18115234375,
+     "host_load_end": 1.52783203125,
+     "throughput_raw": 0.7868738145146612,
+     "precision_by_conversions": {},
+     "plateaus": [],
+     "ready_seconds": 1.0
+    },
+    {
+     "run": "/data/compare/20261027T135725Z/speed/gotenberg/r3",
+     "name": "gotenberg",
+     "subject": "gotenberg",
+     "docs": "report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb",
+     "pool": 1,
+     "cpus": 1,
+     "memory": "16g",
+     "tmp": "disk",
+     "tracing": "off",
+     "mode": "closed",
+     "rate": null,
+     "vus": null,
+     "io_bps": null,
+     "window_s": 66.34172344207764,
+     "requests": 52,
+     "completions": 52,
+     "errors": 0,
+     "error_rate": 0.0,
+     "statuses": {
+      "200": 52
+     },
+     "dropped_iterations": 0,
+     "throughput": 0.7838781043143817,
+     "offered": null,
+     "latency": {
+      "p50": 3.499388521,
+      "p90": 4.4073385518,
+      "p95": 4.4818164009,
+      "p99": 4.62892921494,
+      "max": 4.630259298,
+      "mean": 3.5911445360576923,
+      "n": 52
+     },
+     "latency_by_doc": {
+      "report-img30-10mb": {
+       "p50": 3.489053675,
+       "p90": 4.429847483600001,
+       "p95": 4.4481579546,
+       "p99": 4.464415030920001,
+       "max": 4.4684793,
+       "mean": 3.7088704040000002,
+       "n": 13
+      },
+      "report-img45-12mb": {
+       "p50": 3.371288855,
+       "p90": 4.076485181800002,
+       "p95": 4.295797207200001,
+       "p99": 4.360137707040001,
+       "max": 4.376222832000001,
+       "mean": 3.323648515,
+       "n": 13
+      },
+      "report-img60-15mb": {
+       "p50": 3.222891557,
+       "p90": 4.060830828,
+       "p95": 4.072390681400001,
+       "p99": 4.08540463628,
+       "max": 4.088658125,
+       "mean": 3.4933645965384623,
+       "n": 13
+      },
+      "report-img60-20mb": {
+       "p50": 3.633106514,
+       "p90": 4.601744494,
+       "p95": 4.6286944943999995,
+       "p99": 4.62994633728,
+       "max": 4.630259298,
+       "mean": 3.8386946286923074,
+       "n": 13
+      }
+     },
+     "cpu_seconds_per_conversion": 1.1855723846153845,
+     "cpu_utilisation": 0.9631011990521676,
+     "throttled_s": 0.0,
+     "memory_peak": 761835520,
+     "memory_current_max": 734310400,
+     "anon_max": 666349568,
+     "shmem_max": 0,
+     "oom_kill": 0,
+     "oom_killed": false,
+     "read_bytes_per_conversion": 0.0,
+     "write_bytes_per_conversion": 27834998.153846152,
+     "write_rate": 22611795.319676705,
+     "pressure_cpu_some": 0.2906275458013065,
+     "pressure_memory_some": 0.0,
+     "pressure_memory_full": 0.0,
+     "pressure_io_some": 0.009640187810242175,
+     "vm_cpu_some_avg10_max": 28.59,
+     "instance_hwm_max": 663023616,
+     "instance_anon_max": 478527488,
+     "instances_seen": 6,
+     "instance_starts": {},
+     "server_peak_mean": null,
+     "server_conversion_mean_s": null,
+     "server_wait_mean_s": null,
+     "backlog_slope_per_s": null,
+     "vm_warning": null,
+     "host_load_start": 1.13916015625,
+     "host_load_end": 1.18994140625,
+     "throughput_raw": 0.7838204572029356,
+     "precision_by_conversions": {},
+     "plateaus": [],
+     "ready_seconds": 1.0
+    }
+   ],
+   "g-norestart": [
+    {
+     "run": "/data/compare/20261027T135725Z/speed/g-norestart/r1",
+     "name": "g-norestart",
+     "subject": "gotenberg",
+     "docs": "report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb",
+     "pool": 1,
+     "cpus": 1,
+     "memory": "16g",
+     "tmp": "disk",
+     "tracing": "off",
+     "mode": "closed",
+     "rate": null,
+     "vus": null,
+     "io_bps": null,
+     "window_s": 66.83447241783142,
+     "requests": 52,
+     "completions": 52,
+     "errors": 0,
+     "error_rate": 0.0,
+     "statuses": {
+      "200": 52
+     },
+     "dropped_iterations": 0,
+     "throughput": 0.8067565567060351,
+     "offered": null,
+     "latency": {
+      "p50": 3.6333793545,
+      "p90": 3.9509605435,
+      "p95": 4.0059084087,
+      "p99": 4.06712426167,
+      "max": 4.116956914,
+      "mean": 3.5929202689038453,
+      "n": 52
+     },
+     "latency_by_doc": {
+      "report-img30-10mb": {
+       "p50": 3.677852868,
+       "p90": 3.914669876,
+       "p95": 3.9755116594,
+       "p99": 4.01049899668,
+       "max": 4.019245831,
+       "mean": 3.7006358851538463,
+       "n": 13
+      },
+      "report-img45-12mb": {
+       "p50": 3.516567304,
+       "p90": 3.854061309,
+       "p95": 3.8795716906,
+       "p99": 3.88457983732,
+       "max": 3.885831874,
+       "mean": 3.4332918249230766,
+       "n": 13
+      },
+      "report-img60-15mb": {
+       "p50": 3.373685685,
+       "p90": 3.5005016722,
+       "p95": 3.5773307186,
+       "p99": 3.6556633797199996,
+       "max": 3.675246545,
+       "mean": 3.3549626223076925,
+       "n": 13
+      },
+      "report-img60-20mb": {
+       "p50": 3.8443516840000003,
+       "p90": 4.0063729308000005,
+       "p95": 4.0507657888,
+       "p99": 4.10371868896,
+       "max": 4.116956914,
+       "mean": 3.882790743230769,
+       "n": 13
+      }
+     },
+     "cpu_seconds_per_conversion": 1.1934830576923077,
+     "cpu_utilisation": 0.9694727136475711,
+     "throttled_s": 0.0,
+     "memory_peak": 819474432,
+     "memory_current_max": 717303808,
+     "anon_max": 647077888,
+     "shmem_max": 0,
+     "oom_kill": 0,
+     "oom_killed": false,
+     "read_bytes_per_conversion": 0.0,
+     "write_bytes_per_conversion": 27822473.846153848,
+     "write_rate": 22600345.30542393,
+     "pressure_cpu_some": 0.28372603923680845,
+     "pressure_memory_some": 0.0,
+     "pressure_memory_full": 0.0,
+     "pressure_io_some": 0.008885496171998568,
+     "vm_cpu_some_avg10_max": 28.17,
+     "instance_hwm_max": 725561344,
+     "instance_anon_max": 483733504,
+     "instances_seen": 1,
+     "instance_starts": {},
+     "server_peak_mean": null,
+     "server_conversion_mean_s": null,
+     "server_wait_mean_s": null,
+     "backlog_slope_per_s": null,
+     "vm_warning": null,
+     "host_load_start": 2.18115234375,
+     "host_load_end": 1.55615234375,
+     "throughput_raw": 0.7780416021676624,
+     "precision_by_conversions": {},
+     "plateaus": [],
+     "ready_seconds": 1.04
+    },
+    {
+     "run": "/data/compare/20261027T135725Z/speed/g-norestart/r2",
+     "name": "g-norestart",
+     "subject": "gotenberg",
+     "docs": "report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb",
+     "pool": 1,
+     "cpus": 1,
+     "memory": "16g",
+     "tmp": "disk",
+     "tracing": "off",
+     "mode": "closed",
+     "rate": null,
+     "vus": null,
+     "io_bps": null,
+     "window_s": 60.66800332069397,
+     "requests": 52,
+     "completions": 52,
+     "errors": 0,
+     "error_rate": 0.0,
+     "statuses": {
+      "200": 52
+     },
+     "dropped_iterations": 0,
+     "throughput": 0.8870977095394111,
+     "offered": null,
+     "latency": {
+      "p50": 3.313533623,
+      "p90": 3.5634079371,
+      "p95": 3.6258769967999998,
+      "p99": 3.68317171607,
+      "max": 3.688503941,
+      "mean": 3.2569906343461543,
+      "n": 52
+     },
+     "latency_by_doc": {
+      "report-img30-10mb": {
+       "p50": 3.35600782,
+       "p90": 3.4716292098,
+       "p95": 3.4813733584,
+       "p99": 3.4860910172799997,
+       "max": 3.487270432,
+       "mean": 3.1908843070769235,
+       "n": 13
+      },
+      "report-img45-12mb": {
+       "p50": 3.286796546,
+       "p90": 3.403360695,
+       "p95": 3.431236571,
+       "p99": 3.4453374061999997,
+       "max": 3.448862615,
+       "mean": 3.201765129384616,
+       "n": 13
+      },
+      "report-img60-15mb": {
+       "p50": 3.068930762,
+       "p90": 3.2178558594,
+       "p95": 3.2702271516,
+       "p99": 3.31616815992,
+       "max": 3.327653412,
+       "mean": 3.079434822384616,
+       "n": 13
+      },
+      "report-img60-20mb": {
+       "p50": 3.5510991869999997,
+       "p90": 3.6741351001999996,
+       "p95": 3.6822307351999997,
+       "p99": 3.68724929984,
+       "max": 3.688503941,
+       "mean": 3.555878278538461,
+       "n": 13
+      }
+     },
+     "cpu_seconds_per_conversion": 1.0830480192307692,
+     "cpu_utilisation": 0.9708318658850537,
+     "throttled_s": 0.0,
+     "memory_peak": 769081344,
+     "memory_current_max": 720171008,
+     "anon_max": 651362304,
+     "shmem_max": 0,
+     "oom_kill": 0,
+     "oom_killed": false,
+     "read_bytes_per_conversion": 0.0,
+     "write_bytes_per_conversion": 27940706.46153846,
+     "write_rate": 25045729.927531656,
+     "pressure_cpu_some": 0.2727161210053959,
+     "pressure_memory_some": 0.0,
+     "pressure_memory_full": 0.0,
+     "pressure_io_some": 0.011242798502987355,
+     "vm_cpu_some_avg10_max": 25.97,
+     "instance_hwm_max": 669618176,
+     "instance_anon_max": 472248320,
+     "instances_seen": 1,
+     "instance_starts": {},
+     "server_peak_mean": null,
+     "server_conversion_mean_s": null,
+     "server_wait_mean_s": null,
+     "backlog_slope_per_s": null,
+     "vm_warning": null,
+     "host_load_start": 1.173828125,
+     "host_load_end": 1.4150390625,
+     "throughput_raw": 0.8571239723372057,
+     "precision_by_conversions": {},
+     "plateaus": [],
+     "ready_seconds": 1.01
+    },
+    {
+     "run": "/data/compare/20261027T135725Z/speed/g-norestart/r3",
+     "name": "g-norestart",
+     "subject": "gotenberg",
+     "docs": "report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb",
+     "pool": 1,
+     "cpus": 1,
+     "memory": "16g",
+     "tmp": "disk",
+     "tracing": "off",
+     "mode": "closed",
+     "rate": null,
+     "vus": null,
+     "io_bps": null,
+     "window_s": 60.34260892868042,
+     "requests": 52,
+     "completions": 52,
+     "errors": 0,
+     "error_rate": 0.0,
+     "statuses": {
+      "200": 52
+     },
+     "dropped_iterations": 0,
+     "throughput": 0.861775468562023,
+     "offered": null,
+     "latency": {
+      "p50": 3.2917363770000003,
+      "p90": 3.5849881827999996,
+      "p95": 3.630028697,
+      "p99": 3.7257396366899997,
+      "max": 3.7290922139999996,
+      "mean": 3.2564217965000006,
+      "n": 52
+     },
+     "latency_by_doc": {
+      "report-img30-10mb": {
+       "p50": 3.393199721,
+       "p90": 3.4858473862,
+       "p95": 3.5139995026,
+       "p99": 3.54429132292,
+       "max": 3.551864278,
+       "mean": 3.3573738396923076,
+       "n": 13
+      },
+      "report-img45-12mb": {
+       "p50": 3.262331428,
+       "p90": 3.3877072322,
+       "p95": 3.4505405006,
+       "p99": 3.51482101052,
+       "max": 3.530891138,
+       "mean": 3.2149426676923074,
+       "n": 13
+      },
+      "report-img60-15mb": {
+       "p50": 3.02369902,
+       "p90": 3.1472629128,
+       "p95": 3.164444844,
+       "p99": 3.1792856784000003,
+       "max": 3.182995887,
+       "mean": 2.9075073824615387,
+       "n": 13
+      },
+      "report-img60-20mb": {
+       "p50": 3.5790471999999998,
+       "p90": 3.7069944092,
+       "p95": 3.7251480054,
+       "p99": 3.7283033722799996,
+       "max": 3.7290922139999996,
+       "mean": 3.545863296153846,
+       "n": 13
+      }
+     },
+     "cpu_seconds_per_conversion": 1.0795298076923077,
+     "cpu_utilisation": 0.9676488472414205,
+     "throttled_s": 0.0,
+     "memory_peak": 825659392,
+     "memory_current_max": 729530368,
+     "anon_max": 676847616,
+     "shmem_max": 0,
+     "oom_kill": 0,
+     "oom_killed": false,
+     "read_bytes_per_conversion": 0.0,
+     "write_bytes_per_conversion": 27742838.153846152,
+     "write_rate": 24867609.182706423,
+     "pressure_cpu_some": 0.27784560785186707,
+     "pressure_memory_some": 0.0,
+     "pressure_memory_full": 0.0,
+     "pressure_io_some": 0.009769615250315585,
+     "vm_cpu_some_avg10_max": 26.94,
+     "instance_hwm_max": 732807168,
+     "instance_anon_max": 490078208,
+     "instances_seen": 1,
+     "instance_starts": {},
+     "server_peak_mean": null,
+     "server_conversion_mean_s": null,
+     "server_wait_mean_s": null,
+     "backlog_slope_per_s": null,
+     "vm_warning": "VM cpu pressure some avg10 above 5.0 % before the run",
+     "host_load_start": 0.92529296875,
+     "host_load_end": 1.2158203125,
+     "throughput_raw": 0.86174596894641,
+     "precision_by_conversions": {},
+     "plateaus": [],
+     "ready_seconds": 1.0
+    }
+   ],
+   "oracle": [
+    {
+     "run": "/data/compare/20261027T135725Z/speed/oracle/r1",
+     "name": "oracle",
+     "subject": "oracle",
+     "docs": "report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb",
+     "pool": 1,
+     "cpus": 1,
+     "memory": "16g",
+     "tmp": "disk",
+     "tracing": "off",
+     "mode": "closed",
+     "rate": null,
+     "vus": null,
+     "io_bps": null,
+     "window_s": 180.3511459827423,
+     "requests": 52,
+     "completions": 52,
+     "errors": 0,
+     "error_rate": 0.0,
+     "statuses": {
+      "200": 52
+     },
+     "dropped_iterations": 0,
+     "throughput": 0.30129365242992406,
+     "offered": null,
+     "latency": {
+      "p50": 9.895896636,
+      "p90": 10.810329055399999,
+      "p95": 10.8804075022,
+      "p99": 11.488215256780002,
+      "max": 11.734810927,
+      "mean": 9.671880062000001,
+      "n": 52
+     },
+     "latency_by_doc": {
+      "report-img30-10mb": {
+       "p50": 9.978840039000001,
+       "p90": 10.375854901,
+       "p95": 10.5078673676,
+       "p99": 10.656817391119999,
+       "max": 10.694054897,
+       "mean": 9.542345768615384,
+       "n": 13
+      },
+      "report-img45-12mb": {
+       "p50": 9.678948161000001,
+       "p90": 10.090721094200001,
+       "p95": 10.120390336,
+       "p99": 10.146202276,
+       "max": 10.152655261,
+       "mean": 9.494943812846154,
+       "n": 13
+      },
+      "report-img60-15mb": {
+       "p50": 8.679486625,
+       "p90": 9.266710772800002,
+       "p95": 9.5051089898,
+       "p99": 9.70550465156,
+       "max": 9.755603567,
+       "mean": 8.819441697153847,
+       "n": 13
+      },
+      "report-img60-20mb": {
+       "p50": 10.809183035,
+       "p90": 11.178061191400001,
+       "p95": 11.4446983738,
+       "p99": 11.676788416359999,
+       "max": 11.734810927,
+       "mean": 10.830788969384615,
+       "n": 13
+      }
+     },
+     "cpu_seconds_per_conversion": 3.239903461538461,
+     "cpu_utilisation": 0.9908647622890956,
+     "throttled_s": 0.0,
+     "memory_peak": 1082478592,
+     "memory_current_max": 1073303552,
+     "anon_max": 936701952,
+     "shmem_max": 0,
+     "oom_kill": 0,
+     "oom_killed": false,
+     "read_bytes_per_conversion": 0.0,
+     "write_bytes_per_conversion": 29808246.153846152,
+     "write_rate": 9116302.72016208,
+     "pressure_cpu_some": 0.1326695292176074,
+     "pressure_memory_some": 0.0,
+     "pressure_memory_full": 0.0,
+     "pressure_io_some": 0.0019173639771010444,
+     "vm_cpu_some_avg10_max": 17.4,
+     "instance_hwm_max": 674119680,
+     "instance_anon_max": 544419840,
+     "instances_seen": 2,
+     "instance_starts": {},
+     "server_peak_mean": null,
+     "server_conversion_mean_s": null,
+     "server_wait_mean_s": null,
+     "backlog_slope_per_s": null,
+     "vm_warning": null,
+     "host_load_start": 1.2109375,
+     "host_load_end": 1.03125,
+     "throughput_raw": 0.2883264185356263,
+     "precision_by_conversions": {},
+     "plateaus": [],
+     "ready_seconds": 15.32
+    },
+    {
+     "run": "/data/compare/20261027T135725Z/speed/oracle/r2",
+     "name": "oracle",
+     "subject": "oracle",
+     "docs": "report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb",
+     "pool": 1,
+     "cpus": 1,
+     "memory": "16g",
+     "tmp": "disk",
+     "tracing": "off",
+     "mode": "closed",
+     "rate": null,
+     "vus": null,
+     "io_bps": null,
+     "window_s": 172.25070810317993,
+     "requests": 52,
+     "completions": 52,
+     "errors": 0,
+     "error_rate": 0.0,
+     "statuses": {
+      "200": 52
+     },
+     "dropped_iterations": 0,
+     "throughput": 0.311897490365037,
+     "offered": null,
+     "latency": {
+      "p50": 9.487013206499999,
+      "p90": 10.369829401,
+      "p95": 10.4071695681,
+      "p99": 10.487979181270001,
+      "max": 10.523323978,
+      "mean": 9.233746581076923,
+      "n": 52
+     },
+     "latency_by_doc": {
+      "report-img30-10mb": {
+       "p50": 9.679061694,
+       "p90": 9.7643665064,
+       "p95": 9.7827664776,
+       "p99": 9.79078575792,
+       "max": 9.792790578,
+       "mean": 9.100633190615385,
+       "n": 13
+      },
+      "report-img45-12mb": {
+       "p50": 9.356399541999998,
+       "p90": 9.4787840782,
+       "p95": 9.4989392852,
+       "p99": 9.51806837384,
+       "max": 9.522850646,
+       "mean": 9.05966139476923,
+       "n": 13
+      },
+      "report-img60-15mb": {
+       "p50": 8.410502382,
+       "p90": 8.581950311000002,
+       "p95": 8.7034806326,
+       "p99": 8.83822186652,
+       "max": 8.871907175,
+       "mean": 8.436229187307692,
+       "n": 13
+      },
+      "report-img60-20mb": {
+       "p50": 10.356166312,
+       "p90": 10.450385332,
+       "p95": 10.4817418642,
+       "p99": 10.51500755524,
+       "max": 10.523323978,
+       "mean": 10.338462551615383,
+       "n": 13
+      }
+     },
+     "cpu_seconds_per_conversion": 3.1117049615384618,
+     "cpu_utilisation": 0.9925578529844176,
+     "throttled_s": 0.0,
+     "memory_peak": 1007099904,
+     "memory_current_max": 960503808,
+     "anon_max": 846643200,
+     "shmem_max": 0,
+     "oom_kill": 0,
+     "oom_killed": false,
+     "read_bytes_per_conversion": 0.0,
+     "write_bytes_per_conversion": 30002963.692307692,
+     "write_rate": 9570212.341366371,
+     "pressure_cpu_some": 0.1337684214215693,
+     "pressure_memory_some": 0.0,
+     "pressure_memory_full": 0.0,
+     "pressure_io_some": 0.0008923832205348807,
+     "vm_cpu_some_avg10_max": 17.67,
+     "instance_hwm_max": 614543360,
+     "instance_anon_max": 450904064,
+     "instances_seen": 2,
+     "instance_starts": {},
+     "server_peak_mean": null,
+     "server_conversion_mean_s": null,
+     "server_wait_mean_s": null,
+     "backlog_slope_per_s": null,
+     "vm_warning": "VM cpu pressure some avg10 above 5.0 % before the run",
+     "host_load_start": 0.96923828125,
+     "host_load_end": 1.0908203125,
+     "throughput_raw": 0.301885551430369,
+     "precision_by_conversions": {},
+     "plateaus": [],
+     "ready_seconds": 12.47
+    },
+    {
+     "run": "/data/compare/20261027T135725Z/speed/oracle/r3",
+     "name": "oracle",
+     "subject": "oracle",
+     "docs": "report-img30-10mb,report-img45-12mb,report-img60-15mb,report-img60-20mb",
+     "pool": 1,
+     "cpus": 1,
+     "memory": "16g",
+     "tmp": "disk",
+     "tracing": "off",
+     "mode": "closed",
+     "rate": null,
+     "vus": null,
+     "io_bps": null,
+     "window_s": 174.27309489250183,
+     "requests": 52,
+     "completions": 52,
+     "errors": 0,
+     "error_rate": 0.0,
+     "statuses": {
+      "200": 52
+     },
+     "dropped_iterations": 0,
+     "throughput": 0.3081225816829298,
+     "offered": null,
+     "latency": {
+      "p50": 9.612219722999999,
+      "p90": 10.5189272202,
+      "p95": 10.56411265885,
+      "p99": 10.75592452974,
+      "max": 10.828790589,
+      "mean": 9.35105991726923,
+      "n": 52
+     },
+     "latency_by_doc": {
+      "report-img30-10mb": {
+       "p50": 9.721907215,
+       "p90": 9.930670791199999,
+       "p95": 9.952876434,
+       "p99": 9.975411929999998,
+       "max": 9.981045803999999,
+       "mean": 9.204873357384617,
+       "n": 13
+      },
+      "report-img45-12mb": {
+       "p50": 9.402651124,
+       "p90": 9.6885593452,
+       "p95": 9.719496058999999,
+       "p99": 9.748823050999999,
+       "max": 9.756154798999999,
+       "mean": 9.185307934999999,
+       "n": 13
+      },
+      "report-img60-15mb": {
+       "p50": 8.469613797,
+       "p90": 8.749437148,
+       "p95": 8.8318831814,
+       "p99": 8.92048976828,
+       "max": 8.942641415,
+       "mean": 8.522727587076922,
+       "n": 13
+      },
+      "report-img60-20mb": {
+       "p50": 10.448497479,
+       "p90": 10.665803923799999,
+       "p95": 10.7430658134,
+       "p99": 10.81164563388,
+       "max": 10.828790589,
+       "mean": 10.491330789615386,
+       "n": 13
+      }
+     },
+     "cpu_seconds_per_conversion": 3.1400445192307695,
+     "cpu_utilisation": 0.9894380066996702,
+     "throttled_s": 0.0,
+     "memory_peak": 987717632,
+     "memory_current_max": 987717632,
+     "anon_max": 851668992,
+     "shmem_max": 0,
+     "oom_kill": 0,
+     "oom_killed": false,
+     "read_bytes_per_conversion": 0.0,
+     "write_bytes_per_conversion": 29808246.153846152,
+     "write_rate": 9392673.090157263,
+     "pressure_cpu_some": 0.13287125372680114,
+     "pressure_memory_some": 0.0,
+     "pressure_memory_full": 0.0,
+     "pressure_io_some": 0.0024302029610302205,
+     "vm_cpu_some_avg10_max": 16.85,
+     "instance_hwm_max": 582103040,
+     "instance_anon_max": 460836864,
+     "instances_seen": 2,
+     "instance_starts": {},
+     "server_peak_mean": null,
+     "server_conversion_mean_s": null,
+     "server_wait_mean_s": null,
+     "backlog_slope_per_s": null,
+     "vm_warning": null,
+     "host_load_start": 0.86962890625,
+     "host_load_end": 1.1416015625,
+     "throughput_raw": 0.29838226050943517,
+     "precision_by_conversions": {},
+     "plateaus": [],
+     "ready_seconds": 12.94
+    }
+   ]
+  },
+  "failures": {},
+  "seed": 1793109624,
+  "against_record": [
+   [
+    "get-blazing-fast/docx-to-pdf",
+    "conversions/s",
+    "0.979",
+    "0.998 [0.957-1.043]",
+    "inside"
+   ],
+   [
+    "Gotenberg, as shipped",
+    "conversions/s",
+    "0.768",
+    "0.762 [0.743-0.792]",
+    "inside"
+   ],
+   [
+    "Gotenberg, no restarts",
+    "conversions/s",
+    "0.852",
+    "0.854 [0.826-0.872]",
+    "inside"
+   ],
+   [
+    "moalhaddar/docx-to-pdf",
+    "conversions/s",
+    "0.307",
+    "0.299 [0.295-0.302]",
+    "+3 % from the mean"
+   ],
+   [
+    "get-blazing-fast/docx-to-pdf",
+    "CPU-s a conversion",
+    "0.979",
+    "0.933 [0.903-0.949]",
+    "+5 % from the mean"
+   ],
+   [
+    "Gotenberg, as shipped",
+    "CPU-s a conversion",
+    "1.208",
+    "1.191 [1.153-1.212]",
+    "inside"
+   ],
+   [
+    "Gotenberg, no restarts",
+    "CPU-s a conversion",
+    "1.119",
+    "1.114 [1.094-1.137]",
+    "inside"
+   ],
+   [
+    "moalhaddar/docx-to-pdf",
+    "CPU-s a conversion",
+    "3.164",
+    "3.205 [3.203-3.207]",
+    "-1 % from the mean"
+   ],
+   [
+    "get-blazing-fast/docx-to-pdf",
+    "p50 s",
+    "3.00",
+    "2.85 [2.78-2.90]",
+    "+5 % from the mean"
+   ],
+   [
+    "Gotenberg, as shipped",
+    "p50 s",
+    "3.58",
+    "3.58 [3.47-3.69]",
+    "inside"
+   ],
+   [
+    "Gotenberg, no restarts",
+    "p50 s",
+    "3.41",
+    "3.47 [3.42-3.54]",
+    "-2 % from the mean"
+   ],
+   [
+    "moalhaddar/docx-to-pdf",
+    "p50 s",
+    "9.67",
+    "9.79 [9.74-9.88]",
+    "-1 % from the mean"
+   ],
+   [
+    "get-blazing-fast/docx-to-pdf",
+    "p95 s",
+    "3.32",
+    "3.34 [3.13-3.57]",
+    "inside"
+   ],
+   [
+    "Gotenberg, as shipped",
+    "p95 s",
+    "4.54",
+    "4.61 [4.40-4.79]",
+    "inside"
+   ],
+   [
+    "Gotenberg, no restarts",
+    "p95 s",
+    "3.75",
+    "3.90 [3.69-4.07]",
+    "inside"
+   ],
+   [
+    "moalhaddar/docx-to-pdf",
+    "p95 s",
+    "10.62",
+    "10.88 [10.83-10.96]",
+    "-2 % from the mean"
+   ],
+   [
+    "get-blazing-fast/docx-to-pdf",
+    "p99 s",
+    "3.41",
+    "3.62 [3.46-3.80]",
+    "-6 % from the mean"
+   ],
+   [
+    "Gotenberg, as shipped",
+    "p99 s",
+    "4.63",
+    "4.93 [4.58-5.39]",
+    "inside"
+   ],
+   [
+    "Gotenberg, no restarts",
+    "p99 s",
+    "3.83",
+    "4.00 [3.72-4.13]",
+    "inside"
+   ],
+   [
+    "moalhaddar/docx-to-pdf",
+    "p99 s",
+    "10.91",
+    "11.18 [11.08-11.26]",
+    "-2 % from the mean"
+   ],
+   [
+    "get-blazing-fast/docx-to-pdf",
+    "`memory.peak` MiB",
+    "413",
+    "411 [411-411]",
+    "+1 % from the mean"
+   ],
+   [
+    "Gotenberg, as shipped",
+    "`memory.peak` MiB",
+    "726",
+    "725 [723-729]",
+    "inside"
+   ],
+   [
+    "Gotenberg, no restarts",
+    "`memory.peak` MiB",
+    "767",
+    "771 [709-835]",
+    "inside"
+   ],
+   [
+    "moalhaddar/docx-to-pdf",
+    "`memory.peak` MiB",
+    "978",
+    "1 063 [942-1 159]",
+    "inside"
+   ],
+   [
+    "get-blazing-fast/docx-to-pdf",
+    "anonymous peak MiB",
+    "316",
+    "323 [322-324]",
+    "-2 % from the mean"
+   ],
+   [
+    "Gotenberg, as shipped",
+    "anonymous peak MiB",
+    "639",
+    "629 [614-639]",
+    "inside"
+   ],
+   [
+    "Gotenberg, no restarts",
+    "anonymous peak MiB",
+    "628",
+    "655 [562-721]",
+    "inside"
+   ],
+   [
+    "moalhaddar/docx-to-pdf",
+    "anonymous peak MiB",
+    "838",
+    "925 [807-1 028]",
+    "inside"
+   ]
+  ]
+ },
+ "torture": [
+  {
+   "case": "pages-500000p",
+   "subject": "ours",
+   "kind": "hostile",
+   "result": {
+    "subject": "ours",
+    "image": "docx-to-pdf:compare",
+    "env": {
+     "OTEL_SDK_DISABLED": "true"
+    },
+    "doc": "pages-500000p.docx",
+    "doc_bytes": 7759411,
+    "alongside": "report-img30-10mb.docx",
+    "cap": 300,
+    "ready_s": 0.76,
+    "warmup": {
+     "doc": "report-img30-10mb.docx",
+     "t0": 1793111164.61,
+     "status": 200,
+     "headers": {
+      "content-type": "application/pdf"
+     },
+     "seconds": 0.93,
+     "bytes": 9598926
+    },
+    "memory_after_warmup": [
+     108347392,
+     101822464
+    ],
+    "hostile": {
+     "doc": "pages-500000p.docx",
+     "t0": 1793111165.55,
+     "status": 413,
+     "seconds": 0.02,
+     "bytes": 134,
+     "body": "{\"type\":\"about:blank\",\"title\":\"Payload Too Large\",\"status\":413,\"detail\":\"the document's compressed parts inflate past the size limit\"}"
+    },
+    "state_at_answer": {
+     "status": "running",
+     "running": true,
+     "oom_killed": false,
+     "exit_code": 0,
+     "ready": true,
+     "memory_peak": 241053696,
+     "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+     }
+    },
+    "first_200_after_answer_s": 0.71,
+    "alongside_requests": [
+     {
+      "doc": "report-img30-10mb.docx",
+      "t0": 1793111167.55,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.7,
+      "bytes": 9598926,
+      "during": false
+     }
+    ],
+    "state_after": {
+     "status": "running",
+     "running": true,
+     "oom_killed": false,
+     "exit_code": 0,
+     "ready": true,
+     "memory_peak": 246865920,
+     "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+     }
+    },
+    "processes_after": {
+     "tini": 1444,
+     "docx-to-pdf": 11184,
+     "instance": 397552
+    },
+    "samples_max_current": 236118016,
+    "samples_max_anon": 210145280
+   },
+   "cell": "413 in 0.02 s; peak 235 MiB; alongside none; first 200 after the answer: 0.71 s"
+  },
+  {
+   "case": "pages-500000p",
+   "subject": "gotenberg",
+   "kind": "hostile",
+   "result": {
+    "subject": "gotenberg",
+    "image": "gotenberg/gotenberg:8.38.1@sha256:aa552cc115db488e0f0bcb07446aac13071ad51505b642c84bb894500907b42b",
+    "env": {},
+    "doc": "pages-500000p.docx",
+    "doc_bytes": 7759411,
+    "alongside": "report-img30-10mb.docx",
+    "cap": 300,
+    "ready_s": 0.32,
+    "warmup": {
+     "doc": "report-img30-10mb.docx",
+     "t0": 1793111169.0,
+     "status": 200,
+     "headers": {
+      "Content-Type": "application/pdf"
+     },
+     "seconds": 1.57,
+     "bytes": 9518153
+    },
+    "memory_after_warmup": [
+     146128896,
+     141971456
+    ],
+    "hostile": {
+     "doc": "pages-500000p.docx",
+     "t0": 1793111170.58,
+     "status": 503,
+     "seconds": 30.03,
+     "bytes": 92,
+     "body": "The request exceeded the time limit. Increase it with --api-timeout, or reduce the workload."
+    },
+    "state_at_answer": {
+     "status": "running",
+     "running": true,
+     "oom_killed": false,
+     "exit_code": 0,
+     "ready": true,
+     "memory_peak": 4150657024,
+     "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+     }
+    },
+    "first_200_after_answer_s": 218.33,
+    "alongside_requests": [
+     {
+      "doc": "report-img30-10mb.docx",
+      "t0": 1793111172.62,
+      "status": 503,
+      "seconds": 30.0,
+      "bytes": 92,
+      "body": "The request exceeded the time limit. Increase it with --api-timeout, or reduce the workload.",
+      "during": true
+     },
+     {
+      "doc": "report-img30-10mb.docx",
+      "t0": 1793111203.63,
+      "status": 503,
+      "seconds": 30.0,
+      "bytes": 92,
+      "body": "The request exceeded the time limit. Increase it with --api-timeout, or reduce the workload.",
+      "during": false
+     },
+     {
+      "doc": "report-img30-10mb.docx",
+      "t0": 1793111234.65,
+      "status": 503,
+      "seconds": 30.01,
+      "bytes": 92,
+      "body": "The request exceeded the time limit. Increase it with --api-timeout, or reduce the workload.",
+      "during": false
+     },
+     {
+      "doc": "report-img30-10mb.docx",
+      "t0": 1793111265.66,
+      "status": 503,
+      "seconds": 30.0,
+      "bytes": 92,
+      "body": "The request exceeded the time limit. Increase it with --api-timeout, or reduce the workload.",
+      "during": false
+     },
+     {
+      "doc": "report-img30-10mb.docx",
+      "t0": 1793111296.67,
+      "status": 503,
+      "seconds": 30.0,
+      "bytes": 92,
+      "body": "The request exceeded the time limit. Increase it with --api-timeout, or reduce the workload.",
+      "during": false
+     },
+     {
+      "doc": "report-img30-10mb.docx",
+      "t0": 1793111327.69,
+      "status": 503,
+      "seconds": 30.01,
+      "bytes": 92,
+      "body": "The request exceeded the time limit. Increase it with --api-timeout, or reduce the workload.",
+      "during": false
+     },
+     {
+      "doc": "report-img30-10mb.docx",
+      "t0": 1793111358.7,
+      "status": 503,
+      "seconds": 30.0,
+      "bytes": 92,
+      "body": "The request exceeded the time limit. Increase it with --api-timeout, or reduce the workload.",
+      "during": false
+     },
+     {
+      "doc": "report-img30-10mb.docx",
+      "t0": 1793111389.72,
+      "status": 503,
+      "seconds": 30.0,
+      "bytes": 92,
+      "body": "The request exceeded the time limit. Increase it with --api-timeout, or reduce the workload.",
+      "during": false
+     },
+     {
+      "doc": "report-img30-10mb.docx",
+      "t0": 1793111420.73,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 1.23,
+      "bytes": 9518153,
+      "during": false
+     }
+    ],
+    "state_after": {
+     "status": "running",
+     "running": true,
+     "oom_killed": false,
+     "exit_code": 0,
+     "ready": true,
+     "memory_peak": 7978909696,
+     "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+     }
+    },
+    "processes_after": {
+     "tini": 1444,
+     "gotenberg": 82932,
+     "soffice.bin": 238588
+    },
+    "samples_max_current": 7978909696,
+    "samples_max_anon": 7220080640
+   },
+   "cell": "503 in 30.03 s; peak 7 609 MiB; alongside 1 \u00d7 503; first 200 after the answer: 218.33 s"
+  },
+  {
+   "case": "pages-500000p",
+   "subject": "moalhaddar",
+   "kind": "hostile",
+   "result": {
+    "subject": "moalhaddar",
+    "image": "moalhaddar/docx-to-pdf@sha256:14497d940936fe346cf74ce9c65bfa1eaff71487371888bd864777fd63a386c3",
+    "env": {
+     "POOL_SIZE": "1",
+     "SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE": "300MB",
+     "SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE": "300MB",
+     "SERVER_TOMCAT_MAX_HTTP_FORM_POST_SIZE": "300MB",
+     "SERVER_TOMCAT_CONNECTION_TIMEOUT": "120000"
+    },
+    "doc": "pages-500000p.docx",
+    "doc_bytes": 7759411,
+    "alongside": "report-img30-10mb.docx",
+    "cap": 300,
+    "ready_s": 7.87,
+    "warmup": {
+     "doc": "report-img30-10mb.docx",
+     "t0": 1793111430.3,
+     "status": 200,
+     "headers": {
+      "Content-Type": "application/pdf"
+     },
+     "seconds": 3.04,
+     "bytes": 10136436
+    },
+    "memory_after_warmup": [
+     333361152,
+     325951488
+    ],
+    "hostile": {
+     "doc": "pages-500000p.docx",
+     "t0": 1793111433.35,
+     "status": "TimeoutError: timed out",
+     "seconds": 300.08,
+     "bytes": 0,
+     "body": ""
+    },
+    "state_at_answer": {
+     "status": "running",
+     "running": true,
+     "oom_killed": false,
+     "exit_code": 0,
+     "ready": true,
+     "memory_peak": 9800536064,
+     "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+     }
+    },
+    "first_200_after_answer_s": null,
+    "alongside_requests": [
+     {
+      "doc": "report-img30-10mb.docx",
+      "t0": 1793111435.35,
+      "status": "TimeoutError: timed out",
+      "seconds": 300.13,
+      "bytes": 0,
+      "body": "",
+      "during": true
+     },
+     {
+      "doc": "report-img30-10mb.docx",
+      "t0": 1793111736.49,
+      "status": "TimeoutError: timed out",
+      "seconds": 300.11,
+      "bytes": 0,
+      "body": "",
+      "during": false
+     },
+     {
+      "doc": "report-img30-10mb.docx",
+      "t0": 1793112037.61,
+      "status": "TimeoutError: timed out",
+      "seconds": 300.1,
+      "bytes": 0,
+      "body": "",
+      "during": false
+     }
+    ],
+    "state_after": {
+     "status": "running",
+     "running": true,
+     "oom_killed": false,
+     "exit_code": 0,
+     "ready": true,
+     "memory_peak": 9800536064,
+     "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+     }
+    },
+    "processes_after": {
+     "java": 252060,
+     "oosplash": 4492,
+     "soffice.bin": 7833640
+    },
+    "samples_max_current": 9800282112,
+    "samples_max_anon": 8135675904
+   },
+   "cell": "no answer in 300.08 s; peak 9 347 MiB; alongside 1 \u00d7 TimeoutError: timed out; first 200 after the answer: none"
+  },
+  {
+   "case": "px-8x1024mpx",
+   "subject": "ours",
+   "kind": "hostile",
+   "result": {
+    "subject": "ours",
+    "image": "docx-to-pdf:compare",
+    "env": {
+     "OTEL_SDK_DISABLED": "true"
+    },
+    "doc": "px-8x1024mpx.docx",
+    "doc_bytes": 8705945,
+    "alongside": "report-img30-10mb.docx",
+    "cap": 300,
+    "ready_s": 0.7,
+    "warmup": {
+     "doc": "report-img30-10mb.docx",
+     "t0": 1793112339.45,
+     "status": 200,
+     "headers": {
+      "content-type": "application/pdf"
+     },
+     "seconds": 0.99,
+     "bytes": 9598926
+    },
+    "memory_after_warmup": [
+     98455552,
+     92205056
+    ],
+    "hostile": {
+     "doc": "px-8x1024mpx.docx",
+     "t0": 1793112340.45,
+     "status": 413,
+     "seconds": 0.02,
+     "bytes": 140,
+     "body": "{\"type\":\"about:blank\",\"title\":\"Payload Too Large\",\"status\":413,\"detail\":\"the document needs more memory to convert than the service allows\"}"
+    },
+    "state_at_answer": {
+     "status": "running",
+     "running": true,
+     "oom_killed": false,
+     "exit_code": 0,
+     "ready": true,
+     "memory_peak": 241197056,
+     "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+     }
+    },
+    "first_200_after_answer_s": 0.75,
+    "alongside_requests": [
+     {
+      "doc": "report-img30-10mb.docx",
+      "t0": 1793112342.45,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.74,
+      "bytes": 9598926,
+      "during": false
+     }
+    ],
+    "state_after": {
+     "status": "running",
+     "running": true,
+     "oom_killed": false,
+     "exit_code": 0,
+     "ready": true,
+     "memory_peak": 246816768,
+     "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+     }
+    },
+    "processes_after": {
+     "tini": 1484,
+     "docx-to-pdf": 10440,
+     "instance": 412920
+    },
+    "samples_max_current": 227942400,
+    "samples_max_anon": 203030528
+   },
+   "cell": "413 in 0.02 s; peak 235 MiB; alongside none; first 200 after the answer: 0.75 s"
+  },
+  {
+   "case": "px-8x1024mpx",
+   "subject": "gotenberg",
+   "kind": "hostile",
+   "result": {
+    "subject": "gotenberg",
+    "image": "gotenberg/gotenberg:8.38.1@sha256:aa552cc115db488e0f0bcb07446aac13071ad51505b642c84bb894500907b42b",
+    "env": {},
+    "doc": "px-8x1024mpx.docx",
+    "doc_bytes": 8705945,
+    "alongside": "report-img30-10mb.docx",
+    "cap": 300,
+    "ready_s": 0.27,
+    "warmup": {
+     "doc": "report-img30-10mb.docx",
+     "t0": 1793112343.89,
+     "status": 200,
+     "headers": {
+      "Content-Type": "application/pdf"
+     },
+     "seconds": 1.55,
+     "bytes": 9518153
+    },
+    "memory_after_warmup": [
+     144551936,
+     140419072
+    ],
+    "hostile": {
+     "doc": "px-8x1024mpx.docx",
+     "t0": 1793112345.44,
+     "status": 503,
+     "seconds": 30.0,
+     "bytes": 92,
+     "body": "The request exceeded the time limit. Increase it with --api-timeout, or reduce the workload."
+    },
+    "state_at_answer": {
+     "status": "running",
+     "running": true,
+     "oom_killed": false,
+     "exit_code": 0,
+     "ready": true,
+     "memory_peak": 5362720768,
+     "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+     }
+    },
+    "first_200_after_answer_s": 32.25,
+    "alongside_requests": [
+     {
+      "doc": "report-img30-10mb.docx",
+      "t0": 1793112347.46,
+      "status": 503,
+      "seconds": 30.0,
+      "bytes": 92,
+      "body": "The request exceeded the time limit. Increase it with --api-timeout, or reduce the workload.",
+      "during": true
+     },
+     {
+      "doc": "report-img30-10mb.docx",
+      "t0": 1793112378.47,
+      "status": 503,
+      "seconds": 30.0,
+      "bytes": 92,
+      "body": "The request exceeded the time limit. Increase it with --api-timeout, or reduce the workload.",
+      "during": false
+     },
+     {
+      "doc": "report-img30-10mb.docx",
+      "t0": 1793112409.48,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 1.22,
+      "bytes": 9518153,
+      "during": false
+     }
+    ],
+    "state_after": {
+     "status": "running",
+     "running": true,
+     "oom_killed": false,
+     "exit_code": 0,
+     "ready": true,
+     "memory_peak": 8470601728,
+     "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+     }
+    },
+    "processes_after": {
+     "tini": 1524,
+     "gotenberg": 84324,
+     "soffice.bin": 1341304
+    },
+    "samples_max_current": 8470343680,
+    "samples_max_anon": 8413282304
+   },
+   "cell": "503 in 30.0 s; peak 8 078 MiB; alongside 1 \u00d7 503; first 200 after the answer: 32.25 s"
+  },
+  {
+   "case": "px-8x1024mpx",
+   "subject": "moalhaddar",
+   "kind": "hostile",
+   "result": {
+    "subject": "moalhaddar",
+    "image": "moalhaddar/docx-to-pdf@sha256:14497d940936fe346cf74ce9c65bfa1eaff71487371888bd864777fd63a386c3",
+    "env": {
+     "POOL_SIZE": "1",
+     "SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE": "300MB",
+     "SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE": "300MB",
+     "SERVER_TOMCAT_MAX_HTTP_FORM_POST_SIZE": "300MB",
+     "SERVER_TOMCAT_CONNECTION_TIMEOUT": "120000"
+    },
+    "doc": "px-8x1024mpx.docx",
+    "doc_bytes": 8705945,
+    "alongside": "report-img30-10mb.docx",
+    "cap": 300,
+    "ready_s": 7.2,
+    "warmup": {
+     "doc": "report-img30-10mb.docx",
+     "t0": 1793112418.4,
+     "status": 200,
+     "headers": {
+      "Content-Type": "application/pdf"
+     },
+     "seconds": 2.69,
+     "bytes": 10136436
+    },
+    "memory_after_warmup": [
+     338071552,
+     330792960
+    ],
+    "hostile": {
+     "doc": "px-8x1024mpx.docx",
+     "t0": 1793112421.1,
+     "status": "TimeoutError: timed out",
+     "seconds": 300.08,
+     "bytes": 0,
+     "body": ""
+    },
+    "state_at_answer": {
+     "status": "running",
+     "running": true,
+     "oom_killed": false,
+     "exit_code": 0,
+     "ready": true,
+     "memory_peak": 2626371584,
+     "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+     }
+    },
+    "first_200_after_answer_s": 248.47,
+    "alongside_requests": [
+     {
+      "doc": "report-img30-10mb.docx",
+      "t0": 1793112423.1,
+      "status": "TimeoutError: timed out",
+      "seconds": 300.11,
+      "bytes": 0,
+      "body": "",
+      "during": true
+     },
+     {
+      "doc": "report-img30-10mb.docx",
+      "t0": 1793112724.22,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 248.46,
+      "bytes": 10136436,
+      "during": false
+     }
+    ],
+    "state_after": {
+     "status": "running",
+     "running": true,
+     "oom_killed": false,
+     "exit_code": 0,
+     "ready": true,
+     "memory_peak": 2646093824,
+     "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+     }
+    },
+    "processes_after": {
+     "java": 285076,
+     "oosplash": 4492,
+     "soffice.bin": 217516
+    },
+    "samples_max_current": 2646093824,
+    "samples_max_anon": 2576764928
+   },
+   "cell": "no answer in 300.08 s; peak 2 524 MiB; alongside 1 \u00d7 TimeoutError: timed out; first 200 after the answer: 248.47 s"
+  },
+  {
+   "case": "tables-10000",
+   "subject": "ours",
+   "kind": "hostile",
+   "result": {
+    "subject": "ours",
+    "image": "docx-to-pdf:compare",
+    "env": {
+     "OTEL_SDK_DISABLED": "true"
+    },
+    "doc": "tables-10000.docx",
+    "doc_bytes": 6079042,
+    "alongside": "report-img30-10mb.docx",
+    "cap": 300,
+    "ready_s": 0.68,
+    "warmup": {
+     "doc": "report-img30-10mb.docx",
+     "t0": 1793112973.8,
+     "status": 200,
+     "headers": {
+      "content-type": "application/pdf"
+     },
+     "seconds": 0.97,
+     "bytes": 9598926
+    },
+    "memory_after_warmup": [
+     108191744,
+     101883904
+    ],
+    "hostile": {
+     "doc": "tables-10000.docx",
+     "t0": 1793112974.77,
+     "status": 504,
+     "seconds": 180.09,
+     "bytes": 132,
+     "body": "{\"type\":\"about:blank\",\"title\":\"Gateway Timeout\",\"status\":504,\"detail\":\"the conversion did not finish within the conversion timeout\"}"
+    },
+    "state_at_answer": {
+     "status": "running",
+     "running": true,
+     "oom_killed": false,
+     "exit_code": 0,
+     "ready": false,
+     "memory_peak": 1495707648,
+     "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+     }
+    },
+    "first_200_after_answer_s": 0.68,
+    "alongside_requests": [
+     {
+      "doc": "report-img30-10mb.docx",
+      "t0": 1793112976.78,
+      "status": 503,
+      "seconds": 60.03,
+      "bytes": 120,
+      "body": "{\"type\":\"about:blank\",\"title\":\"Service Unavailable\",\"status\":503,\"detail\":\"no instance came free within the wait limit\"}",
+      "during": true
+     },
+     {
+      "doc": "report-img30-10mb.docx",
+      "t0": 1793113037.81,
+      "status": 503,
+      "seconds": 60.03,
+      "bytes": 120,
+      "body": "{\"type\":\"about:blank\",\"title\":\"Service Unavailable\",\"status\":503,\"detail\":\"no instance came free within the wait limit\"}",
+      "during": true
+     },
+     {
+      "doc": "report-img30-10mb.docx",
+      "t0": 1793113098.85,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 57.42,
+      "bytes": 9598926,
+      "during": true
+     },
+     {
+      "doc": "report-img30-10mb.docx",
+      "t0": 1793113156.28,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.68,
+      "bytes": 9598926,
+      "during": false
+     }
+    ],
+    "state_after": {
+     "status": "running",
+     "running": true,
+     "oom_killed": false,
+     "exit_code": 0,
+     "ready": true,
+     "memory_peak": 1495707648,
+     "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+     }
+    },
+    "processes_after": {
+     "tini": 1492,
+     "docx-to-pdf": 13048,
+     "instance": 404924
+    },
+    "samples_max_current": 1494896640,
+    "samples_max_anon": 1338658816
+   },
+   "cell": "504 in 180.09 s; peak 1 426 MiB; alongside 2 \u00d7 503, 1 \u00d7 200; first 200 after the answer: 0.68 s"
+  },
+  {
+   "case": "tables-10000",
+   "subject": "gotenberg",
+   "kind": "hostile",
+   "result": {
+    "subject": "gotenberg",
+    "image": "gotenberg/gotenberg:8.38.1@sha256:aa552cc115db488e0f0bcb07446aac13071ad51505b642c84bb894500907b42b",
+    "env": {},
+    "doc": "tables-10000.docx",
+    "doc_bytes": 6079042,
+    "alongside": "report-img30-10mb.docx",
+    "cap": 300,
+    "ready_s": 0.27,
+    "warmup": {
+     "doc": "report-img30-10mb.docx",
+     "t0": 1793113157.72,
+     "status": 200,
+     "headers": {
+      "Content-Type": "application/pdf"
+     },
+     "seconds": 1.58,
+     "bytes": 9518153
+    },
+    "memory_after_warmup": [
+     150994944,
+     142831616
+    ],
+    "hostile": {
+     "doc": "tables-10000.docx",
+     "t0": 1793113159.3,
+     "status": 503,
+     "seconds": 30.0,
+     "bytes": 92,
+     "body": "The request exceeded the time limit. Increase it with --api-timeout, or reduce the workload."
+    },
+    "state_at_answer": {
+     "status": "running",
+     "running": true,
+     "oom_killed": false,
+     "exit_code": 0,
+     "ready": true,
+     "memory_peak": 574140416,
+     "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+     }
+    },
+    "first_200_after_answer_s": 218.25,
+    "alongside_requests": [
+     {
+      "doc": "report-img30-10mb.docx",
+      "t0": 1793113161.31,
+      "status": 503,
+      "seconds": 30.01,
+      "bytes": 92,
+      "body": "The request exceeded the time limit. Increase it with --api-timeout, or reduce the workload.",
+      "during": true
+     },
+     {
+      "doc": "report-img30-10mb.docx",
+      "t0": 1793113192.32,
+      "status": 503,
+      "seconds": 30.0,
+      "bytes": 92,
+      "body": "The request exceeded the time limit. Increase it with --api-timeout, or reduce the workload.",
+      "during": false
+     },
+     {
+      "doc": "report-img30-10mb.docx",
+      "t0": 1793113223.33,
+      "status": 503,
+      "seconds": 30.0,
+      "bytes": 92,
+      "body": "The request exceeded the time limit. Increase it with --api-timeout, or reduce the workload.",
+      "during": false
+     },
+     {
+      "doc": "report-img30-10mb.docx",
+      "t0": 1793113254.35,
+      "status": 503,
+      "seconds": 30.0,
+      "bytes": 92,
+      "body": "The request exceeded the time limit. Increase it with --api-timeout, or reduce the workload.",
+      "during": false
+     },
+     {
+      "doc": "report-img30-10mb.docx",
+      "t0": 1793113285.36,
+      "status": 503,
+      "seconds": 30.01,
+      "bytes": 92,
+      "body": "The request exceeded the time limit. Increase it with --api-timeout, or reduce the workload.",
+      "during": false
+     },
+     {
+      "doc": "report-img30-10mb.docx",
+      "t0": 1793113316.37,
+      "status": 503,
+      "seconds": 30.0,
+      "bytes": 92,
+      "body": "The request exceeded the time limit. Increase it with --api-timeout, or reduce the workload.",
+      "during": false
+     },
+     {
+      "doc": "report-img30-10mb.docx",
+      "t0": 1793113347.39,
+      "status": 503,
+      "seconds": 30.0,
+      "bytes": 92,
+      "body": "The request exceeded the time limit. Increase it with --api-timeout, or reduce the workload.",
+      "during": false
+     },
+     {
+      "doc": "report-img30-10mb.docx",
+      "t0": 1793113378.4,
+      "status": 503,
+      "seconds": 30.0,
+      "bytes": 92,
+      "body": "The request exceeded the time limit. Increase it with --api-timeout, or reduce the workload.",
+      "during": false
+     },
+     {
+      "doc": "report-img30-10mb.docx",
+      "t0": 1793113409.41,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 1.15,
+      "bytes": 9518153,
+      "during": false
+     }
+    ],
+    "state_after": {
+     "status": "running",
+     "running": true,
+     "oom_killed": false,
+     "exit_code": 0,
+     "ready": true,
+     "memory_peak": 1994141696,
+     "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+     }
+    },
+    "processes_after": {
+     "tini": 1476,
+     "gotenberg": 86000,
+     "soffice.bin": 238024
+    },
+    "samples_max_current": 1992364032,
+    "samples_max_anon": 1768284160
+   },
+   "cell": "503 in 30.0 s; peak 1 902 MiB; alongside 1 \u00d7 503; first 200 after the answer: 218.25 s"
+  },
+  {
+   "case": "tables-10000",
+   "subject": "moalhaddar",
+   "kind": "hostile",
+   "result": {
+    "subject": "moalhaddar",
+    "image": "moalhaddar/docx-to-pdf@sha256:14497d940936fe346cf74ce9c65bfa1eaff71487371888bd864777fd63a386c3",
+    "env": {
+     "POOL_SIZE": "1",
+     "SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE": "300MB",
+     "SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE": "300MB",
+     "SERVER_TOMCAT_MAX_HTTP_FORM_POST_SIZE": "300MB",
+     "SERVER_TOMCAT_CONNECTION_TIMEOUT": "120000"
+    },
+    "doc": "tables-10000.docx",
+    "doc_bytes": 6079042,
+    "alongside": "report-img30-10mb.docx",
+    "cap": 300,
+    "ready_s": 7.57,
+    "warmup": {
+     "doc": "report-img30-10mb.docx",
+     "t0": 1793113418.52,
+     "status": 200,
+     "headers": {
+      "Content-Type": "application/pdf"
+     },
+     "seconds": 2.82,
+     "bytes": 10136436
+    },
+    "memory_after_warmup": [
+     350638080,
+     333299712
+    ],
+    "hostile": {
+     "doc": "tables-10000.docx",
+     "t0": 1793113421.35,
+     "status": "TimeoutError: timed out",
+     "seconds": 300.07,
+     "bytes": 0,
+     "body": ""
+    },
+    "state_at_answer": {
+     "status": "running",
+     "running": true,
+     "oom_killed": false,
+     "exit_code": 0,
+     "ready": true,
+     "memory_peak": 1903403008,
+     "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+     }
+    },
+    "first_200_after_answer_s": 482.86,
+    "alongside_requests": [
+     {
+      "doc": "report-img30-10mb.docx",
+      "t0": 1793113423.37,
+      "status": "TimeoutError: timed out",
+      "seconds": 300.12,
+      "bytes": 0,
+      "body": "",
+      "during": true
+     },
+     {
+      "doc": "report-img30-10mb.docx",
+      "t0": 1793113724.51,
+      "status": "TimeoutError: timed out",
+      "seconds": 300.12,
+      "bytes": 0,
+      "body": "",
+      "during": false
+     },
+     {
+      "doc": "report-img30-10mb.docx",
+      "t0": 1793114025.63,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 181.72,
+      "bytes": 10136436,
+      "during": false
+     }
+    ],
+    "state_after": {
+     "status": "running",
+     "running": true,
+     "oom_killed": false,
+     "exit_code": 0,
+     "ready": true,
+     "memory_peak": 4344061952,
+     "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+     }
+    },
+    "processes_after": {
+     "java": 304976,
+     "oosplash": 4436,
+     "soffice.bin": 3887104
+    },
+    "samples_max_current": 4342587392,
+    "samples_max_anon": 4277612544
+   },
+   "cell": "no answer in 300.07 s; peak 4 143 MiB; alongside 1 \u00d7 TimeoutError: timed out; first 200 after the answer: 482.86 s"
+  },
+  {
+   "case": "png-g-32767",
+   "subject": "ours",
+   "kind": "one",
+   "result": {
+    "doc": "png-g-32767.docx",
+    "t0": 1793114208.8,
+    "status": 200,
+    "headers": {
+     "content-type": "application/pdf",
+     "docx-to-pdf-pictures": "downscaled=1, replaced=0"
+    },
+    "seconds": 11.34,
+    "bytes": 324399,
+    "ready_s": 0.67,
+    "state": {
+     "status": "running",
+     "running": true,
+     "oom_killed": false,
+     "exit_code": 0,
+     "ready": true,
+     "memory_peak": 364158976,
+     "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+     }
+    },
+    "pdf_images": 1
+   },
+   "cell": "200 in 11.34 s; peak 347 MiB; pictures in the PDF 1; docx-to-pdf-pictures: downscaled=1, replaced=0"
+  },
+  {
+   "case": "png-g-32767",
+   "subject": "gotenberg",
+   "kind": "one",
+   "result": {
+    "doc": "png-g-32767.docx",
+    "t0": 1793114220.79,
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/pdf"
+    },
+    "seconds": 9.41,
+    "bytes": 1100505,
+    "ready_s": 0.29,
+    "state": {
+     "status": "running",
+     "running": true,
+     "oom_killed": false,
+     "exit_code": 0,
+     "ready": true,
+     "memory_peak": 1194160128,
+     "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+     }
+    },
+    "pdf_images": 1
+   },
+   "cell": "200 in 9.41 s; peak 1 139 MiB; pictures in the PDF 1"
+  },
+  {
+   "case": "png-g-32767",
+   "subject": "moalhaddar",
+   "kind": "one",
+   "result": {
+    "doc": "png-g-32767.docx",
+    "t0": 1793114238.36,
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/pdf"
+    },
+    "seconds": 115.07,
+    "bytes": 24145,
+    "ready_s": 7.82,
+    "state": {
+     "status": "running",
+     "running": true,
+     "oom_killed": false,
+     "exit_code": 0,
+     "ready": true,
+     "memory_peak": 1547948032,
+     "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+     }
+    },
+    "pdf_images": 1
+   },
+   "cell": "200 in 115.07 s; peak 1 476 MiB; pictures in the PDF 1"
+  },
+  {
+   "case": "png-g-32768",
+   "subject": "ours",
+   "kind": "one",
+   "result": {
+    "doc": "png-g-32768.docx",
+    "t0": 1793114354.45,
+    "status": 200,
+    "headers": {
+     "content-type": "application/pdf",
+     "docx-to-pdf-pictures": "downscaled=1, replaced=0"
+    },
+    "seconds": 11.38,
+    "bytes": 316168,
+    "ready_s": 0.67,
+    "state": {
+     "status": "running",
+     "running": true,
+     "oom_killed": false,
+     "exit_code": 0,
+     "ready": true,
+     "memory_peak": 364490752,
+     "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+     }
+    },
+    "pdf_images": 1
+   },
+   "cell": "200 in 11.38 s; peak 348 MiB; pictures in the PDF 1; docx-to-pdf-pictures: downscaled=1, replaced=0"
+  },
+  {
+   "case": "png-g-32768",
+   "subject": "gotenberg",
+   "kind": "one",
+   "result": {
+    "doc": "png-g-32768.docx",
+    "t0": 1793114366.43,
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/pdf"
+    },
+    "seconds": 0.83,
+    "bytes": 13626,
+    "ready_s": 0.27,
+    "state": {
+     "status": "running",
+     "running": true,
+     "oom_killed": false,
+     "exit_code": 0,
+     "ready": true,
+     "memory_peak": 112984064,
+     "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+     }
+    },
+    "pdf_images": 0
+   },
+   "cell": "200 in 0.83 s; peak 108 MiB; pictures in the PDF 0"
+  },
+  {
+   "case": "png-g-32768",
+   "subject": "moalhaddar",
+   "kind": "one",
+   "result": {
+    "doc": "png-g-32768.docx",
+    "t0": 1793114375.25,
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/pdf"
+    },
+    "seconds": 0.46,
+    "bytes": 9756,
+    "ready_s": 7.66,
+    "state": {
+     "status": "running",
+     "running": true,
+     "oom_killed": false,
+     "exit_code": 0,
+     "ready": true,
+     "memory_peak": 345567232,
+     "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+     }
+    },
+    "pdf_images": 0
+   },
+   "cell": "200 in 0.46 s; peak 330 MiB; pictures in the PDF 0"
+  },
+  {
+   "case": "png-rgb-18918",
+   "subject": "ours",
+   "kind": "one",
+   "result": {
+    "doc": "png-rgb-18918.docx",
+    "t0": 1793114376.74,
+    "status": 200,
+    "headers": {
+     "content-type": "application/pdf",
+     "docx-to-pdf-pictures": "downscaled=1, replaced=0"
+    },
+    "seconds": 4.22,
+    "bytes": 105724,
+    "ready_s": 0.67,
+    "state": {
+     "status": "running",
+     "running": true,
+     "oom_killed": false,
+     "exit_code": 0,
+     "ready": true,
+     "memory_peak": 159723520,
+     "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+     }
+    },
+    "pdf_images": 1
+   },
+   "cell": "200 in 4.22 s; peak 152 MiB; pictures in the PDF 1; docx-to-pdf-pictures: downscaled=1, replaced=0"
+  },
+  {
+   "case": "png-rgb-18918",
+   "subject": "gotenberg",
+   "kind": "one",
+   "result": {
+    "doc": "png-rgb-18918.docx",
+    "t0": 1793114381.6,
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/pdf"
+    },
+    "seconds": 10.97,
+    "bytes": 1106544,
+    "ready_s": 0.29,
+    "state": {
+     "status": "running",
+     "running": true,
+     "oom_killed": false,
+     "exit_code": 0,
+     "ready": true,
+     "memory_peak": 1193660416,
+     "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+     }
+    },
+    "pdf_images": 1
+   },
+   "cell": "200 in 10.97 s; peak 1 138 MiB; pictures in the PDF 1"
+  },
+  {
+   "case": "png-rgb-18918",
+   "subject": "moalhaddar",
+   "kind": "one",
+   "result": {
+    "doc": "png-rgb-18918.docx",
+    "t0": 1793114401.45,
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/pdf"
+    },
+    "seconds": 23.94,
+    "bytes": 39615,
+    "ready_s": 8.53,
+    "state": {
+     "status": "running",
+     "running": true,
+     "oom_killed": false,
+     "exit_code": 0,
+     "ready": true,
+     "memory_peak": 1482891264,
+     "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+     }
+    },
+    "pdf_images": 1
+   },
+   "cell": "200 in 23.94 s; peak 1 414 MiB; pictures in the PDF 1"
+  },
+  {
+   "case": "png-rgb-18919",
+   "subject": "ours",
+   "kind": "one",
+   "result": {
+    "doc": "png-rgb-18919.docx",
+    "t0": 1793114426.42,
+    "status": 200,
+    "headers": {
+     "content-type": "application/pdf",
+     "docx-to-pdf-pictures": "downscaled=1, replaced=0"
+    },
+    "seconds": 4.39,
+    "bytes": 105726,
+    "ready_s": 0.68,
+    "state": {
+     "status": "running",
+     "running": true,
+     "oom_killed": false,
+     "exit_code": 0,
+     "ready": true,
+     "memory_peak": 159694848,
+     "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+     }
+    },
+    "pdf_images": 1
+   },
+   "cell": "200 in 4.39 s; peak 152 MiB; pictures in the PDF 1; docx-to-pdf-pictures: downscaled=1, replaced=0"
+  },
+  {
+   "case": "png-rgb-18919",
+   "subject": "gotenberg",
+   "kind": "one",
+   "result": {
+    "doc": "png-rgb-18919.docx",
+    "t0": 1793114431.39,
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/pdf"
+    },
+    "seconds": 0.84,
+    "bytes": 13429,
+    "ready_s": 0.27,
+    "state": {
+     "status": "running",
+     "running": true,
+     "oom_killed": false,
+     "exit_code": 0,
+     "ready": true,
+     "memory_peak": 112844800,
+     "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+     }
+    },
+    "pdf_images": 0
+   },
+   "cell": "200 in 0.84 s; peak 108 MiB; pictures in the PDF 0"
+  },
+  {
+   "case": "png-rgb-18919",
+   "subject": "moalhaddar",
+   "kind": "one",
+   "result": {
+    "doc": "png-rgb-18919.docx",
+    "t0": 1793114440.23,
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/pdf"
+    },
+    "seconds": 0.45,
+    "bytes": 9556,
+    "ready_s": 7.68,
+    "state": {
+     "status": "running",
+     "running": true,
+     "oom_killed": false,
+     "exit_code": 0,
+     "ready": true,
+     "memory_peak": 366931968,
+     "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+     }
+    },
+    "pdf_images": 0
+   },
+   "cell": "200 in 0.45 s; peak 350 MiB; pictures in the PDF 0"
+  },
+  {
+   "case": "empty",
+   "subject": "ours",
+   "kind": "one",
+   "result": {
+    "doc": "empty.docx",
+    "t0": 1793114441.71,
+    "status": 415,
+    "seconds": 0.0,
+    "bytes": 121,
+    "body": "{\"type\":\"about:blank\",\"title\":\"Unsupported Media Type\",\"status\":415,\"detail\":\"the document is not DOCX, DOC, ODT or RTF\"}",
+    "ready_s": 0.68,
+    "state": {
+     "status": "running",
+     "running": true,
+     "oom_killed": false,
+     "exit_code": 0,
+     "ready": true,
+     "memory_peak": 36368384,
+     "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+     }
+    }
+   },
+   "cell": "415 in 0.0 s; peak 35 MiB; \u201c{\"type\":\"about:blank\",\"title\":\"Unsupported Media Type\",\"status\":415,\"detail\":\"th\u201d"
+  },
+  {
+   "case": "empty",
+   "subject": "gotenberg",
+   "kind": "one",
+   "result": {
+    "doc": "empty.docx",
+    "t0": 1793114442.32,
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/pdf"
+    },
+    "seconds": 0.86,
+    "bytes": 6149,
+    "ready_s": 0.28,
+    "state": {
+     "status": "running",
+     "running": true,
+     "oom_killed": false,
+     "exit_code": 0,
+     "ready": true,
+     "memory_peak": 106467328,
+     "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+     }
+    },
+    "pdf_images": 0
+   },
+   "cell": "200 in 0.86 s; peak 102 MiB; pictures in the PDF 0"
+  },
+  {
+   "case": "empty",
+   "subject": "moalhaddar",
+   "kind": "one",
+   "result": {
+    "doc": "empty.docx",
+    "t0": 1793114451.03,
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/pdf"
+    },
+    "seconds": 0.32,
+    "bytes": 1169,
+    "ready_s": 7.55,
+    "state": {
+     "status": "running",
+     "running": true,
+     "oom_killed": false,
+     "exit_code": 0,
+     "ready": true,
+     "memory_peak": 333746176,
+     "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+     }
+    },
+    "pdf_images": 0
+   },
+   "cell": "200 in 0.32 s; peak 318 MiB; pictures in the PDF 0"
+  },
+  {
+   "case": "random-1mb",
+   "subject": "ours",
+   "kind": "one",
+   "result": {
+    "doc": "random-1mb.docx",
+    "t0": 1793114452.4,
+    "status": 415,
+    "seconds": 0.01,
+    "bytes": 121,
+    "body": "{\"type\":\"about:blank\",\"title\":\"Unsupported Media Type\",\"status\":415,\"detail\":\"the document is not DOCX, DOC, ODT or RTF\"}",
+    "ready_s": 0.69,
+    "state": {
+     "status": "running",
+     "running": true,
+     "oom_killed": false,
+     "exit_code": 0,
+     "ready": true,
+     "memory_peak": 38207488,
+     "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+     }
+    }
+   },
+   "cell": "415 in 0.01 s; peak 36 MiB; \u201c{\"type\":\"about:blank\",\"title\":\"Unsupported Media Type\",\"status\":415,\"detail\":\"th\u201d"
+  },
+  {
+   "case": "random-1mb",
+   "subject": "gotenberg",
+   "kind": "one",
+   "result": {
+    "doc": "random-1mb.docx",
+    "t0": 1793114452.98,
+    "status": 500,
+    "seconds": 0.69,
+    "bytes": 208,
+    "body": "LibreOffice failed to convert the document 'random-1mb.docx'. This is usually a resource issue: increase the container's memory and CPU, or reduce the document's size. The request is valid and may be retried.",
+    "ready_s": 0.27,
+    "state": {
+     "status": "running",
+     "running": true,
+     "oom_killed": false,
+     "exit_code": 0,
+     "ready": true,
+     "memory_peak": 106287104,
+     "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+     }
+    }
+   },
+   "cell": "500 in 0.69 s; peak 101 MiB; \u201cLibreOffice failed to convert the document 'random-1mb.docx'. This is usually a\u201d"
+  },
+  {
+   "case": "random-1mb",
+   "subject": "moalhaddar",
+   "kind": "one",
+   "result": {
+    "doc": "random-1mb.docx",
+    "t0": 1793114461.77,
+    "status": "TimeoutError: timed out",
+    "seconds": 300.1,
+    "bytes": 0,
+    "body": "",
+    "ready_s": 7.79,
+    "state": {
+     "status": "running",
+     "running": true,
+     "oom_killed": false,
+     "exit_code": 0,
+     "ready": true,
+     "memory_peak": 433524736,
+     "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+     }
+    }
+   },
+   "cell": "no answer in 300.1 s; peak 413 MiB"
+  },
+  {
+   "case": "random-10mb",
+   "subject": "ours",
+   "kind": "one",
+   "result": {
+    "doc": "random-10mb.docx",
+    "t0": 1793114763.05,
+    "status": 415,
+    "seconds": 0.02,
+    "bytes": 121,
+    "body": "{\"type\":\"about:blank\",\"title\":\"Unsupported Media Type\",\"status\":415,\"detail\":\"the document is not DOCX, DOC, ODT or RTF\"}",
+    "ready_s": 0.78,
+    "state": {
+     "status": "running",
+     "running": true,
+     "oom_killed": false,
+     "exit_code": 0,
+     "ready": true,
+     "memory_peak": 48357376,
+     "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+     }
+    }
+   },
+   "cell": "415 in 0.02 s; peak 46 MiB; \u201c{\"type\":\"about:blank\",\"title\":\"Unsupported Media Type\",\"status\":415,\"detail\":\"th\u201d"
+  },
+  {
+   "case": "random-10mb",
+   "subject": "gotenberg",
+   "kind": "one",
+   "result": {
+    "doc": "random-10mb.docx",
+    "t0": 1793114763.63,
+    "status": 500,
+    "seconds": 0.76,
+    "bytes": 209,
+    "body": "LibreOffice failed to convert the document 'random-10mb.docx'. This is usually a resource issue: increase the container's memory and CPU, or reduce the document's size. The request is valid and may be retried.",
+    "ready_s": 0.25,
+    "state": {
+     "status": "running",
+     "running": true,
+     "oom_killed": false,
+     "exit_code": 0,
+     "ready": true,
+     "memory_peak": 144588800,
+     "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+     }
+    }
+   },
+   "cell": "500 in 0.76 s; peak 138 MiB; \u201cLibreOffice failed to convert the document 'random-10mb.docx'. This is usually a\u201d"
+  },
+  {
+   "case": "random-10mb",
+   "subject": "moalhaddar",
+   "kind": "one",
+   "result": {
+    "doc": "random-10mb.docx",
+    "t0": 1793114772.15,
+    "status": "TimeoutError: timed out",
+    "seconds": 300.14,
+    "bytes": 0,
+    "body": "",
+    "ready_s": 7.41,
+    "state": {
+     "status": "running",
+     "running": true,
+     "oom_killed": false,
+     "exit_code": 0,
+     "ready": true,
+     "memory_peak": 477159424,
+     "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+     }
+    }
+   },
+   "cell": "no answer in 300.14 s; peak 455 MiB"
+  },
+  {
+   "case": "tdf38575",
+   "subject": "ours",
+   "kind": "one",
+   "result": {
+    "doc": "tdf38575.docx",
+    "t0": 1793115073.21,
+    "status": 200,
+    "headers": {
+     "content-type": "application/pdf"
+    },
+    "seconds": 0.42,
+    "bytes": 101970,
+    "ready_s": 0.55,
+    "state": {
+     "status": "running",
+     "running": true,
+     "oom_killed": false,
+     "exit_code": 0,
+     "ready": true,
+     "memory_peak": 95711232,
+     "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+     }
+    },
+    "pdf_images": 1
+   },
+   "cell": "200 in 0.42 s; peak 91 MiB; pictures in the PDF 1"
+  },
+  {
+   "case": "tdf38575",
+   "subject": "gotenberg",
+   "kind": "one",
+   "result": {
+    "doc": "tdf38575.docx",
+    "t0": 1793115074.2,
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/pdf"
+    },
+    "seconds": 0.91,
+    "bytes": 85292,
+    "ready_s": 0.26,
+    "state": {
+     "status": "running",
+     "running": true,
+     "oom_killed": false,
+     "exit_code": 0,
+     "ready": true,
+     "memory_peak": 112246784,
+     "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+     }
+    },
+    "pdf_images": 1
+   },
+   "cell": "200 in 0.91 s; peak 107 MiB; pictures in the PDF 1"
+  },
+  {
+   "case": "tdf38575",
+   "subject": "moalhaddar",
+   "kind": "one",
+   "result": {
+    "doc": "tdf38575.docx",
+    "t0": 1793115082.72,
+    "status": "TimeoutError: timed out",
+    "seconds": 300.02,
+    "bytes": 0,
+    "body": "",
+    "ready_s": 7.31,
+    "state": {
+     "status": "running",
+     "running": true,
+     "oom_killed": false,
+     "exit_code": 0,
+     "ready": true,
+     "memory_peak": 367849472,
+     "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+     }
+    }
+   },
+   "cell": "no answer in 300.02 s; peak 351 MiB"
+  },
+  {
+   "case": "pause",
+   "subject": "ours",
+   "kind": "pause",
+   "result": {
+    "subject": "ours",
+    "doc": "report-img30-10mb.docx",
+    "ready_s": 0.67,
+    "pauses": [
+     {
+      "pause_s": 2.0,
+      "pieces": 4,
+      "answer": "HTTP/1.1 200 OK (9599219 bytes)",
+      "seconds": 7.06
+     },
+     {
+      "pause_s": 2.0,
+      "pieces": 4,
+      "answer": "HTTP/1.1 200 OK (9599219 bytes)",
+      "seconds": 6.81
+     },
+     {
+      "pause_s": 2.0,
+      "pieces": 4,
+      "answer": "HTTP/1.1 200 OK (9599219 bytes)",
+      "seconds": 6.81
+     }
+    ],
+    "stall": {
+     "answer": "HTTP/1.1 408 Request Timeout (436 bytes)",
+     "seconds": 120.02,
+     "cap": 200
+    },
+    "state_after": {
+     "status": "running",
+     "running": true,
+     "oom_killed": false,
+     "exit_code": 0,
+     "ready": true,
+     "memory_peak": 248528896,
+     "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+     }
+    }
+   },
+   "cell": "pauses: HTTP/1.1 200 OK in 7.06 s, HTTP/1.1 200 OK in 6.81 s, HTTP/1.1 200 OK in 6.81 s; stalled: HTTP/1.1 408 Request Timeout in 120.02 s"
+  },
+  {
+   "case": "pause",
+   "subject": "gotenberg",
+   "kind": "pause",
+   "result": {
+    "subject": "gotenberg",
+    "doc": "report-img30-10mb.docx",
+    "ready_s": 0.27,
+    "pauses": [
+     {
+      "pause_s": 2.0,
+      "pieces": 4,
+      "answer": "HTTP/1.1 200 OK (9518563 bytes)",
+      "seconds": 7.66
+     },
+     {
+      "pause_s": 2.0,
+      "pieces": 4,
+      "answer": "HTTP/1.1 200 OK (9518563 bytes)",
+      "seconds": 6.92
+     },
+     {
+      "pause_s": 2.0,
+      "pieces": 4,
+      "answer": "HTTP/1.1 200 OK (9518563 bytes)",
+      "seconds": 6.95
+     }
+    ],
+    "stall": {
+     "answer": "HTTP/1.1 500 Internal Server Error (301 bytes)",
+     "seconds": 30.0,
+     "cap": 200
+    },
+    "state_after": {
+     "status": "running",
+     "running": true,
+     "oom_killed": false,
+     "exit_code": 0,
+     "ready": true,
+     "memory_peak": 343998464,
+     "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+     }
+    }
+   },
+   "cell": "pauses: HTTP/1.1 200 OK in 7.66 s, HTTP/1.1 200 OK in 6.92 s, HTTP/1.1 200 OK in 6.95 s; stalled: HTTP/1.1 500 Internal Server Error in 30.0 s"
+  },
+  {
+   "case": "pause",
+   "subject": "moalhaddar",
+   "kind": "pause",
+   "result": {
+    "subject": "moalhaddar",
+    "doc": "report-img30-10mb.docx",
+    "ready_s": 7.33,
+    "pauses": [
+     {
+      "pause_s": 2.0,
+      "pieces": 4,
+      "answer": "HTTP/1.1 200  (10136655 bytes)",
+      "seconds": 8.76
+     },
+     {
+      "pause_s": 2.0,
+      "pieces": 4,
+      "answer": "HTTP/1.1 200  (10136655 bytes)",
+      "seconds": 8.48
+     },
+     {
+      "pause_s": 2.0,
+      "pieces": 4,
+      "answer": "HTTP/1.1 200  (10136655 bytes)",
+      "seconds": 8.4
+     }
+    ],
+    "stall": {
+     "answer": "TimeoutError: timed out",
+     "seconds": 200.11,
+     "cap": 200
+    },
+    "state_after": {
+     "status": "running",
+     "running": true,
+     "oom_killed": false,
+     "exit_code": 0,
+     "ready": true,
+     "memory_peak": 551493632,
+     "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+     }
+    }
+   },
+   "cell": "pauses: HTTP/1.1 200  in 8.76 s, HTTP/1.1 200  in 8.48 s, HTTP/1.1 200  in 8.4 s; stalled: TimeoutError: timed out in 200.11 s"
+  },
+  {
+   "case": "egress",
+   "subject": "ours",
+   "kind": "egress",
+   "result": {
+    "connections": 0,
+    "requests": [
+     {
+      "doc": "d-altchunk--file.docx",
+      "t0": 1793115813.9,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.39,
+      "bytes": 10373
+     },
+     {
+      "doc": "d-altchunk--int.docx",
+      "t0": 1793115814.29,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.06,
+      "bytes": 10373
+     },
+     {
+      "doc": "d-altchunk--pub.docx",
+      "t0": 1793115814.35,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.05,
+      "bytes": 10373
+     },
+     {
+      "doc": "d-chart-external--file.docx",
+      "t0": 1793115814.4,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.12,
+      "bytes": 15951
+     },
+     {
+      "doc": "d-chart-external--int.docx",
+      "t0": 1793115814.52,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.09,
+      "bytes": 15951
+     },
+     {
+      "doc": "d-chart-external--pub.docx",
+      "t0": 1793115814.61,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.09,
+      "bytes": 15951
+     },
+     {
+      "doc": "d-embed-and-link--file.docx",
+      "t0": 1793115814.7,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.08,
+      "bytes": 11059
+     },
+     {
+      "doc": "d-embed-and-link--int.docx",
+      "t0": 1793115814.79,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.07,
+      "bytes": 11059
+     },
+     {
+      "doc": "d-embed-and-link--pub.docx",
+      "t0": 1793115814.86,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.07,
+      "bytes": 11059
+     },
+     {
+      "doc": "d-hyperlink--file.docx",
+      "t0": 1793115814.93,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.05,
+      "bytes": 11353
+     },
+     {
+      "doc": "d-hyperlink--int.docx",
+      "t0": 1793115814.98,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.05,
+      "bytes": 11377
+     },
+     {
+      "doc": "d-hyperlink--pub.docx",
+      "t0": 1793115815.03,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.05,
+      "bytes": 11374
+     },
+     {
+      "doc": "d-includepicture--file.docx",
+      "t0": 1793115815.08,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.05,
+      "bytes": 10373
+     },
+     {
+      "doc": "d-includepicture--int.docx",
+      "t0": 1793115815.14,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.05,
+      "bytes": 10373
+     },
+     {
+      "doc": "d-includepicture--pub.docx",
+      "t0": 1793115815.19,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.05,
+      "bytes": 10373
+     },
+     {
+      "doc": "d-includepicture--tls.docx",
+      "t0": 1793115815.24,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.05,
+      "bytes": 10373
+     },
+     {
+      "doc": "d-includepicture-merge--file.docx",
+      "t0": 1793115815.28,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.04,
+      "bytes": 10373
+     },
+     {
+      "doc": "d-includepicture-merge--int.docx",
+      "t0": 1793115815.33,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.05,
+      "bytes": 10373
+     },
+     {
+      "doc": "d-includepicture-merge--pub.docx",
+      "t0": 1793115815.38,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.05,
+      "bytes": 10373
+     },
+     {
+      "doc": "d-includetext--file.docx",
+      "t0": 1793115815.43,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.05,
+      "bytes": 11711
+     },
+     {
+      "doc": "d-includetext--int.docx",
+      "t0": 1793115815.47,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.05,
+      "bytes": 11711
+     },
+     {
+      "doc": "d-includetext--pub.docx",
+      "t0": 1793115815.53,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.04,
+      "bytes": 11711
+     },
+     {
+      "doc": "d-includetext--tls.docx",
+      "t0": 1793115815.57,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.06,
+      "bytes": 11711
+     },
+     {
+      "doc": "d-includetext-docx--file.docx",
+      "t0": 1793115815.63,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.04,
+      "bytes": 11711
+     },
+     {
+      "doc": "d-includetext-docx--int.docx",
+      "t0": 1793115815.67,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.04,
+      "bytes": 11711
+     },
+     {
+      "doc": "d-includetext-docx--pub.docx",
+      "t0": 1793115815.72,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.04,
+      "bytes": 11711
+     },
+     {
+      "doc": "d-linked-image--file.docx",
+      "t0": 1793115815.76,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.06,
+      "bytes": 10699
+     },
+     {
+      "doc": "d-linked-image--int.docx",
+      "t0": 1793115815.83,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.08,
+      "bytes": 10699
+     },
+     {
+      "doc": "d-linked-image--pub.docx",
+      "t0": 1793115815.9,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.08,
+      "bytes": 10699
+     },
+     {
+      "doc": "d-linked-image--tls.docx",
+      "t0": 1793115815.98,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.07,
+      "bytes": 10699
+     },
+     {
+      "doc": "d-linked-image-x10--int.docx",
+      "t0": 1793115816.06,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.08,
+      "bytes": 13956
+     },
+     {
+      "doc": "d-linked-image-x10--pub.docx",
+      "t0": 1793115816.14,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.08,
+      "bytes": 13956
+     },
+     {
+      "doc": "d-ole-link--file.docx",
+      "t0": 1793115816.23,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.06,
+      "bytes": 11053
+     },
+     {
+      "doc": "d-ole-link--int.docx",
+      "t0": 1793115816.29,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.05,
+      "bytes": 11053
+     },
+     {
+      "doc": "d-ole-link--pub.docx",
+      "t0": 1793115816.33,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.06,
+      "bytes": 11053
+     },
+     {
+      "doc": "d-subdoc--file.docx",
+      "t0": 1793115816.39,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.05,
+      "bytes": 10373
+     },
+     {
+      "doc": "d-subdoc--int.docx",
+      "t0": 1793115816.44,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.04,
+      "bytes": 10373
+     },
+     {
+      "doc": "d-subdoc--pub.docx",
+      "t0": 1793115816.48,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.05,
+      "bytes": 10373
+     },
+     {
+      "doc": "d-template--file.docx",
+      "t0": 1793115816.53,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.05,
+      "bytes": 11546
+     },
+     {
+      "doc": "d-template--int.docx",
+      "t0": 1793115816.58,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.05,
+      "bytes": 11546
+     },
+     {
+      "doc": "d-template--pub.docx",
+      "t0": 1793115816.63,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.05,
+      "bytes": 11546
+     },
+     {
+      "doc": "d-vml-imagedata--file.docx",
+      "t0": 1793115816.67,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.05,
+      "bytes": 10504
+     },
+     {
+      "doc": "d-vml-imagedata--int.docx",
+      "t0": 1793115816.72,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.05,
+      "bytes": 10504
+     },
+     {
+      "doc": "d-vml-imagedata--pub.docx",
+      "t0": 1793115816.77,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.07,
+      "bytes": 10504
+     },
+     {
+      "doc": "d-xxe--file.docx",
+      "t0": 1793115816.84,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.06,
+      "bytes": 10373
+     },
+     {
+      "doc": "d-xxe--int.docx",
+      "t0": 1793115816.9,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.06,
+      "bytes": 10373
+     },
+     {
+      "doc": "d-xxe--pub.docx",
+      "t0": 1793115816.96,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.05,
+      "bytes": 10373
+     },
+     {
+      "doc": "o-linked-image--file.odt",
+      "t0": 1793115817.0,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.04,
+      "bytes": 11791
+     },
+     {
+      "doc": "o-linked-image--int.odt",
+      "t0": 1793115817.05,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.04,
+      "bytes": 11791
+     },
+     {
+      "doc": "o-linked-image--pub.odt",
+      "t0": 1793115817.09,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.04,
+      "bytes": 11791
+     },
+     {
+      "doc": "o-ole-link--file.odt",
+      "t0": 1793115817.13,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.04,
+      "bytes": 18226
+     },
+     {
+      "doc": "o-ole-link--int.odt",
+      "t0": 1793115817.18,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.05,
+      "bytes": 18226
+     },
+     {
+      "doc": "o-ole-link--pub.odt",
+      "t0": 1793115817.23,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.04,
+      "bytes": 18226
+     },
+     {
+      "doc": "o-section-link--file.odt",
+      "t0": 1793115817.27,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.05,
+      "bytes": 12123
+     },
+     {
+      "doc": "o-section-link--int.odt",
+      "t0": 1793115817.32,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.04,
+      "bytes": 12123
+     },
+     {
+      "doc": "o-section-link--pub.odt",
+      "t0": 1793115817.36,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.04,
+      "bytes": 12123
+     },
+     {
+      "doc": "o-section-link-docx--file.odt",
+      "t0": 1793115817.4,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.04,
+      "bytes": 12123
+     },
+     {
+      "doc": "o-section-link-docx--int.odt",
+      "t0": 1793115817.45,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.04,
+      "bytes": 12123
+     },
+     {
+      "doc": "o-section-link-docx--pub.odt",
+      "t0": 1793115817.48,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.04,
+      "bytes": 12123
+     },
+     {
+      "doc": "r-includepicture--file.rtf",
+      "t0": 1793115817.52,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.06,
+      "bytes": 18407
+     },
+     {
+      "doc": "r-includepicture--int.rtf",
+      "t0": 1793115817.58,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.04,
+      "bytes": 11470
+     },
+     {
+      "doc": "r-includepicture--pub.rtf",
+      "t0": 1793115817.62,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.04,
+      "bytes": 11470
+     },
+     {
+      "doc": "r-includetext--file.rtf",
+      "t0": 1793115817.66,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.04,
+      "bytes": 12126
+     },
+     {
+      "doc": "r-includetext--int.rtf",
+      "t0": 1793115817.7,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.04,
+      "bytes": 12126
+     },
+     {
+      "doc": "r-includetext--pub.rtf",
+      "t0": 1793115817.75,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.04,
+      "bytes": 12126
+     },
+     {
+      "doc": "r-template--file.rtf",
+      "t0": 1793115817.78,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.04,
+      "bytes": 11470
+     },
+     {
+      "doc": "r-template--int.rtf",
+      "t0": 1793115817.82,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.04,
+      "bytes": 11470
+     },
+     {
+      "doc": "r-template--pub.rtf",
+      "t0": 1793115817.86,
+      "status": 200,
+      "headers": {
+       "content-type": "application/pdf"
+      },
+      "seconds": 0.04,
+      "bytes": 11470
+     }
+    ]
+   },
+   "cell": "68 documents: 68 \u00d7 200; connections the listener logged: 0"
+  },
+  {
+   "case": "egress",
+   "subject": "gotenberg",
+   "kind": "egress",
+   "result": {
+    "connections": 0,
+    "requests": [
+     {
+      "doc": "d-altchunk--file.docx",
+      "t0": 1793115822.36,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 1.0,
+      "bytes": 9836
+     },
+     {
+      "doc": "d-altchunk--int.docx",
+      "t0": 1793115823.36,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.17,
+      "bytes": 9836
+     },
+     {
+      "doc": "d-altchunk--pub.docx",
+      "t0": 1793115823.53,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.16,
+      "bytes": 9836
+     },
+     {
+      "doc": "d-chart-external--file.docx",
+      "t0": 1793115823.7,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.22,
+      "bytes": 14248
+     },
+     {
+      "doc": "d-chart-external--int.docx",
+      "t0": 1793115823.92,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.22,
+      "bytes": 14248
+     },
+     {
+      "doc": "d-chart-external--pub.docx",
+      "t0": 1793115824.14,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.23,
+      "bytes": 14248
+     },
+     {
+      "doc": "d-embed-and-link--file.docx",
+      "t0": 1793115824.37,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.19,
+      "bytes": 10164
+     },
+     {
+      "doc": "d-embed-and-link--int.docx",
+      "t0": 1793115824.56,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.2,
+      "bytes": 10164
+     },
+     {
+      "doc": "d-embed-and-link--pub.docx",
+      "t0": 1793115824.76,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.19,
+      "bytes": 10164
+     },
+     {
+      "doc": "d-hyperlink--file.docx",
+      "t0": 1793115824.95,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.17,
+      "bytes": 10519
+     },
+     {
+      "doc": "d-hyperlink--int.docx",
+      "t0": 1793115825.12,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.81,
+      "bytes": 10542
+     },
+     {
+      "doc": "d-hyperlink--pub.docx",
+      "t0": 1793115825.92,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.18,
+      "bytes": 10539
+     },
+     {
+      "doc": "d-includepicture--file.docx",
+      "t0": 1793115826.11,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.16,
+      "bytes": 9836
+     },
+     {
+      "doc": "d-includepicture--int.docx",
+      "t0": 1793115826.27,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.15,
+      "bytes": 9836
+     },
+     {
+      "doc": "d-includepicture--pub.docx",
+      "t0": 1793115826.42,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.16,
+      "bytes": 9836
+     },
+     {
+      "doc": "d-includepicture--tls.docx",
+      "t0": 1793115826.58,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.17,
+      "bytes": 9836
+     },
+     {
+      "doc": "d-includepicture-merge--file.docx",
+      "t0": 1793115826.76,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.16,
+      "bytes": 9836
+     },
+     {
+      "doc": "d-includepicture-merge--int.docx",
+      "t0": 1793115826.92,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.15,
+      "bytes": 9836
+     },
+     {
+      "doc": "d-includepicture-merge--pub.docx",
+      "t0": 1793115827.08,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.16,
+      "bytes": 9836
+     },
+     {
+      "doc": "d-includetext--file.docx",
+      "t0": 1793115827.24,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.15,
+      "bytes": 11027
+     },
+     {
+      "doc": "d-includetext--int.docx",
+      "t0": 1793115827.39,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.83,
+      "bytes": 11027
+     },
+     {
+      "doc": "d-includetext--pub.docx",
+      "t0": 1793115828.22,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.16,
+      "bytes": 11027
+     },
+     {
+      "doc": "d-includetext--tls.docx",
+      "t0": 1793115828.39,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.15,
+      "bytes": 11027
+     },
+     {
+      "doc": "d-includetext-docx--file.docx",
+      "t0": 1793115828.54,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.15,
+      "bytes": 11027
+     },
+     {
+      "doc": "d-includetext-docx--int.docx",
+      "t0": 1793115828.69,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.15,
+      "bytes": 11027
+     },
+     {
+      "doc": "d-includetext-docx--pub.docx",
+      "t0": 1793115828.83,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.16,
+      "bytes": 11027
+     },
+     {
+      "doc": "d-linked-image--file.docx",
+      "t0": 1793115828.99,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.17,
+      "bytes": 9836
+     },
+     {
+      "doc": "d-linked-image--int.docx",
+      "t0": 1793115829.17,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.18,
+      "bytes": 9836
+     },
+     {
+      "doc": "d-linked-image--pub.docx",
+      "t0": 1793115829.35,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.17,
+      "bytes": 9836
+     },
+     {
+      "doc": "d-linked-image--tls.docx",
+      "t0": 1793115829.52,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.16,
+      "bytes": 9836
+     },
+     {
+      "doc": "d-linked-image-x10--int.docx",
+      "t0": 1793115829.67,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.89,
+      "bytes": 10149
+     },
+     {
+      "doc": "d-linked-image-x10--pub.docx",
+      "t0": 1793115830.56,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.18,
+      "bytes": 10149
+     },
+     {
+      "doc": "d-ole-link--file.docx",
+      "t0": 1793115830.74,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.16,
+      "bytes": 10190
+     },
+     {
+      "doc": "d-ole-link--int.docx",
+      "t0": 1793115830.9,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.14,
+      "bytes": 10190
+     },
+     {
+      "doc": "d-ole-link--pub.docx",
+      "t0": 1793115831.05,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.15,
+      "bytes": 10190
+     },
+     {
+      "doc": "d-subdoc--file.docx",
+      "t0": 1793115831.2,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.14,
+      "bytes": 9836
+     },
+     {
+      "doc": "d-subdoc--int.docx",
+      "t0": 1793115831.34,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.14,
+      "bytes": 9836
+     },
+     {
+      "doc": "d-subdoc--pub.docx",
+      "t0": 1793115831.48,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.14,
+      "bytes": 9836
+     },
+     {
+      "doc": "d-template--file.docx",
+      "t0": 1793115831.62,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.16,
+      "bytes": 10860
+     },
+     {
+      "doc": "d-template--int.docx",
+      "t0": 1793115831.78,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.14,
+      "bytes": 10860
+     },
+     {
+      "doc": "d-template--pub.docx",
+      "t0": 1793115831.92,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.76,
+      "bytes": 10860
+     },
+     {
+      "doc": "d-vml-imagedata--file.docx",
+      "t0": 1793115832.68,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.15,
+      "bytes": 9836
+     },
+     {
+      "doc": "d-vml-imagedata--int.docx",
+      "t0": 1793115832.84,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.15,
+      "bytes": 9836
+     },
+     {
+      "doc": "d-vml-imagedata--pub.docx",
+      "t0": 1793115832.99,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.14,
+      "bytes": 9836
+     },
+     {
+      "doc": "d-xxe--file.docx",
+      "t0": 1793115833.13,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.15,
+      "bytes": 9836
+     },
+     {
+      "doc": "d-xxe--int.docx",
+      "t0": 1793115833.28,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.14,
+      "bytes": 9836
+     },
+     {
+      "doc": "d-xxe--pub.docx",
+      "t0": 1793115833.43,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.14,
+      "bytes": 9836
+     },
+     {
+      "doc": "o-linked-image--file.odt",
+      "t0": 1793115833.56,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.13,
+      "bytes": 10958
+     },
+     {
+      "doc": "o-linked-image--int.odt",
+      "t0": 1793115833.7,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.14,
+      "bytes": 10958
+     },
+     {
+      "doc": "o-linked-image--pub.odt",
+      "t0": 1793115833.84,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.14,
+      "bytes": 10958
+     },
+     {
+      "doc": "o-ole-link--file.odt",
+      "t0": 1793115833.98,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.82,
+      "bytes": 17368
+     },
+     {
+      "doc": "o-ole-link--int.odt",
+      "t0": 1793115834.8,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.14,
+      "bytes": 17368
+     },
+     {
+      "doc": "o-ole-link--pub.odt",
+      "t0": 1793115834.94,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.17,
+      "bytes": 17368
+     },
+     {
+      "doc": "o-section-link--file.odt",
+      "t0": 1793115835.11,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.13,
+      "bytes": 11467
+     },
+     {
+      "doc": "o-section-link--int.odt",
+      "t0": 1793115835.24,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.13,
+      "bytes": 11467
+     },
+     {
+      "doc": "o-section-link--pub.odt",
+      "t0": 1793115835.38,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.14,
+      "bytes": 11467
+     },
+     {
+      "doc": "o-section-link-docx--file.odt",
+      "t0": 1793115835.51,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.13,
+      "bytes": 11467
+     },
+     {
+      "doc": "o-section-link-docx--int.odt",
+      "t0": 1793115835.65,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.14,
+      "bytes": 11467
+     },
+     {
+      "doc": "o-section-link-docx--pub.odt",
+      "t0": 1793115835.79,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.14,
+      "bytes": 11467
+     },
+     {
+      "doc": "r-includepicture--file.rtf",
+      "t0": 1793115835.93,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.18,
+      "bytes": 17521
+     },
+     {
+      "doc": "r-includepicture--int.rtf",
+      "t0": 1793115836.11,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.67,
+      "bytes": 10930
+     },
+     {
+      "doc": "r-includepicture--pub.rtf",
+      "t0": 1793115836.78,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.14,
+      "bytes": 10930
+     },
+     {
+      "doc": "r-includetext--file.rtf",
+      "t0": 1793115836.92,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.13,
+      "bytes": 11441
+     },
+     {
+      "doc": "r-includetext--int.rtf",
+      "t0": 1793115837.05,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.14,
+      "bytes": 11441
+     },
+     {
+      "doc": "r-includetext--pub.rtf",
+      "t0": 1793115837.19,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.14,
+      "bytes": 11441
+     },
+     {
+      "doc": "r-template--file.rtf",
+      "t0": 1793115837.33,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.17,
+      "bytes": 10930
+     },
+     {
+      "doc": "r-template--int.rtf",
+      "t0": 1793115837.5,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.14,
+      "bytes": 10930
+     },
+     {
+      "doc": "r-template--pub.rtf",
+      "t0": 1793115837.65,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.15,
+      "bytes": 10930
+     }
+    ]
+   },
+   "cell": "68 documents: 68 \u00d7 200; connections the listener logged: 0"
+  },
+  {
+   "case": "egress",
+   "subject": "moalhaddar",
+   "kind": "egress",
+   "result": {
+    "connections": 45,
+    "requests": [
+     {
+      "doc": "d-altchunk--file.docx",
+      "t0": 1793115848.29,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.41,
+      "bytes": 5819
+     },
+     {
+      "doc": "d-altchunk--int.docx",
+      "t0": 1793115848.7,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.09,
+      "bytes": 5819
+     },
+     {
+      "doc": "d-altchunk--pub.docx",
+      "t0": 1793115848.79,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.1,
+      "bytes": 5819
+     },
+     {
+      "doc": "d-chart-external--file.docx",
+      "t0": 1793115848.89,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.18,
+      "bytes": 11345
+     },
+     {
+      "doc": "d-chart-external--int.docx",
+      "t0": 1793115849.07,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.15,
+      "bytes": 11345
+     },
+     {
+      "doc": "d-chart-external--pub.docx",
+      "t0": 1793115849.22,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.15,
+      "bytes": 11345
+     },
+     {
+      "doc": "d-embed-and-link--file.docx",
+      "t0": 1793115849.37,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.1,
+      "bytes": 6150
+     },
+     {
+      "doc": "d-embed-and-link--int.docx",
+      "t0": 1793115849.46,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.09,
+      "bytes": 6150
+     },
+     {
+      "doc": "d-embed-and-link--pub.docx",
+      "t0": 1793115849.56,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.09,
+      "bytes": 6150
+     },
+     {
+      "doc": "d-hyperlink--file.docx",
+      "t0": 1793115849.65,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.1,
+      "bytes": 6328
+     },
+     {
+      "doc": "d-hyperlink--int.docx",
+      "t0": 1793115849.75,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.09,
+      "bytes": 6328
+     },
+     {
+      "doc": "d-hyperlink--pub.docx",
+      "t0": 1793115849.85,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.09,
+      "bytes": 6328
+     },
+     {
+      "doc": "d-includepicture--file.docx",
+      "t0": 1793115849.94,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.09,
+      "bytes": 5819
+     },
+     {
+      "doc": "d-includepicture--int.docx",
+      "t0": 1793115850.03,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.1,
+      "bytes": 5819
+     },
+     {
+      "doc": "d-includepicture--pub.docx",
+      "t0": 1793115850.13,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.09,
+      "bytes": 5819
+     },
+     {
+      "doc": "d-includepicture--tls.docx",
+      "t0": 1793115850.22,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.1,
+      "bytes": 5819
+     },
+     {
+      "doc": "d-includepicture-merge--file.docx",
+      "t0": 1793115850.32,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.1,
+      "bytes": 5819
+     },
+     {
+      "doc": "d-includepicture-merge--int.docx",
+      "t0": 1793115850.42,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.1,
+      "bytes": 5819
+     },
+     {
+      "doc": "d-includepicture-merge--pub.docx",
+      "t0": 1793115850.51,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.09,
+      "bytes": 5819
+     },
+     {
+      "doc": "d-includetext--file.docx",
+      "t0": 1793115850.6,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.1,
+      "bytes": 7011
+     },
+     {
+      "doc": "d-includetext--int.docx",
+      "t0": 1793115850.71,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.1,
+      "bytes": 7011
+     },
+     {
+      "doc": "d-includetext--pub.docx",
+      "t0": 1793115850.8,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.09,
+      "bytes": 7011
+     },
+     {
+      "doc": "d-includetext--tls.docx",
+      "t0": 1793115850.9,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.1,
+      "bytes": 7011
+     },
+     {
+      "doc": "d-includetext-docx--file.docx",
+      "t0": 1793115850.99,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.1,
+      "bytes": 7011
+     },
+     {
+      "doc": "d-includetext-docx--int.docx",
+      "t0": 1793115851.09,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.09,
+      "bytes": 7011
+     },
+     {
+      "doc": "d-includetext-docx--pub.docx",
+      "t0": 1793115851.18,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.09,
+      "bytes": 7011
+     },
+     {
+      "doc": "d-linked-image--file.docx",
+      "t0": 1793115851.28,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.12,
+      "bytes": 5819
+     },
+     {
+      "doc": "d-linked-image--int.docx",
+      "t0": 1793115851.4,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 10.11,
+      "bytes": 5819
+     },
+     {
+      "doc": "d-linked-image--pub.docx",
+      "t0": 1793115861.51,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.1,
+      "bytes": 6159
+     },
+     {
+      "doc": "d-linked-image--tls.docx",
+      "t0": 1793115861.61,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 10.11,
+      "bytes": 5819
+     },
+     {
+      "doc": "d-linked-image-x10--int.docx",
+      "t0": 1793115871.72,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 100.15,
+      "bytes": 6169
+     },
+     {
+      "doc": "d-linked-image-x10--pub.docx",
+      "t0": 1793115971.88,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.13,
+      "bytes": 6619
+     },
+     {
+      "doc": "d-ole-link--file.docx",
+      "t0": 1793115972.01,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.09,
+      "bytes": 6177
+     },
+     {
+      "doc": "d-ole-link--int.docx",
+      "t0": 1793115972.11,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.09,
+      "bytes": 6177
+     },
+     {
+      "doc": "d-ole-link--pub.docx",
+      "t0": 1793115972.19,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.1,
+      "bytes": 6177
+     },
+     {
+      "doc": "d-subdoc--file.docx",
+      "t0": 1793115972.29,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.11,
+      "bytes": 5819
+     },
+     {
+      "doc": "d-subdoc--int.docx",
+      "t0": 1793115972.4,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.1,
+      "bytes": 5819
+     },
+     {
+      "doc": "d-subdoc--pub.docx",
+      "t0": 1793115972.5,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.11,
+      "bytes": 5819
+     },
+     {
+      "doc": "d-template--file.docx",
+      "t0": 1793115972.6,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.09,
+      "bytes": 6855
+     },
+     {
+      "doc": "d-template--int.docx",
+      "t0": 1793115972.7,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.09,
+      "bytes": 6855
+     },
+     {
+      "doc": "d-template--pub.docx",
+      "t0": 1793115972.79,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.1,
+      "bytes": 6855
+     },
+     {
+      "doc": "d-vml-imagedata--file.docx",
+      "t0": 1793115972.89,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.1,
+      "bytes": 5819
+     },
+     {
+      "doc": "d-vml-imagedata--int.docx",
+      "t0": 1793115972.98,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.09,
+      "bytes": 5819
+     },
+     {
+      "doc": "d-vml-imagedata--pub.docx",
+      "t0": 1793115973.08,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.09,
+      "bytes": 5819
+     },
+     {
+      "doc": "d-xxe--file.docx",
+      "t0": 1793115973.17,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.11,
+      "bytes": 5819
+     },
+     {
+      "doc": "d-xxe--int.docx",
+      "t0": 1793115973.28,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.09,
+      "bytes": 5819
+     },
+     {
+      "doc": "d-xxe--pub.docx",
+      "t0": 1793115973.37,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.09,
+      "bytes": 5819
+     },
+     {
+      "doc": "o-linked-image--file.odt",
+      "t0": 1793115973.47,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.13,
+      "bytes": 7064
+     },
+     {
+      "doc": "o-linked-image--int.odt",
+      "t0": 1793115973.6,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 5.11,
+      "bytes": 7064
+     },
+     {
+      "doc": "o-linked-image--pub.odt",
+      "t0": 1793115978.7,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.1,
+      "bytes": 7402
+     },
+     {
+      "doc": "o-ole-link--file.odt",
+      "t0": 1793115978.81,
+      "status": 200,
+      "headers": {
+       "Content-Type": "application/pdf"
+      },
+      "seconds": 0.13,
+      "bytes": 15061
+     },
+     {
+      "doc": "o-ole-link--int.odt",
+      "t0": 1793115978.94,
+      "status": "TimeoutError: timed out",
+      "seconds": 300.08,
+      "bytes": 0,
+      "body": ""
+     },
+     {
+      "doc": "o-ole-link--pub.odt",
+      "t0": 1793116279.02,
+      "status": "TimeoutError: timed out",
+      "seconds": 300.01,
+      "bytes": 0,
+      "body": ""
+     },
+     {
+      "doc": "o-section-link--file.odt",
+      "t0": 1793116579.03,
+      "status": "TimeoutError: timed out",
+      "seconds": 300.02,
+      "bytes": 0,
+      "body": ""
+     },
+     {
+      "doc": "o-section-link--int.odt",
+      "t0": 1793116879.05,
+      "status": "TimeoutError: timed out",
+      "seconds": 300.03,
+      "bytes": 0,
+      "body": ""
+     },
+     {
+      "doc": "o-section-link--pub.odt",
+      "t0": 1793117179.07,
+      "status": "TimeoutError: timed out",
+      "seconds": 300.03,
+      "bytes": 0,
+      "body": ""
+     },
+     {
+      "doc": "o-section-link-docx--file.odt",
+      "t0": 1793117479.11,
+      "status": "TimeoutError: timed out",
+      "seconds": 300.01,
+      "bytes": 0,
+      "body": ""
+     },
+     {
+      "doc": "o-section-link-docx--int.odt",
+      "t0": 1793117779.12,
+      "status": "TimeoutError: timed out",
+      "seconds": 300.1,
+      "bytes": 0,
+      "body": ""
+     },
+     {
+      "doc": "o-section-link-docx--pub.odt",
+      "t0": 1793118079.22,
+      "status": "TimeoutError: timed out",
+      "seconds": 300.04,
+      "bytes": 0,
+      "body": ""
+     },
+     {
+      "doc": "r-includepicture--file.rtf",
+      "t0": 1793118379.26,
+      "status": "TimeoutError: timed out",
+      "seconds": 300.1,
+      "bytes": 0,
+      "body": ""
+     },
+     {
+      "doc": "r-includepicture--int.rtf",
+      "t0": 1793118679.36,
+      "status": "TimeoutError: timed out",
+      "seconds": 300.1,
+      "bytes": 0,
+      "body": ""
+     },
+     {
+      "doc": "r-includepicture--pub.rtf",
+      "t0": 1793118979.46,
+      "status": "TimeoutError: timed out",
+      "seconds": 300.03,
+      "bytes": 0,
+      "body": ""
+     },
+     {
+      "doc": "r-includetext--file.rtf",
+      "t0": 1793119279.49,
+      "status": "TimeoutError: timed out",
+      "seconds": 300.1,
+      "bytes": 0,
+      "body": ""
+     },
+     {
+      "doc": "r-includetext--int.rtf",
+      "t0": 1793119579.59,
+      "status": "TimeoutError: timed out",
+      "seconds": 300.03,
+      "bytes": 0,
+      "body": ""
+     },
+     {
+      "doc": "r-includetext--pub.rtf",
+      "t0": 1793119879.63,
+      "status": "TimeoutError: timed out",
+      "seconds": 300.02,
+      "bytes": 0,
+      "body": ""
+     },
+     {
+      "doc": "r-template--file.rtf",
+      "t0": 1793120179.65,
+      "status": "TimeoutError: timed out",
+      "seconds": 300.06,
+      "bytes": 0,
+      "body": ""
+     },
+     {
+      "doc": "r-template--int.rtf",
+      "t0": 1793120479.71,
+      "status": "TimeoutError: timed out",
+      "seconds": 300.01,
+      "bytes": 0,
+      "body": ""
+     },
+     {
+      "doc": "r-template--pub.rtf",
+      "t0": 1793120779.72,
+      "status": "TimeoutError: timed out",
+      "seconds": 300.02,
+      "bytes": 0,
+      "body": ""
+     }
+    ]
+   },
+   "cell": "68 documents: 51 \u00d7 200, 17 \u00d7 TimeoutError: timed out; connections the listener logged: 45"
+  },
+  {
+   "case": "soak",
+   "subject": "ours",
+   "kind": "soak",
+   "result": {
+    "rows": 3000,
+    "errors": 1287,
+    "slope_per_1000": 1.0267525009051957
+   },
+   "cell": "3000, 1287 errors; LibreOffice RSS median 401 MiB (first tenth) / 406 MiB (second half); +1.0 MiB per 1000"
+  },
+  {
+   "case": "soak",
+   "subject": "gotenberg",
+   "kind": "soak",
+   "result": {
+    "rows": 3000,
+    "errors": 0,
+    "slope_per_1000": 1.4464786217747323
+   },
+   "cell": "3000, 0 errors; LibreOffice RSS median 265 MiB (first tenth) / 268 MiB (second half); +1.4 MiB per 1000"
+  },
+  {
+   "case": "soak",
+   "subject": "g-norestart",
+   "kind": "soak",
+   "result": {
+    "rows": 3000,
+    "errors": 0,
+    "slope_per_1000": 2.3364874449437893
+   },
+   "cell": "3000, 0 errors; LibreOffice RSS median 384 MiB (first tenth) / 386 MiB (second half); +2.3 MiB per 1000"
+  },
+  {
+   "case": "soak",
+   "subject": "moalhaddar",
+   "kind": "soak",
+   "result": {
+    "rows": 1000,
+    "errors": 0,
+    "slope_per_1000": 46.04842255849493
+   },
+   "cell": "1000, 0 errors; LibreOffice RSS median 261 MiB (first tenth) / 315 MiB (second half); +46.0 MiB per 1000"
+  }
+ ]
+}

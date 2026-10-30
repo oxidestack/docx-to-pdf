@@ -12,22 +12,26 @@
 > the same documents, and no document — however large, malicious or broken — can take it down, hold it past its timeout
 > or make it reach the network.**
 
-- **Less CPU than Gotenberg**: Gotenberg uses 1.21 ± 0.02× the CPU a conversion as it ships, and 1.13 ± 0.04× without
-  its restarts ([the row](https://oxidestack.github.io/docx-to-pdf/benchmarks/#ratio-cpu)).
-- **Less memory than Gotenberg**: its container peaks at 1.65 ± 0.03× the memory as it ships, and 1.86 ± 0.04× without
-  its restarts ([the row](https://oxidestack.github.io/docx-to-pdf/benchmarks/#ratio-peak)).
-- **The service it replaces, outrun**: 3.24 ± 0.06× moalhaddar/docx-to-pdf's throughput, which uses 3.32 ± 0.06× the CPU
-  a conversion and 2.27 ± 0.07× the memory
-  ([the row](https://oxidestack.github.io/docx-to-pdf/benchmarks/#ratio-throughput)).
-- **A deflate bomb stopped at once**: `pages-500000p`, a document that inflates past any limit, gets 413 in 0.01 s at a
-  236 MiB peak; Gotenberg answers 503 in 30 s while its LibreOffice goes on to 7 609 MiB, and moalhaddar/docx-to-pdf
-  gives no answer in 300.04 s at 9 373 MiB, one run a side
-  ([the row](https://oxidestack.github.io/docx-to-pdf/benchmarks/#torture-pages-500000p)).
+- **Less CPU than Gotenberg**: Gotenberg uses 1.20–1.23× the CPU a conversion as it ships, and 1.08–1.14× without its
+  restarts ([the row](https://oxidestack.github.io/docx-to-pdf/benchmarks/#ratio-cpu)).
+- **Less memory than Gotenberg**: its container peaks at 1.65–1.76× the memory as it ships, and 1.80–1.86× without its
+  restarts ([the row](https://oxidestack.github.io/docx-to-pdf/benchmarks/#ratio-peak)).
+- **The service it replaces, outrun**: 3.05–3.24× moalhaddar/docx-to-pdf's throughput at 0.30–0.32× its CPU a conversion
+  and 0.42–0.44× its memory ([the row](https://oxidestack.github.io/docx-to-pdf/benchmarks/#ratio-throughput)).
+- **Bombs stopped at once**: a deflate bomb, `pages-500000p`, a document that inflates past any limit, and a picture
+  bomb, `px-8x1024mpx`, eight gigapixel pictures, each get 413 in 0.01–0.04 s at a 235–237 MiB peak; Gotenberg answers
+  503 in 30.00–30.03 s while its LibreOffice goes on to 7 609–8 078 MiB, and moalhaddar/docx-to-pdf gives no answer in
+  300.02–300.11 s, at 9 347–9 374 MiB on the deflate bomb; the same answers in each of the 3 runs
+  ([the deflate bomb](https://oxidestack.github.io/docx-to-pdf/benchmarks/#torture-pages-500000p),
+  [the picture bomb](https://oxidestack.github.io/docx-to-pdf/benchmarks/#torture-px-8x1024mpx)).
 
-Measured by `make compare` on 2026-10-29 17:16 UTC, on an Intel(R) Xeon(R) Gold 6248R CPU @ 3.00GHz (x86_64), 1 pinned
-vCPU and a pool of 1 a service: mean ± σ (n) over 3 interleaved blocks, a ratio ± its standard error. The image measured
-is release 1.0.0, pulled by digest. [Benchmarks](https://oxidestack.github.io/docx-to-pdf/benchmarks/) has every figure,
-the rows where Gotenberg wins, and the raw results.
+Measured by `make compare` on 2026-10-29 17:16 UTC, and in 2 earlier full runs on 2026-10-27 13:57 UTC and 2026-10-28
+10:06 UTC, each on an Intel(R) Xeon(R) Gold 6248R CPU @ 3.00GHz (x86_64) virtual machine of 8 vCPUs, 1 pinned vCPU and a
+pool of 1 a service: a run's figure is the mean ± σ (n) over 3 interleaved blocks, and a ratio above is the range of the
+3 runs' ratios; a bomb is one run a side in each run. The image measured is release 1.0.0, pulled by digest in the
+latest run; the earlier runs measured the code of their day, built by the command, before the heap trim.
+[Benchmarks](https://oxidestack.github.io/docx-to-pdf/benchmarks/) has every figure of the latest run, the rows where
+Gotenberg wins, and the raw results of every run.
 
 <!-- benchmarks:end -->
 

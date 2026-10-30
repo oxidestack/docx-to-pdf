@@ -1,6 +1,9 @@
 // The evidence: the Benchmarks page, the README's headline numbers and the comparison guide's figures, all generated
-// from one committed file, the raw results of the latest full `make compare` run (public/benchmarks/results.json,
-// served beside the page for download).
+// from committed files, the raw results of the latest full `make compare` run (public/benchmarks/results.json) and of
+// the earlier full runs of the same command on the same kind of machine (public/benchmarks/earlier/<stamp>.json), each
+// served beside the page for download. The Benchmarks page shows the latest run; the README and the guide quote a
+// ratio, a time or a peak as the range over every run, since one run's figure moves from one virtual machine to the
+// next more than its own σ says.
 //
 // A number a reader is shown has to be one a stranger can find in that file, so nothing here types a figure by hand:
 //
@@ -19,13 +22,14 @@
 //
 // package.json's prebuild runs it after scripts/stage.mjs, which empties src/content/docs/; exit 1 on a finding.
 
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs'
+import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const REPO = join(here, '..', '..')
 export const RESULTS = join(here, '..', 'public', 'benchmarks', 'results.json')
+export const EARLIER = join(here, '..', 'public', 'benchmarks', 'earlier')
 const PAGE = join(here, '..', 'src', 'content', 'docs', 'benchmarks.md')
 const README = join(REPO, 'README.md')
 const GUIDE = join(REPO, 'docs', 'guide', 'comparison.md')
@@ -175,6 +179,62 @@ export function speedFigures(results) {
   return out
 }
 
+// ---------------------------------------------------------------------------------------------------------------
+// Several runs: the latest and the earlier ones, quoted as ranges
+
+/** The earlier runs' results, read from `dir` (none when it is absent). */
+export function loadEarlier(dir = EARLIER) {
+  if (!existsSync(dir)) return []
+  return readdirSync(dir)
+    .filter((name) => name.endsWith('.json'))
+    .map((name) => JSON.parse(readFileSync(join(dir, name), 'utf8')))
+}
+
+/**
+ * Every run, the earlier ones by date and the latest last. A run of another shape than the latest (another mode,
+ * block count, conversions a block, architecture, vCPU count, chip where both record one, or speed cell) is refused:
+ * a range over it would mix two experiments.
+ */
+export function runsOf(results, earlier = []) {
+  const runs = [...earlier].sort((a, b) => a.meta.stamp.localeCompare(b.meta.stamp))
+  const cell = (r) => {
+    const c = r.speed?.cells?.ours?.[0]
+    return c ? [c.cpus, c.pool, c.docs, c.memory].join(' ') : null
+  }
+  for (const r of runs) {
+    const name = `the run of ${r.meta.stamp}`
+    if (r.meta.stamp >= results.meta.stamp) throw new Error(`${name} is not earlier than the latest, ${results.meta.stamp}`)
+    for (const k of ['mode', 'blocks', 'conversions', 'docker_arch', 'vm_cpus'])
+      if (r.meta[k] !== results.meta[k]) throw new Error(`${name} differs from the latest in meta.${k}`)
+    if (r.meta.host && results.meta.host && r.meta.host.cpu_model !== results.meta.host.cpu_model)
+      throw new Error(`${name} ran on another chip, ${r.meta.host.cpu_model}`)
+    if (cell(r) !== cell(results)) throw new Error(`${name} has another speed cell`)
+  }
+  return [...runs, results]
+}
+
+/** `lo–hi` of figures written by `format`, or one figure when both ends read alike; every part marked. */
+export function span(xs, format = String) {
+  const lo = format(Math.min(...xs))
+  const hi = format(Math.max(...xs))
+  return lo === hi ? v(lo) : `${v(lo)}–${v(hi)}`
+}
+
+/** `a`'s figure `k` over `b`'s: one run's ratio ± its standard error, or the range of the runs' ratios. */
+export function ratioOver(runs, a, b, k) {
+  const each = runs.map((r) => {
+    const f = speedFigures(r)
+    return ratio(f[a][k], f[b][k])
+  })
+  return each.length === 1 ? fmtRatio(each[0]) : `${span(each.map((x) => x.r), (x) => x.toFixed(2))}×`
+}
+
+/** The dates of runs, `2026-10-27 13:57 UTC and 2026-10-28 10:06 UTC`. */
+const dates = (runs) => {
+  const each = runs.map(at)
+  return each.length < 2 ? each.join('') : `${each.slice(0, -1).join(', ')} and ${each.at(-1)}`
+}
+
 /** What a torture cell says, read from the cell compare.py wrote from the raw answers. */
 export function parseCell(cell) {
   const m = /^(no answer|\d+) in ([\d.]+) s; peak ([\d ]+) MiB/.exec(cell)
@@ -193,10 +253,10 @@ function shortCell(cell) {
   return cell.split('; “')[0].replace(/\|/g, '\\|')
 }
 
-/** The second half's LibreOffice level of a soak cell, `{mean, sd, n}`. */
-export function soakLevel(cell) {
-  const m = /([\d ]+) ± ([\d.]+) MiB \((\d+) requests\) over the second half/.exec(cell)
-  return m ? { mean: Number(m[1].replace(/ /g, '')), sd: Number(m[2]), n: Number(m[3]) } : null
+/** The second half's LibreOffice level of a soak cell, `{mean, sd, n}`; `part` 'the first tenth' reads that one. */
+export function soakLevel(cell, part = 'the second half') {
+  const m = new RegExp(`([\\d ]+) ± ([\\d.]+) MiB \\((\\d+) requests\\) over ${part}`).exec(cell)
+  return m ? { mean: Number(m[1].trim().replace(/ /g, '')), sd: Number(m[2]), n: Number(m[3]) } : null
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -251,16 +311,19 @@ export function release(meta) {
   return m ? m[1] : null
 }
 
-/** The README block's sentence on the code measured. */
-const measuredReadme = (meta) =>
+// The earlier runs' code, when the latest measured a release: the code of their day, built by the command.
+const EARLIER_CODE = 'the earlier runs measured the code of their day, built by the command, before the heap trim'
+
+/** The README block's sentence on the code measured; `many` when the block quotes earlier runs too. */
+const measuredReadme = (meta, many = false) =>
   release(meta)
-    ? `The image measured is release ${v(release(meta))}, pulled by digest.`
+    ? `The image measured is release ${v(release(meta))}, pulled by digest${many ? ` in the latest run; ${EARLIER_CODE}` : ''}.`
     : `The code measured is that day's, before the heap trim, the change that hands LibreOffice's free heap back after each conversion: ${CODE_NOTE}.`
 
 /** The comparison guide's sentence on the code measured. */
-const measuredGuide = (meta) =>
+const measuredGuide = (meta, many = false) =>
   release(meta)
-    ? `oxidestack/docx-to-pdf was release ${v(release(meta))}, its published image pulled by digest.`
+    ? `oxidestack/docx-to-pdf was release ${v(release(meta))}, its published image pulled by digest${many ? `, in the latest run; ${EARLIER_CODE}` : ''}.`
     : `oxidestack/docx-to-pdf was the code of that day, before the heap trim, the change that hands LibreOffice's free heap back after each conversion: ${CODE_NOTE}.`
 
 // The one sentence of the project's positioning: what the README opens with. Each clause stands on a figure the block
@@ -268,34 +331,68 @@ const measuredGuide = (meta) =>
 const SENTENCE =
   'docx-to-pdf turns office documents into PDF faster and with less memory than Gotenberg and moalhaddar/docx-to-pdf on the same documents, and no document — however large, malicious or broken — can take it down, hold it past its timeout or make it reach the network.'
 
-// The deflate bomb of the torture test, the headline's fourth row.
+// The bombs of the torture test, the headline's fourth row: a deflate bomb and a picture bomb.
 const BOMB = 'pages-500000p'
+const PICTURE_BOMB = 'px-8x1024mpx'
 
 const row = (id) => `${SITE}/benchmarks/#${id}`
 
-export function headline(results) {
-  const f = speedFigures(results)
-  const r = (a, b, k) => fmtRatio(ratio(f[a][k], f[b][k]))
-  const deflate = Object.fromEntries(
-    results.torture.filter((t) => t.case === BOMB).map((t) => [t.subject, parseCell(t.cell)]),
-  )
-  if (!deflate.ours) throw new Error(`the results have no torture case ${BOMB}`)
-  const mib = (x) => v(x.toLocaleString('en-US').replace(/,/g, ' '))
-  const answer = (c) => (c.status === 'no answer' ? `no answer in ${v(c.seconds)} s` : `${v(c.status)} in ${v(c.seconds)} s`)
+/** A MiB figure as the cells write it, `7 609`. */
+const mibText = (x) => x.toLocaleString('en-US').replace(/,/g, ' ')
+
+/** An answer and its time: `413 in 0.01–0.02 s`, or `no answer in 300.02–300.11 s` (the cells' hundredths). */
+const answerIn = (status, seconds) =>
+  `${status === 'no answer' ? 'no answer' : v(status)} in ${span(seconds, (x) => x.toFixed(2))} s`
+
+/**
+ * The bombs' cells of every run, a subject's parsed cells in `cells[subject]` and its deflate bomb's alone in
+ * `deflate[subject]`. A subject that answered a bomb differently in two runs, or the two bombs differently, is
+ * refused: the headline says each gets one answer.
+ */
+export function bombs(runs) {
+  const cells = {}
+  const deflate = {}
+  for (const r of runs)
+    for (const c of [BOMB, PICTURE_BOMB]) {
+      const found = r.torture.filter((t) => t.case === c)
+      if (!found.length) throw new Error(`the run of ${r.meta.stamp} has no torture case ${c}`)
+      for (const t of found) {
+        const cell = parseCell(t.cell)
+        if (!cell) throw new Error(`the run of ${r.meta.stamp}: ${c} for ${t.subject} reads no answer`)
+        ;(cells[t.subject] ??= []).push(cell)
+        if (c === BOMB) (deflate[t.subject] ??= []).push(cell)
+      }
+    }
+  for (const [subject, list] of Object.entries(cells))
+    if (new Set(list.map((x) => x.status)).size > 1) throw new Error(`${subject} answered the bombs differently across the runs`)
+  return { cells, deflate }
+}
+
+export function headline(results, earlier = []) {
+  const runs = runsOf(results, earlier)
+  const many = runs.length > 1
+  const r = (a, b, k) => ratioOver(runs, a, b, k)
+  const { cells, deflate } = bombs(runs)
+  for (const s of ['ours', 'gotenberg', 'moalhaddar']) if (!cells[s]) throw new Error(`the bombs have no answer from ${s}`)
+  const answer = (list) => answerIn(list[0].status, list.map((c) => c.seconds))
+  const peak = (list) => span(list.map((c) => c.peak), mibText)
   const setup = cellSetup(results)
   const h = results.meta.host
+  const measured = many
+    ? `Measured by \`make compare\` on ${at(results)}, and in ${v(runs.length - 1)} earlier full runs on ${dates(runs.slice(0, -1))}, each on an ${v(h.cpu_model)} (${v(h.arch)}) virtual machine of ${v(results.meta.vm_cpus)} vCPUs, ${setup.cpus} pinned vCPU and a pool of ${setup.pool} a service: a run's figure is the mean ± σ (n) over ${setup.blocks} interleaved blocks, and a ratio above is the range of the ${v(runs.length)} runs' ratios; a bomb is one run a side in each run.`
+    : `Measured by \`make compare\` on ${at(results)}, on an ${v(h.cpu_model)} (${v(h.arch)}), ${setup.cpus} pinned vCPU and a pool of ${setup.pool} a service: mean ± σ (n) over ${setup.blocks} interleaved blocks, a ratio ± its standard error.`
   // One logical line a paragraph or item; readmeBlock() wraps them to the repository's width.
   return [
     BEGIN,
     '',
     `> **${SENTENCE}**`,
     '',
-    `- **Less CPU than Gotenberg**: Gotenberg uses ${r('gotenberg', 'ours', 'cpu')} the CPU a conversion as it ships, and ${r('g-norestart', 'ours', 'cpu')} without its restarts${release(results.meta) ? '' : ', measured on the code before the heap trim'} ([the row](${row('ratio-cpu')})).`,
+    `- **Less CPU than Gotenberg**: Gotenberg uses ${r('gotenberg', 'ours', 'cpu')} the CPU a conversion as it ships, and ${r('g-norestart', 'ours', 'cpu')} without its restarts${release(results.meta) || many ? '' : ', measured on the code before the heap trim'} ([the row](${row('ratio-cpu')})).`,
     `- **Less memory than Gotenberg**: its container peaks at ${r('gotenberg', 'ours', 'peak')} the memory as it ships, and ${r('g-norestart', 'ours', 'peak')} without its restarts ([the row](${row('ratio-peak')})).`,
-    `- **The service it replaces, outrun**: ${r('ours', 'oracle', 'throughput')} moalhaddar/docx-to-pdf's throughput, which uses ${r('oracle', 'ours', 'cpu')} the CPU a conversion and ${r('oracle', 'ours', 'peak')} the memory ([the row](${row('ratio-throughput')})).`,
-    `- **A deflate bomb stopped at once**: \`${v(BOMB)}\`, a document that inflates past any limit, gets ${answer(deflate.ours)} at a ${mib(deflate.ours.peak)} MiB peak; Gotenberg answers ${answer(deflate.gotenberg)} while its LibreOffice goes on to ${mib(deflate.gotenberg.peak)} MiB, and moalhaddar/docx-to-pdf gives ${answer(deflate.moalhaddar)} at ${mib(deflate.moalhaddar.peak)} MiB, one run a side ([the row](${row(`torture-${BOMB}`)})).`,
+    `- **The service it replaces, outrun**: ${r('ours', 'oracle', 'throughput')} moalhaddar/docx-to-pdf's throughput at ${r('ours', 'oracle', 'cpu')} its CPU a conversion and ${r('ours', 'oracle', 'peak')} its memory ([the row](${row('ratio-throughput')})).`,
+    `- **Bombs stopped at once**: a deflate bomb, \`${v(BOMB)}\`, a document that inflates past any limit, and a picture bomb, \`${v(PICTURE_BOMB)}\`, eight gigapixel pictures, each get ${answer(cells.ours)} at a ${peak(cells.ours)} MiB peak; Gotenberg answers ${answer(cells.gotenberg)} while its LibreOffice goes on to ${peak(cells.gotenberg)} MiB, and moalhaddar/docx-to-pdf gives ${answer(cells.moalhaddar)}, at ${peak(deflate.moalhaddar)} MiB on the deflate bomb; ${many ? `the same answers in each of the ${v(runs.length)} runs` : 'one run a side'} ([the deflate bomb](${row(`torture-${BOMB}`)}), [the picture bomb](${row(`torture-${PICTURE_BOMB}`)})).`,
     '',
-    `Measured by \`make compare\` on ${at(results)}, on an ${v(h.cpu_model)} (${v(h.arch)}), ${setup.cpus} pinned vCPU and a pool of ${setup.pool} a service: mean ± σ (n) over ${setup.blocks} interleaved blocks, a ratio ± its standard error. ${measuredReadme(results.meta)} [Benchmarks](${SITE}/benchmarks/) has every figure, the rows where Gotenberg wins, and the raw results.`,
+    `${measured} ${measuredReadme(results.meta, many)} [Benchmarks](${SITE}/benchmarks/) has every figure${many ? ' of the latest run' : ''}, the rows where Gotenberg wins, and the raw results${many ? ' of every run' : ''}.`,
     '',
     END,
   ].join('\n')
@@ -340,10 +437,10 @@ export function wrap(text) {
 }
 
 /** The README's block as it must read: the headline, unmarked and wrapped. */
-export const readmeBlock = (results) => wrap(plain(headline(results)))
+export const readmeBlock = (results, earlier = []) => wrap(plain(headline(results, earlier)))
 
 /** The comparison guide's block as it must read. */
-export const guideBlock = (results) => wrap(plain(guide(results)))
+export const guideBlock = (results, earlier = []) => wrap(plain(guide(results, earlier)))
 
 // ---------------------------------------------------------------------------------------------------------------
 // The Benchmarks page
@@ -433,34 +530,65 @@ export function gotenbergRows(results, base = '') {
 // The four figures the ratio tables show.
 const RATIOS = ['throughput', 'cpu', 'p99', 'peak']
 
-/** Each service's figure over oxidestack/docx-to-pdf's, a row a figure; `head(id, label)` writes a row's first cell. */
-function ratioTable(f, head) {
+/**
+ * Each service's figure over oxidestack/docx-to-pdf's, a row a figure; `head(id, label)` writes a row's first cell.
+ * One run: its ratio ± the standard error and its 2σ verdict. Several: the range of their ratios, and how many runs
+ * gave each verdict.
+ */
+function ratioTable(runs, head) {
+  const figures = runs.map(speedFigures)
   const L = [`| | ${SPEED.slice(1).map(([, n]) => n).join(' | ')} |`, `| --- |${SPEED.slice(1).map(() => ' --- |').join('')}`]
   for (const [id, label, , , higher] of ROWS.filter(([id]) => RATIOS.includes(id))) {
     const cells = SPEED.slice(1).map(([s]) => {
-      const verdict = ahead(f.ours[id], f[s][id], higher)
-      return `${fmtRatio(ratio(f[s][id], f.ours[id]))} (${VERDICT[verdict].replace('Gotenberg', s === 'oracle' ? 'moalhaddar/docx-to-pdf' : 'Gotenberg')})`
+      const name = (verdict) => VERDICT[verdict].replace('Gotenberg', s === 'oracle' ? 'moalhaddar/docx-to-pdf' : 'Gotenberg')
+      const verdicts = figures.map((f) => ahead(f.ours[id], f[s][id], higher))
+      if (runs.length === 1) return `${ratioOver(runs, s, 'ours', id)} (${name(verdicts[0])})`
+      const counts = [1, 0, -1].map((x) => [x, verdicts.filter((y) => y === x).length]).filter(([, n]) => n)
+      const said =
+        counts.length === 1
+          ? `${name(counts[0][0])} in each of the ${v(runs.length)} runs`
+          : counts.map(([x, n], i) => `${name(x)} in ${v(n)}${i === 0 ? ` of ${v(runs.length)} runs` : ''}`).join(', ')
+      return `${ratioOver(runs, s, 'ours', id)} (${said})`
     })
     L.push(`| ${head(id, label)} | ${cells.join(' | ')} |`)
   }
   return L
 }
 
+// A cell's answer, time and peak, the part a range over the runs replaces.
+const ANSWER = /^(no answer|\d+) in [\d.]+ s; peak [\d ]+ MiB/
+
+/**
+ * A torture cell over the runs: when every run answered the case alike (the same answer, and the same pictures), the
+ * latest run's cell with its time and peak written as the ranges over the runs; otherwise the latest run's cell,
+ * said to be.
+ */
+export function tortureCell(runs, c, s) {
+  const find = (r) => r.torture.find((x) => x.case === c && x.subject === s)
+  const latest = find(runs.at(-1))
+  if (!latest) return '—'
+  const text = shortCell(latest.cell)
+  if (runs.length === 1) return v(text)
+  const each = runs.map((r) => find(r) && parseCell(find(r).cell))
+  const m = ANSWER.exec(text)
+  const alike = m && each.every((x) => x && x.status === each[0].status && x.pictures === each[0].pictures)
+  if (!alike) return `${v(text)} (the latest run)`
+  const peaks = span(each.map((x) => x.peak), mibText)
+  return `${answerIn(each[0].status, each.map((x) => x.seconds))}; peak ${peaks} MiB${v(text.slice(m[0].length))}`
+}
+
 /** The torture cases, a row a case (the soaks apart); `head(case)` writes a row's first cell. */
-function tortureTable(results, head) {
+function tortureTable(runs, head) {
   const L = [`| Case | ${TORTURE.map(([, n]) => n).join(' | ')} |`, `| --- |${TORTURE.map(() => ' --- |').join('')}`]
-  const cases = [...new Set(results.torture.filter((t) => t.kind !== 'soak').map((t) => t.case))]
+  const cases = [...new Set(runs.at(-1).torture.filter((t) => t.kind !== 'soak').map((t) => t.case))]
   for (const c of cases) {
-    const cells = TORTURE.map(([s]) => {
-      const t = results.torture.find((x) => x.case === c && x.subject === s)
-      return t ? v(shortCell(t.cell)) : '—'
-    })
+    const cells = TORTURE.map(([s]) => tortureCell(runs, c, s))
     L.push(`| ${head(c)} | ${cells.join(' | ')} |`)
   }
   return L
 }
 
-export function page(results) {
+export function page(results, earlier = []) {
   const f = speedFigures(results)
   const setup = cellSetup(results)
   const meta = results.meta
@@ -504,7 +632,7 @@ export function page(results) {
     'Each service\'s figure over oxidestack/docx-to-pdf\'s, the ratio of the means ± its standard error, from the same',
     'interleaved run. A ratio measured inside one run holds from one host to the next better than an absolute figure.',
     '',
-    ...ratioTable(f, (id, label) => `<a id="ratio-${id}"></a>${label}`),
+    ...ratioTable([results], (id, label) => `<a id="ratio-${id}"></a>${label}`),
   )
   const { wins, ties } = gotenbergRows(results)
   L.push(
@@ -526,7 +654,7 @@ export function page(results) {
     'Hostile and borderline documents, one run a side, each service as it ships: the answer, its time, the container\'s',
     'memory peak and, for a picture, how many pictures reached the PDF. Judged by the answer: the times and peaks have no σ.',
     '',
-    ...tortureTable(results, (c) => `<a id="torture-${c}"></a>\`${v(c)}\``),
+    ...tortureTable([results], (c) => `<a id="torture-${c}"></a>\`${v(c)}\``),
   )
   L.push(
     '',
@@ -541,6 +669,21 @@ export function page(results) {
   for (const [s, name] of SOAK) {
     const t = results.torture.find((x) => x.kind === 'soak' && x.subject === s)
     if (t) L.push(`| ${name} | ${v(t.cell.replace(/\|/g, '\\|'))} |`)
+  }
+  const before = runsOf(results, earlier).slice(0, -1)
+  if (before.length) {
+    L.push(
+      '',
+      '## Earlier runs',
+      '',
+      'The README and the comparison guide quote a ratio, a time or a peak as the range over this run and the earlier full',
+      'runs of the same command on the same kind of machine, whose raw results are these:',
+      '',
+      ...before.map(
+        (r) =>
+          `- [${at(r)}](/docx-to-pdf/benchmarks/earlier/${r.meta.stamp}.json), ${release(r.meta) ? `release ${v(release(r.meta))}` : 'the code of that day, built by the command'}`,
+      ),
+    )
   }
   L.push('', '## Versions', '', '| | Image |', '| --- | --- |')
   for (const [name, ref] of Object.entries(meta.images)) L.push(`| ${v(name)} | \`${v(ref)}\` |`)
@@ -591,39 +734,54 @@ const CASES = {
 /** The image's tag of a pinned reference, `name:tag@sha256:…`. */
 const tag = (ref) => ref.split('@')[0].split(':').at(-1)
 
-export function guide(results) {
-  const f = speedFigures(results)
+/** oxidestack/docx-to-pdf's soak in the latest run, as measured: its level over the first tenth and the second half. */
+function ourSoak(results) {
+  const t = results.torture.find((x) => x.kind === 'soak' && x.subject === 'ours')
+  const m = t && /^(\d+), (\d+) errors/.exec(t.cell)
+  const first = t && soakLevel(t.cell, 'the first tenth')
+  const half = t && soakLevel(t.cell)
+  if (!m || !first || !half) return ''
+  const level = (l) => `${v(fmt(l.mean, 0))} ± ${v(fmtSigma(l.mean, l.sd, 0))} MiB (${v(l.n)})`
+  return ` In the latest run's soak of oxidestack/docx-to-pdf, ${v(m[1])} conversions with ${v(m[2])} errors on one instance, LibreOffice's resident memory after each conversion read ${level(first)} over the first tenth and ${level(half)} over the second half, mean ± σ (n): one soak, a level measured, not a trend.`
+}
+
+export function guide(results, earlier = []) {
+  const runs = runsOf(results, earlier)
+  const many = runs.length > 1
   const setup = cellSetup(results)
   const meta = results.meta
   const h = meta.host
   const { wins, ties } = gotenbergRows(results, `${SITE}/benchmarks/`)
+  const which = many ? 'in the latest run' : 'in this run'
   // One logical line a paragraph or item; guideBlock() wraps them, and leaves the tables' rows whole.
   return [
     BEGIN,
     '',
     '## Speed and memory',
     '',
-    `Measured by \`make compare\` on ${at(results)}, on an ${v(h.cpu_model)} (${v(h.arch)}) virtual machine under ${v(h.hypervisor)}: ${setup.cpus} pinned vCPU, a pool of ${setup.pool} and ${setup.memory} of memory a service; a closed load of the typical reports ${setup.docs}; ${setup.conversions} conversions a service in each of ${setup.blocks} blocks, every block running each service once in a shuffled order, so a drift of the host moves them alike. Gotenberg ${v(tag(meta.images.Gotenberg))} ran twice, as it ships and with LibreOffice's restarts turned off. ${measuredGuide(meta)}`,
+    `Measured by \`make compare\` on ${at(results)}${many ? `, and in ${v(runs.length - 1)} earlier full runs on ${dates(runs.slice(0, -1))}, each` : ','} on an ${v(h.cpu_model)} (${v(h.arch)}) virtual machine${many ? ` of ${v(meta.vm_cpus)} vCPUs` : ''} under ${v(h.hypervisor)}: ${setup.cpus} pinned vCPU, a pool of ${setup.pool} and ${setup.memory} of memory a service; a closed load of the typical reports ${setup.docs}; ${setup.conversions} conversions a service in each of ${setup.blocks} blocks, every block running each service once in a shuffled order, so a drift of the host moves them alike. Gotenberg ${v(tag(meta.images.Gotenberg))} ran twice, as it ships and with LibreOffice's restarts turned off. ${measuredGuide(meta, many)}`,
     '',
-    `Each figure is the other service's over oxidestack/docx-to-pdf's, the ratio of the means ± its standard error, with the verdict of the 2σ test. A ratio measured inside one interleaved run holds from one host to the next better than an absolute figure; each row links the absolute figures on [Benchmarks](${SITE}/benchmarks/).`,
+    many
+      ? `Each figure is the other service's over oxidestack/docx-to-pdf's: each run's ratio of the means, and the range of those ratios over the ${v(runs.length)} runs, with how many runs gave each verdict of the 2σ test. A ratio measured inside one interleaved run holds from one host to the next better than an absolute figure, and still moves between virtual machines more than its own standard error, so the range is the figure to quote; each row links the latest run's ratio ± its standard error and its absolute figures on [Benchmarks](${SITE}/benchmarks/).`
+      : `Each figure is the other service's over oxidestack/docx-to-pdf's, the ratio of the means ± its standard error, with the verdict of the 2σ test. A ratio measured inside one interleaved run holds from one host to the next better than an absolute figure; each row links the absolute figures on [Benchmarks](${SITE}/benchmarks/).`,
     '',
-    ...ratioTable(f, (id, label) => `[${label}](${row(`ratio-${id}`)})`),
+    ...ratioTable(runs, (id, label) => `[${label}](${row(`ratio-${id}`)})`),
     '',
-    'Where Gotenberg is ahead of oxidestack/docx-to-pdf in this run:',
+    `Where Gotenberg is ahead of oxidestack/docx-to-pdf ${which}:`,
     '',
     ...(wins.length ? wins.map((w) => `- ${w}`) : ['- nowhere']),
     '',
-    'Where neither is ahead at 2σ:',
+    `Where neither is ahead at 2σ ${which}:`,
     '',
     ...(ties.length ? ties.map((t) => `- ${t}`) : ['- nowhere']),
     '',
     '## Hostile documents',
     '',
-    `Each case went to each service once, each service as it ships, in a fresh container with ${v(meta.torture_memory.replace(/g$/, ' GiB'))} of memory on vCPUs ${v(meta.torture_cpus)}, waiting up to ${v(meta.cap)} s for the answer: the answer, its time, the container's memory peak and, for a picture, how many pictures reached the PDF. The answers are set by limits, and so repeat; the times and peaks are one run a side, with no σ.`,
+    `Each case went to each service once${many ? ` in each of the ${v(runs.length)} runs` : ''}, each service as it ships, in a fresh container with ${v(meta.torture_memory.replace(/g$/, ' GiB'))} of memory on vCPUs ${v(meta.torture_cpus)}, waiting up to ${v(meta.cap)} s for the answer: the answer, its time, the container's memory peak and, for a picture, how many pictures reached the PDF. The answers are set by limits, and so repeat; the times and peaks are one run a side, with no σ.${many ? ' Where every run gave a case the same answer, its time and peak are the range over the runs, and the rest of the cell is the latest run\'s; a cell marked the latest run is that run\'s alone, its answer not the same in every run.' : ''}`,
     '',
-    ...tortureTable(results, (c) => `[\`${v(c)}\`](${row(`torture-${c}`)})${CASES[c] ? `, ${CASES[c]}` : ''}`),
+    ...tortureTable(runs, (c) => `[\`${v(c)}\`](${row(`torture-${c}`)})${CASES[c] ? `, ${CASES[c]}` : ''}`),
     '',
-    `The soaks, thousands of conversions on one LibreOffice, are on [Benchmarks](${row('soaks')}).`,
+    `The soaks, thousands of conversions on one LibreOffice, are on [Benchmarks](${row('soaks')}).${ourSoak(results)}`,
     '',
     END,
   ].join('\n')
@@ -655,31 +813,33 @@ function fileFindings(name, text, block) {
  * Every finding of the check: a stray digit in a generated text, a stale block, a figure outside it. The comparison
  * guide is checked when it is given.
  */
-export function check(results, readme, comparison) {
+export function check(results, readme, comparison, earlier = []) {
   const findings = []
-  for (const s of strays(page(results))) findings.push(`the Benchmarks page has a number not read from the results: …${s}…`)
-  for (const s of strays(headline(results))) findings.push(`the headline block has a number not read from the results: …${s}…`)
-  for (const s of strays(guide(results))) findings.push(`the comparison block has a number not read from the results: …${s}…`)
-  findings.push(...fileFindings('README.md', readme, readmeBlock(results)))
-  if (comparison !== undefined) findings.push(...fileFindings('docs/guide/comparison.md', comparison, guideBlock(results)))
+  for (const s of strays(page(results, earlier))) findings.push(`the Benchmarks page has a number not read from the results: …${s}…`)
+  for (const s of strays(headline(results, earlier))) findings.push(`the headline block has a number not read from the results: …${s}…`)
+  for (const s of strays(guide(results, earlier))) findings.push(`the comparison block has a number not read from the results: …${s}…`)
+  findings.push(...fileFindings('README.md', readme, readmeBlock(results, earlier)))
+  if (comparison !== undefined)
+    findings.push(...fileFindings('docs/guide/comparison.md', comparison, guideBlock(results, earlier)))
   return findings
 }
 
 function main() {
   const results = JSON.parse(readFileSync(RESULTS, 'utf8'))
+  const earlier = loadEarlier()
   if (process.argv.includes('--write-readme')) {
-    writeFileSync(README, withBlock(readFileSync(README, 'utf8'), readmeBlock(results)))
-    writeFileSync(GUIDE, withBlock(readFileSync(GUIDE, 'utf8'), guideBlock(results)))
+    writeFileSync(README, withBlock(readFileSync(README, 'utf8'), readmeBlock(results, earlier)))
+    writeFileSync(GUIDE, withBlock(readFileSync(GUIDE, 'utf8'), guideBlock(results, earlier)))
     console.log('README.md and docs/guide/comparison.md: the blocks rewritten from the results')
   }
-  const findings = check(results, readFileSync(README, 'utf8'), readFileSync(GUIDE, 'utf8'))
+  const findings = check(results, readFileSync(README, 'utf8'), readFileSync(GUIDE, 'utf8'), earlier)
   if (findings.length) {
     for (const f of findings) console.error(`evidence: ${f}`)
     process.exit(1)
   }
   mkdirSync(dirname(PAGE), { recursive: true })
-  writeFileSync(PAGE, plain(page(results)))
-  console.log(`evidence: the Benchmarks page and the two blocks from results.json (${results.meta.stamp})`)
+  writeFileSync(PAGE, plain(page(results, earlier)))
+  console.log(`evidence: the Benchmarks page and the two blocks from results.json (${results.meta.stamp}) and ${earlier.length} earlier runs`)
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
