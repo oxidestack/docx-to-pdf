@@ -3,9 +3,9 @@
 //! the allowlist admits, answers 422 and leaves the instance usable; every conversion's directory is gone.
 //! Whether the PDFs are equivalent to moalhaddar/docx-to-pdf's is the scenarios' question
 //! (`tests/scenarios/convert-*`). A stuck real instance (its process group stopped with `SIGSTOP`) answers
-//! 504 past the conversion timeout, and the next request is served by a fresh instance. moalhaddar/docx-to-pdf's
-//! never-ending document, `tdf38575_fullWidthLine.docx`, which hangs its LibreOffice 7.3, converts on LibreOffice 26.8, so it is
-//! checked as a 200.
+//! 504 past the conversion timeout, and the next request is served by a fresh instance. A document that never
+//! finishes on moalhaddar/docx-to-pdf, the corpus's `full-width-line.docx`, which hangs its LibreOffice 7.3, converts
+//! on LibreOffice 26.8, so it is checked as a 200.
 //!
 //! LibreOfficeKit does not run on macOS: this runs in `tools/instance-test/` (`run.sh`). Off Linux the
 //! LibreOffice tests are ignored with the reason; on a Linux without LibreOffice they print a skip and pass,
@@ -178,23 +178,17 @@ async fn upstreams_examples_convert_and_a_truncated_docx_is_422() {
     assert!(is_empty(&profiles), "a profile is left");
 }
 
-/// `tdf38575_fullWidthLine.docx`, a LibreOffice regression document (MPL), not in the repository: from
-/// `DOCX_TO_PDF_TDF38575`, else `/fixtures/docx/` (run.sh mounts `$DOCX_TO_PDF_FIXTURES` there), else
-/// `$DOCX_TO_PDF_FIXTURES/`, a local directory of LibreOffice's DOCX regression documents.
-fn tdf38575() -> Option<PathBuf> {
-    let name = "tdf38575_fullWidthLine.docx";
-    let candidates = [
-        std::env::var_os("DOCX_TO_PDF_TDF38575").map(PathBuf::from),
-        Some(Path::new("/fixtures/docx").join(name)),
-        std::env::var_os("DOCX_TO_PDF_FIXTURES").map(|dir| Path::new(&dir).join(name)),
-    ];
-    candidates.into_iter().flatten().find(|p| p.is_file())
+/// The corpus's `full-width-line.docx`: a full-width rectangle beside a picture anchored down the page's edge,
+/// the layout that hangs moalhaddar/docx-to-pdf's LibreOffice 7.3 (no answer in 300 s).
+fn full_width_line() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("tests/corpus/documents/features/full-width-line.docx")
 }
 
 /// The conversion timeout on a real instance that cannot finish: its process group stopped (`SIGSTOP`), as a hung
 /// LibreOffice would be. Past the conversion timeout: 504, the instance killed with its group (`SIGKILL` ends a
 /// stopped process) and its profile deleted, the next request served by a fresh instance, every directory
-/// gone. First, tdf38575, which never finishes on moalhaddar/docx-to-pdf, converts here.
+/// gone. First, full-width-line, which never finishes on moalhaddar/docx-to-pdf, converts here.
 #[tokio::test]
 #[cfg_attr(
     not(target_os = "linux"),
@@ -241,27 +235,18 @@ async fn a_stuck_instance_is_504_past_the_timeout_and_the_next_is_served_by_a_fr
     let state = AppState::new(readiness, &telemetry).with_upload(upload);
     state.set_pool(pool.clone());
     let app = router(state);
-    match tdf38575() {
-        Some(fixture) => {
-            let began = std::time::Instant::now();
-            let (status, _, pdf) = post(&app, &std::fs::read(&fixture).unwrap()).await;
-            eprintln!(
-                "tdf38575 on LibreOffice 26.8: {status} after {:?}",
-                began.elapsed()
-            );
-            assert_eq!(
-                status,
-                StatusCode::OK,
-                "the oracle hangs on it; 26.8 does not"
-            );
-            assert!(pdf.starts_with(b"%PDF-"));
-        }
-        None => eprintln!(
-            "tdf38575 part skipped: tdf38575_fullWidthLine.docx is not here (a LibreOffice test document, MPL, \
-             kept out of the repository; set DOCX_TO_PDF_TDF38575 or DOCX_TO_PDF_FIXTURES, or mount a directory \
-             holding it at /fixtures/docx)"
-        ),
-    }
+    let began = std::time::Instant::now();
+    let (status, _, pdf) = post(&app, &std::fs::read(full_width_line()).unwrap()).await;
+    eprintln!(
+        "full-width-line on LibreOffice 26.8: {status} after {:?}",
+        began.elapsed()
+    );
+    assert_eq!(
+        status,
+        StatusCode::OK,
+        "moalhaddar/docx-to-pdf's LibreOffice 7.3 hangs on it; 26.8 does not"
+    );
+    assert!(pdf.starts_with(b"%PDF-"));
 
     let first = {
         let lease = pool.acquire().await.unwrap();

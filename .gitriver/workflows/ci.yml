@@ -152,9 +152,7 @@ jobs:
     steps:
       # The submodule, LibreOffice 26.8 from the pinned snapshot, the fonts and fontconfig, poppler-utils.
       - run: sh tools/ci/test-deps.sh
-      # Every test binary runs even after one fails. `tdf38575_fullWidthLine.docx`, a LibreOffice regression document
-      # under the MPL, is kept out of the repository, so its test skips here with the reason, as it does locally
-      # without DOCX_TO_PDF_FIXTURES.
+      # Every test binary runs even after one fails.
       - run: cargo test --locked --no-fail-fast
 
   # The quality gates (tools/lint/lint.sh). Each image is the gate's pinned ref in tools/lint/images.Dockerfile,

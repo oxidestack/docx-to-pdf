@@ -8,7 +8,8 @@
 #   OUT=<dir>                      where inventories, PDFs and measurements go (default target/image-test). It
 #                                  must be shared with the Docker VM (a macOS Docker VM typically shares $HOME, not /tmp): the
 #                                  mounted-font test bind-mounts a directory from it. An inventory of the other architecture already in OUT is compared with this one.
-#   CJK_DOC=<path>                 tdf149089.docx (default $DOCX_TO_PDF_FIXTURES/tdf149089.docx; skipped if absent)
+#   CJK_DOC=<path>                 a Chinese document that must embed a Noto CJK font (default the corpus's
+#                                  tests/corpus/documents/features/chinese-spec.docx)
 #   READY_TIMEOUT=<s>              seconds to wait for /readyz (default 300: an emulated amd64 starts slowly)
 #
 # Every service container runs under the chart's security context (charts/docx-to-pdf): uid 10001 with no passwd
@@ -18,7 +19,7 @@ ROOT=$(cd "$(dirname "$0")/.." && pwd)
 IMAGE=${1:-docx-to-pdf:dev}
 NAME=${NAME:-docx-to-pdf-image-test}
 OUT=${OUT:-$ROOT/target/image-test}
-CJK_DOC=${CJK_DOC:-${DOCX_TO_PDF_FIXTURES:-/nonexistent}/tdf149089.docx}
+CJK_DOC=${CJK_DOC:-$ROOT/tests/corpus/documents/features/chinese-spec.docx}
 READY_TIMEOUT=${READY_TIMEOUT:-300}
 # A free font that is not in the image (OFL-1.1), from the image's own snapshot, pinned by hash.
 LOBSTER_URL=https://snapshot.debian.org/archive/debian/20261026T202550Z/pool/main/f/fonts-lobstertwo/fonts-lobster_2.0-3_all.deb
@@ -166,17 +167,14 @@ if [ -n "$port" ] && wait_ready "$port" > /dev/null; then
 		}
 	done
 	[ $all = 1 ] && ok "upstream's four examples convert (uid 10001, read-only root, /tmp on disk)"
-	if [ -f "$CJK_DOC" ]; then
-		if convert "$port" "$CJK_DOC" "$OUT/cjk-$ARCH.pdf"; then
-			fonts=$(pdffonts "$OUT/cjk-$ARCH.pdf" 2> /dev/null | awk 'NR > 2 { print $1 }' | sed 's/^[A-Z]\{6\}+//' | sort -u | tr '\n' ' ')
-			echo "        $(basename "$CJK_DOC") embeds: $fonts"
-			echo "$fonts" | grep -q 'NotoS[a-z]*CJK' && ok "the CJK document embeds a Noto CJK font" ||
-				fail "the CJK document embeds no Noto CJK font"
-		else
-			fail "converting $(basename "$CJK_DOC")"
-		fi
+	# Chinese text needs the image's Noto CJK fonts: without them LibreOffice substitutes a font with no CJK glyphs.
+	if convert "$port" "$CJK_DOC" "$OUT/cjk-$ARCH.pdf"; then
+		fonts=$(pdffonts "$OUT/cjk-$ARCH.pdf" 2> /dev/null | awk 'NR > 2 { print $1 }' | sed 's/^[A-Z]\{6\}+//' | sort -u | tr '\n' ' ')
+		echo "        $(basename "$CJK_DOC") embeds: $fonts"
+		echo "$fonts" | grep -q 'NotoS[a-z]*CJK' && ok "the CJK document embeds a Noto CJK font" ||
+			fail "the CJK document embeds no Noto CJK font"
 	else
-		echo "skip    the CJK document: no $CJK_DOC"
+		fail "converting $(basename "$CJK_DOC")"
 	fi
 	# SIGTERM reaches the binary through tini: the container stops by itself, well before Docker's 10 s SIGKILL.
 	t0=$(ms_now)
@@ -199,8 +197,7 @@ if [ -n "$port" ] && wait_ready "$port" > /dev/null; then
 	measure "tmpfs-kib after-ready (profile, fontconfig cache) $base"
 	all=1
 	for doc in "$ROOT/upstream/docx-to-pdf/examples/ex1/input.docx" "$ROOT/upstream/docx-to-pdf/examples/ex4/input.docx" \
-		${CJK_DOC:+"$CJK_DOC"}; do
-		[ -f "$doc" ] || continue
+		"$CJK_DOC"; do
 		label=$(basename "$(dirname "$doc")")-$(basename "$doc")
 		docker exec "$c" sh -c 'while :; do df -k /tmp | awk "NR == 2 { print \$3 }"; sleep 0.02; done' > "$OUT/tmpfs-samples.txt" 2> /dev/null &
 		sampler=$!
