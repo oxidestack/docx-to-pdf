@@ -72,11 +72,13 @@ end instead. moalhaddar/docx-to-pdf's soak stops at 1000 conversions, the length
 `--soak-moalhaddar` says otherwise: at about 0.3 conversions a second, 3000 would take hours on its own.
 
 A soak's row gives LibreOffice's memory over the first tenth and the second half, and two slopes: over the last nine
-tenths, and over the second half. The second half judges growth. A soak grows when its nine tenths rise at 2σ and its
-second half is not below that rise at 2σ. When the second half is below it, the memory climbed early and levelled off,
-and the row says so. The second half alone does not decide, because over 500 requests it cannot tell a slow climb
-from flat. A rise no steeper than the row's floor, 1 % of the second half's level per 1000 conversions, does not
-grow: at a spread of 1 MiB a 3000-conversion soak resolves a fraction of a MiB per 1000 from zero, which is no leak.
+tenths, and over the second half. A soak rose when its nine tenths rise at 2σ and more steeply than the row's floor,
+1 % of the second half's level per 1000 conversions; under the floor it does not grow: at a spread of 1 MiB a
+3000-conversion soak resolves a fraction of a MiB per 1000 from zero, which is no leak. The second half then says
+whether it still rises. When the second half is below the rise at 2σ, the memory climbed early and levelled off. It
+grows when the second half itself rises at 2σ and more steeply than the floor. When the second half shows neither,
+the row says the second half is unresolved: over 500 requests a slow climb under a wide spread cannot be told from
+flat, and a step early in the soak fits as a rise over nine tenths that a flat second half is not below at 2σ.
 The nine-tenths slope is still printed and kept in `results.json`, so older runs stay comparable.
 
 ## What it does not show

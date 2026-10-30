@@ -169,12 +169,30 @@ class Soak(unittest.TestCase):
         s = self.summary(lambda i: 450)
         self.assertEqual(s["result"]["growth"], "does not grow")
 
-    def test_growth_too_slow_for_the_second_half_to_resolve_still_grows(self):
+    def test_a_rise_the_second_half_cannot_resolve_says_so(self):
         # moalhaddar/docx-to-pdf's soak on its reports: 1000 requests, +46 MiB per 1000 under a 65 MiB spread. The
-        # second half alone cannot tell that from flat, but it is not below the nine tenths' climb either.
+        # second half alone cannot tell that from flat, nor is it below the nine tenths' climb: neither "grows" nor
+        # "levels off" is shown.
         s = self.summary(lambda i: 290 + 0.046 * i, n=1000, sd=65)
+        self.assertGreater(s["result"]["slope_per_1000"], 2 * s["result"]["slope_se"])
         self.assertLess(s["result"]["slope_second_half_per_1000"], 2 * s["result"]["slope_second_half_se"])
-        self.assertEqual(s["result"]["growth"], "grows")
+        self.assertEqual(s["result"]["growth"], compare.UNRESOLVED)
+        self.assertTrue(s["cell"].endswith(f"(1 % of the level): {compare.UNRESOLVED}"), s["cell"])
+
+    def test_grows_needs_the_second_half_resolved_from_zero(self):
+        # Gotenberg without restarts, one series on record: nine tenths +4.6 ± 1.4 over a floor of 3.3, second half
+        # +0.1 ± 3.4. The rise is resolved, the second half is flat, and not below the rise at 2σ either.
+        self.assertEqual(compare.growth(4.6, 1.4, 0.1, 3.4, floor=3.3), compare.UNRESOLVED)
+        self.assertEqual(compare.growth(4.6, 1.4, 6.7, 3.4, floor=3.3), compare.UNRESOLVED)
+        self.assertEqual(compare.growth(4.6, 1.4, 6.9, 3.4, floor=3.3), "grows")
+
+    def test_grows_needs_the_second_half_over_the_floor(self):
+        # Resolved from zero at 2σ, but no steeper than the floor: the end of the soak is not shown to rise.
+        self.assertEqual(compare.growth(5.0, 1.0, 3.5, 1.0, floor=4.0), compare.UNRESOLVED)
+        self.assertEqual(compare.growth(5.0, 1.0, 4.5, 1.0, floor=4.0), "grows")
+
+    def test_a_second_half_below_the_rise_still_levels_off(self):
+        self.assertEqual(compare.growth(42.3, 1.2, 5.6, 2.9, floor=5.3), "levels off")
 
     def test_a_resolved_rise_under_the_floor_does_not_grow(self):
         # The release image's soak: 391 MiB, 1 MiB from one request to the next, +0.5 MiB per 1000. The fit resolves

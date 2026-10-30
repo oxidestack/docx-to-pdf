@@ -586,18 +586,26 @@ def growth_floor(level):
     return GROWTH_FLOOR * level
 
 
+# A rise over the nine tenths whose second half shows neither that it still rises nor that it stopped.
+UNRESOLVED = "rose, second half unresolved"
+
+
 def growth(slope, se, half, half_se, floor=0.0):
     """Whether a soak's memory grows. The nine tenths' slope says whether it rose; the second half's says whether it
-    still rises at the end. A climb that stops early and a plateau fit as a rise over nine tenths, but the second half
-    is flat, below that rise at 2σ: it levels off. The second half alone does not judge: a slow climb under a wide
-    spread (a 1000-request soak) is not resolved from zero over 500 requests, and over 1500 a fraction of a MiB per
-    1000 already is. A rise resolved but no steeper than `floor` MiB per 1000 does not grow either: at a tight spread
-    the fit resolves rises too small to matter."""
+    still rises at the end. A rise resolved but no steeper than `floor` MiB per 1000 does not grow: at a tight spread
+    the fit resolves rises too small to matter. A climb that stops early and a plateau fit as a rise over nine tenths,
+    but the second half is flat, below that rise at 2σ: it levels off. It grows only when the second half itself rises,
+    resolved from zero at 2σ and steeper than the floor: a step early in the soak fits as a rise over nine tenths
+    that the second half, flat, need not be below at 2σ. When the second half shows neither, the verdict says so
+    (UNRESOLVED): a slow climb under a wide spread (a 1000-request soak) is not resolved over 500 requests, and a
+    flat end is not resolved from it."""
     if slope is None or slope <= 2 * se or slope <= floor:
         return "does not grow"
     if half is not None and slope - half > 2 * (se**2 + half_se**2) ** 0.5:
         return "levels off"
-    return "grows"
+    if half is not None and half > max(2 * half_se, floor):
+        return "grows"
+    return UNRESOLVED
 
 
 def soak_summary(path):
