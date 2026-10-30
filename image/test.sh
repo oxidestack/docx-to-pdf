@@ -67,19 +67,22 @@ in_image() { docker run --rm --platform "$PLATFORM" --name "$NAME-sh-$$" --entry
 # shellcheck disable=SC2016 # the script runs in the image, which expands it there
 in_image '
 	echo "user $(id -u):$(id -g)"
-	dpkg-query -W -f "\${Package} \${Version}\n" libreoffice-core-nogui libreoffice-writer-nogui libreoffice-math-nogui libreoffice-uiconfig-writer fonts-opensymbol
+	dpkg-query -W -f "\${Package} \${Version}\n" libreoffice-core-nogui libreoffice-writer-nogui libreoffice-math-nogui libreoffice-calc-nogui libreoffice-uiconfig-writer fonts-opensymbol
 	dpkg-query -W -f "\${Package} \${Version}\n" | grep "^fonts-" | sort
 	fc-list : family | sort -u | sha256sum | sed "s/ .*//; s/^/families-sha256 /"
 	echo "families $(fc-list : family | sort -u | wc -l)"
 	echo "font-files $(fc-list : file | wc -l)"
 ' > "$OUT/inventory-$ARCH.txt" 2>&1 || fail "inventory: $(tail -1 "$OUT/inventory-$ARCH.txt")"
-sed -n '1,5p;/^families/p;/^font-files/p' "$OUT/inventory-$ARCH.txt" | sed 's/^/        /'
+sed -n '1,7p;/^families/p;/^font-files/p' "$OUT/inventory-$ARCH.txt" | sed 's/^/        /'
 grep -q '^user 10001:10001$' "$OUT/inventory-$ARCH.txt" && ok "runs as uid 10001" || fail "the image's user is not 10001:10001"
 grep -q '^libreoffice-core-nogui 4:26\.8\.' "$OUT/inventory-$ARCH.txt" && ok "LibreOffice 26.8" ||
 	fail "libreoffice-core-nogui is not 26.8"
 # Without it a LOK load of any document with a comment fails.
 grep -q '^libreoffice-uiconfig-writer ' "$OUT/inventory-$ARCH.txt" && ok "libreoffice-uiconfig-writer installed" ||
 	fail "libreoffice-uiconfig-writer is missing (documents with comments do not load)"
+# Without it an embedded spreadsheet draws nothing, neither its cells nor its preview picture.
+grep -q '^libreoffice-calc-nogui ' "$OUT/inventory-$ARCH.txt" && ok "libreoffice-calc-nogui installed" ||
+	fail "libreoffice-calc-nogui is missing (an embedded spreadsheet draws nothing)"
 # Without it, parallel first starts as root race to create it and one exits 1.
 in_image 'test -d /var/spool/libreoffice/uno_packages/cache/uno_packages' > /dev/null 2>&1 &&
 	ok "the shared extension folder exists" ||

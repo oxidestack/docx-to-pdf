@@ -52,9 +52,12 @@ ARG EXTRA_FONTS=1
 # Packages from one dated snapshot: trixie, its updates, its security updates and its backports. Trivy found fixed
 # Debian security advisories missing (expat), because trixie-security, a separate archive on snapshot.debian.org, was
 # not a source; it is now, at the same date, and the base image's packages are upgraded to it. LibreOffice (writer,
-# core, math; no X11/GTK, no Python, no JRE) and OpenSymbol from backports (the default candidate is 25.2, so backports
-# is asked for by name); math because without it formula objects are not drawn. moalhaddar/docx-to-pdf's font
-# families from trixie. tini is PID 1: SIGTERM reaches the binary, and an orphan of a killed instance is reaped.
+# core, math, calc; no X11/GTK, no Python, no JRE) and OpenSymbol from backports (the default candidate is 25.2, so
+# backports is asked for by name); math because without it formula objects are not drawn, calc because without it an
+# embedded spreadsheet (an OLE object of class Excel.Sheet.12) draws nothing, neither its cells nor its preview
+# picture: the import builds a Calc object from the embedded workbook and keeps no replacement graphic.
+# moalhaddar/docx-to-pdf's font families from trixie. tini is PID 1: SIGTERM reaches the binary, and an orphan of a
+# killed instance is reaped.
 # EXTRA_FONTS adds the broad free coverage moalhaddar/docx-to-pdf lacks (CJK, UI families, emoji; OFL-1.1 /
 # Apache-2.0): the more fonts, the fewer substitutions. libreoffice-uiconfig-writer, which writer-nogui does not pull
 # in; without modules/swriter/ui/annotation.ui a LOK load of any document with a comment fails ("empty reference").
@@ -71,7 +74,8 @@ RUN rm -f /etc/apt/sources.list.d/* /etc/apt/sources.list \
  && apt-get -o Acquire::Check-Valid-Until=false -o Acquire::Retries=3 update \
  && apt-get -o Acquire::Retries=3 upgrade -y --no-install-recommends \
  && apt-get -o Acquire::Retries=3 install -y --no-install-recommends -t trixie-backports \
-      libreoffice-writer-nogui libreoffice-core-nogui libreoffice-math-nogui libreoffice-uiconfig-writer fonts-opensymbol \
+      libreoffice-writer-nogui libreoffice-core-nogui libreoffice-math-nogui libreoffice-calc-nogui \
+      libreoffice-uiconfig-writer fonts-opensymbol \
  && apt-get -o Acquire::Retries=3 install -y --no-install-recommends \
       tini fontconfig fonts-crosextra-carlito fonts-crosextra-caladea fonts-dejavu fonts-liberation \
       fonts-liberation-sans-narrow fonts-linuxlibertine fonts-noto-core fonts-noto-extra fonts-noto-mono \

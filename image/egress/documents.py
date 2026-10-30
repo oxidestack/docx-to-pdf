@@ -4,6 +4,7 @@ serves content on PUBLIC:80 (a public address, 198.18.0.0/15 in the test), `int`
 answering on PRIVATE:81 (a private address, as a cluster service would have), `tls` is HTTPS to the first; `file`
 is a local file of the image. Usage: documents.py OUT [PUBLIC PRIVATE] (default 203.0.113.10 10.231.0.10)"""
 
+import io
 import os
 import struct
 import sys
@@ -119,6 +120,57 @@ def chart_part(ext_rid):
     )
 
 
+def workbook(u):
+    """An .xlsx that reaches for u twice on a recalculation, which fullCalcOnLoad asks for: a WEBSERVICE formula and
+    a cell of an external workbook (an externalLink part with an external target)."""
+    x = "http://schemas.openxmlformats.org/spreadsheetml/2006/main"
+    rel = '<?xml version="1.0"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+    out = io.BytesIO()
+    with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
+        z.writestr(
+            "[Content_Types].xml",
+            '<?xml version="1.0"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+            '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
+            '<Default Extension="xml" ContentType="application/xml"/>'
+            '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'
+            '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'
+            '<Override PartName="/xl/externalLinks/externalLink1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.externalLink+xml"/>'
+            "</Types>",
+        )
+        z.writestr(
+            "_rels/.rels",
+            rel + f'<Relationship Id="rId1" Type="{REL}/officeDocument" Target="xl/workbook.xml"/></Relationships>',
+        )
+        z.writestr(
+            "xl/workbook.xml",
+            f'<?xml version="1.0"?><workbook xmlns="{x}" xmlns:r="{REL}"><sheets><sheet name="Sheet1" sheetId="1" r:id="rId1"/></sheets>'
+            '<externalReferences><externalReference r:id="rId2"/></externalReferences><calcPr fullCalcOnLoad="1"/></workbook>',
+        )
+        z.writestr(
+            "xl/_rels/workbook.xml.rels",
+            rel + f'<Relationship Id="rId1" Type="{REL}/worksheet" Target="worksheets/sheet1.xml"/>'
+            f'<Relationship Id="rId2" Type="{REL}/externalLink" Target="externalLinks/externalLink1.xml"/></Relationships>',
+        )
+        z.writestr(
+            "xl/worksheets/sheet1.xml",
+            f'<?xml version="1.0"?><worksheet xmlns="{x}"><sheetData><row r="1">'
+            f'<c r="A1" t="str"><f>WEBSERVICE("{u}")</f><v>old</v></c><c r="B1"><f>[1]Sheet1!A1</f><v>1</v></c>'
+            "</row></sheetData></worksheet>",
+        )
+        z.writestr(
+            "xl/externalLinks/externalLink1.xml",
+            f'<?xml version="1.0"?><externalLink xmlns="{x}" xmlns:r="{REL}"><externalBook r:id="rId1"><sheetNames>'
+            '<sheetName val="Sheet1"/></sheetNames><sheetDataSet><sheetData sheetId="0"><row r="1"><cell r="A1"><v>1</v></cell>'
+            "</row></sheetData></sheetDataSet></externalBook></externalLink>",
+        )
+        z.writestr(
+            "xl/externalLinks/_rels/externalLink1.xml.rels",
+            rel
+            + f'<Relationship Id="rId1" Type="{REL}/externalLinkPath" Target="{u}" TargetMode="External"/></Relationships>',
+        )
+    return out.getvalue()
+
+
 def docx_kinds():
     yield (
         "d-linked-image",
@@ -178,6 +230,26 @@ def docx_kinds():
                 'r:id="rIdO" UpdateMode="Always"><o:LinkType>EnhancedMetaFile</o:LinkType></o:OLEObject></w:object></w:r></w:p>'
             ),
             rels=[("rIdE", "image", "media/fallback.png", False), ("rIdO", "oleObject", u, True)],
+        ),
+    )
+    # An embedded spreadsheet is loaded by Calc, which the image carries so that its cells are drawn.
+    yield (
+        "d-ole-embedded-sheet",
+        "xlsx",
+        False,
+        lambda u: dict(
+            body=(
+                '<w:p><w:r><w:object w:dxaOrig="1440" w:dyaOrig="1440"><v:shape id="ole2" style="width:72pt;height:72pt">'
+                '<v:imagedata r:id="rIdE"/></v:shape><o:OLEObject Type="Embed" ProgID="Excel.Sheet.12" ShapeID="ole2" '
+                'DrawAspect="Content" ObjectID="_1" r:id="rIdP"/></w:object></w:r></w:p>'
+            ),
+            rels=[("rIdE", "image", "media/fallback.png", False), ("rIdP", "package", "embeddings/Sheet1.xlsx", False)],
+            parts={
+                "word/embeddings/Sheet1.xlsx": (
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    workbook(u),
+                ),
+            },
         ),
     )
     yield (

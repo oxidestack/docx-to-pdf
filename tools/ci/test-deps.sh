@@ -48,8 +48,9 @@ printf 'Types: deb\nURIs: http://snapshot.debian.org/archive/debian/%s/\nSuites:
 apt-get -o Acquire::Check-Valid-Until=false -o Acquire::Retries=3 update -qq
 # libreoffice-uiconfig-writer, which writer-nogui does not pull in; without
 # modules/swriter/ui/annotation.ui a LOK load of any document with a comment fails ("empty reference").
+# calc, as in the image: without it an embedded Excel.Sheet.12 object draws nothing.
 apt-get install -y -qq --no-install-recommends -o Acquire::Retries=3 -t trixie-backports \
-	libreoffice-writer-nogui libreoffice-core-nogui libreoffice-math-nogui libreoffice-uiconfig-writer \
+	libreoffice-writer-nogui libreoffice-core-nogui libreoffice-math-nogui libreoffice-calc-nogui libreoffice-uiconfig-writer \
 	fonts-opensymbol > /dev/null
 apt-get install -y -qq --no-install-recommends -o Acquire::Retries=3 \
 	fontconfig fonts-crosextra-carlito fonts-crosextra-caladea fonts-dejavu fonts-liberation \

@@ -2,7 +2,6 @@ name	check	divergence
 features-full-width-line	converts	the deliberate difference: full-width-line.docx hangs moalhaddar/docx-to-pdf
 features-arabic-lists	text	the deliberate difference: text that LibreOffice 7.3 and 26.8 lay out or extract differently
 features-bidi-worksheet	text	the deliberate difference: text that LibreOffice 7.3 and 26.8 lay out or extract differently
-features-chart-ole-textbox	text	the deliberate difference: text that LibreOffice 7.3 and 26.8 lay out or extract differently
 features-chinese-spec	text	the deliberate difference: a document with Chinese, Japanese or Korean text
 features-drop-cap-dashes	text	the deliberate difference: text that LibreOffice 7.3 and 26.8 lay out or extract differently
 features-equation-captions	text	the deliberate difference: text that LibreOffice 7.3 and 26.8 lay out or extract differently
@@ -19,7 +18,6 @@ features-toc-styleref	text	the deliberate difference: text that LibreOffice 7.3 
 features-tracked-table-cells	text	the deliberate difference: text that LibreOffice 7.3 and 26.8 lay out or extract differently
 features-tracked-table-columns	text	the deliberate difference: text that LibreOffice 7.3 and 26.8 lay out or extract differently
 objects-Bug54849	text	the deliberate difference: text that LibreOffice 7.3 and 26.8 lay out or extract differently
-objects-WordWithAttachments	text	the deliberate difference: text that LibreOffice 7.3 and 26.8 lay out or extract differently
 features-chinese-spec	pages	the deliberate difference: a document with Chinese, Japanese or Korean text
 features-endnote-continuation	pages	the deliberate difference: text that LibreOffice 7.3 and 26.8 lay out or extract differently
 objects-Bug54849	pages	the deliberate difference: text that LibreOffice 7.3 and 26.8 lay out or extract differently
