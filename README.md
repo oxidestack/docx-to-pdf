@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/oxidestack/docx-to-pdf/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/oxidestack/docx-to-pdf/actions/workflows/ci.yml?query=branch%3Amain)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/oxidestack/docx-to-pdf/badge)](https://scorecard.dev/viewer/?uri=github.com/oxidestack/docx-to-pdf)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/16076/badge)](https://www.bestpractices.dev/projects/16076)
 
 **Documentation: [oxidestack.github.io/docx-to-pdf](https://oxidestack.github.io/docx-to-pdf/)**
 
