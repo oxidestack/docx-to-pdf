@@ -75,7 +75,9 @@ A soak's row gives LibreOffice's memory over the first tenth and the second half
 tenths, and over the second half. The second half judges growth. A soak grows when its nine tenths rise at 2σ and its
 second half is not below that rise at 2σ. When the second half is below it, the memory climbed early and levelled off,
 and the row says so. The second half alone does not decide, because over 500 requests it cannot tell a slow climb
-from flat. The nine-tenths slope is still printed and kept in `results.json`, so older runs stay comparable.
+from flat. A rise no steeper than the row's floor, 1 % of the second half's level per 1000 conversions, does not
+grow: at a spread of 1 MiB a 3000-conversion soak resolves a fraction of a MiB per 1000 from zero, which is no leak.
+The nine-tenths slope is still printed and kept in `results.json`, so older runs stay comparable.
 
 ## What it does not show
 

@@ -573,13 +573,27 @@ def fit(points):
     return b * 1000, (residual / (len(points) - 2) / den) ** 0.5 * 1000
 
 
-def growth(slope, se, half, half_se):
+# The smallest rise a soak calls growth, as a fraction of its level per 1000 conversions. At a 1 MiB spread a
+# 3000-conversion soak resolves a fraction of a MiB per 1000 from zero; a rise that small is no leak an operator could
+# act on. 1 % per 1000 is 4 MiB on a 400 MiB LibreOffice, 0.8 MiB over the 200 conversions an instance lives by default
+# and 10 % over 10 000 without recycling, while the climbs of Gotenberg and moalhaddar/docx-to-pdf on record ran at
+# 7 % or more.
+GROWTH_FLOOR = 0.01
+
+
+def growth_floor(level):
+    """The floor in MiB per 1000 conversions for a soak whose LibreOffice sits at `level` MiB."""
+    return GROWTH_FLOOR * level
+
+
+def growth(slope, se, half, half_se, floor=0.0):
     """Whether a soak's memory grows. The nine tenths' slope says whether it rose; the second half's says whether it
     still rises at the end. A climb that stops early and a plateau fit as a rise over nine tenths, but the second half
     is flat, below that rise at 2σ: it levels off. The second half alone does not judge: a slow climb under a wide
     spread (a 1000-request soak) is not resolved from zero over 500 requests, and over 1500 a fraction of a MiB per
-    1000 already is."""
-    if slope is None or slope <= 2 * se:
+    1000 already is. A rise resolved but no steeper than `floor` MiB per 1000 does not grow either: at a tight spread
+    the fit resolves rises too small to matter."""
+    if slope is None or slope <= 2 * se or slope <= floor:
         return "does not grow"
     if half is not None and slope - half > 2 * (se**2 + half_se**2) ** 0.5:
         return "levels off"
@@ -589,7 +603,7 @@ def growth(slope, se, half, half_se):
 def soak_summary(path):
     """A soak's soak.tsv: LibreOffice's RSS after each request as mean ± σ (n) over the first tenth and the second
     half; the least-squares slope over the last nine tenths and over the second half, each ± its standard error; and
-    whether the memory grows, judged by both (growth())."""
+    whether the memory grows, judged by both against a floor of 1 % of the second half's level (growth())."""
     rows = []
     with open(path) as f:
         f.readline()
@@ -605,14 +619,15 @@ def soak_summary(path):
     second = stats([v for i, v in live if i >= half]) or (0, None, 0)
     slope, se = fit([(i, v) for i, v in live if i >= tenth])
     half_slope, half_se = fit([(i, v) for i, v in live if i >= half])
-    verdict = growth(slope, se, half_slope, half_se)
+    floor = growth_floor(second[0])
+    verdict = growth(slope, se, half_slope, half_se, floor)
     cell = (
         f"{len(rows)}, {errors} errors; LibreOffice RSS {rss_cell(first)} over the first tenth / "
         f"{rss_cell(second)} over the second half; "
         + (f"{slope:+.1f} ± {se:.1f} MiB per 1000" if slope is not None else "— MiB per 1000")
         + " over the last nine tenths, "
         + (f"{half_slope:+.1f} ± {half_se:.1f}" if half_slope is not None else "—")
-        + f" over the second half: {verdict}"
+        + f" over the second half; floor {floor:.1f} MiB per 1000 ({GROWTH_FLOOR * 100:g} % of the level): {verdict}"
     )
     result = {
         "rows": len(rows),
@@ -621,6 +636,7 @@ def soak_summary(path):
         "slope_se": se,
         "slope_second_half_per_1000": half_slope,
         "slope_second_half_se": half_se,
+        "growth_floor_per_1000": floor,
         "growth": verdict,
     }
     return {"result": result, "cell": cell}
@@ -818,7 +834,9 @@ def render(results, base=None):
                     + " A soak's memory is the mean ± σ (n) of LibreOffice's RSS after each request, and its slopes "
                     "the least-squares fits over the last nine tenths and over the second half ± their standard "
                     "errors. The second half judges growth: a soak grows when its nine tenths rise at 2σ and its "
-                    "second half is not below that rise at 2σ; when it is, the memory climbed and levelled off."
+                    "second half is not below that rise at 2σ; when it is, the memory climbed and levelled off. A "
+                    "rise no steeper than 1 % of the second half's level per 1000 conversions, the row's floor, does "
+                    "not grow."
                     if soak_n and not quick
                     else ""
                 ),

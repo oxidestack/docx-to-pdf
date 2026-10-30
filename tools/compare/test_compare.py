@@ -156,7 +156,7 @@ class Soak(unittest.TestCase):
         s = self.summary(lambda i: 316 + 64 * min(max(i - 900, 0), 900) / 900)
         self.assertGreater(s["result"]["slope_per_1000"], 2 * s["result"]["slope_se"])
         self.assertEqual(s["result"]["growth"], "levels off")
-        self.assertTrue(s["cell"].endswith("over the second half: levels off"), s["cell"])
+        self.assertTrue(s["cell"].endswith("(1 % of the level): levels off"), s["cell"])
 
     def test_steady_growth_grows(self):
         s = self.summary(lambda i: 300 + 0.03 * i)
@@ -175,6 +175,31 @@ class Soak(unittest.TestCase):
         s = self.summary(lambda i: 290 + 0.046 * i, n=1000, sd=65)
         self.assertLess(s["result"]["slope_second_half_per_1000"], 2 * s["result"]["slope_second_half_se"])
         self.assertEqual(s["result"]["growth"], "grows")
+
+    def test_a_resolved_rise_under_the_floor_does_not_grow(self):
+        # The release image's soak: 391 MiB, 1 MiB from one request to the next, +0.5 MiB per 1000. The fit resolves
+        # the rise, but 1.5 MiB over 3000 conversions is not growth.
+        s = self.summary(lambda i: 390 + 0.0005 * i, sd=1)
+        self.assertGreater(s["result"]["slope_per_1000"], 2 * s["result"]["slope_se"])
+        self.assertAlmostEqual(s["result"]["growth_floor_per_1000"], 3.9, delta=0.1)
+        self.assertEqual(s["result"]["growth"], "does not grow")
+
+    def test_a_rise_over_the_floor_grows(self):
+        # 2 % of the level per 1000 at the same tight spread.
+        s = self.summary(lambda i: 300 + 0.006 * i, sd=1)
+        self.assertGreater(s["result"]["slope_per_1000"], s["result"]["growth_floor_per_1000"])
+        self.assertEqual(s["result"]["growth"], "grows")
+
+    def test_the_floor_is_one_percent_of_the_level_either_side(self):
+        self.assertEqual(compare.growth(3.9, 0.1, 3.9, 0.2, floor=4.0), "does not grow")
+        self.assertEqual(compare.growth(4.1, 0.1, 4.1, 0.2, floor=4.0), "grows")
+        self.assertEqual(compare.growth_floor(400), 4.0)
+
+    def test_the_cell_names_the_floor(self):
+        s = self.summary(lambda i: 390 + 0.0005 * i, sd=1)
+        self.assertRegex(
+            s["cell"], r"over the second half; floor 3\.9 MiB per 1000 \(1 % of the level\): does not grow$"
+        )
 
     def test_the_nine_tenths_slope_stays_for_older_results(self):
         s = self.summary(lambda i: 300 + 0.03 * i)

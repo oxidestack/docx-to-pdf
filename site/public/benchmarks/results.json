@@ -5768,9 +5768,10 @@
     "slope_se": 0.023434940237227968,
     "slope_second_half_per_1000": 0.5163309655915402,
     "slope_second_half_se": 0.05438772522236989,
-    "growth": "grows"
+    "growth_floor_per_1000": 3.9130408854166667,
+    "growth": "does not grow"
    },
-   "cell": "3000, 0 errors; LibreOffice RSS 390 \u00b1 1 MiB (300 requests) over the first tenth / 391 \u00b1 1 MiB (1500 requests) over the second half; +0.6 \u00b1 0.0 MiB per 1000 over the last nine tenths, +0.5 \u00b1 0.1 over the second half: grows"
+   "cell": "3000, 0 errors; LibreOffice RSS 390 \u00b1 1 MiB (300 requests) over the first tenth / 391 \u00b1 1 MiB (1500 requests) over the second half; +0.6 \u00b1 0.0 MiB per 1000 over the last nine tenths, +0.5 \u00b1 0.1 over the second half; floor 3.9 MiB per 1000 (1 % of the level): does not grow"
   },
   {
    "case": "soak",
@@ -5783,9 +5784,10 @@
     "slope_se": 1.5573735357847263,
     "slope_second_half_per_1000": 6.04606030140021,
     "slope_second_half_se": 3.828247216683606,
+    "growth_floor_per_1000": 2.8927396412037036,
     "growth": "does not grow"
    },
-   "cell": "3000, 0 errors; LibreOffice RSS 287 \u00b1 57 MiB (270 requests) over the first tenth / 289 \u00b1 61 MiB (1350 requests) over the second half; +1.4 \u00b1 1.6 MiB per 1000 over the last nine tenths, +6.0 \u00b1 3.8 over the second half: does not grow"
+   "cell": "3000, 0 errors; LibreOffice RSS 287 \u00b1 57 MiB (270 requests) over the first tenth / 289 \u00b1 61 MiB (1350 requests) over the second half; +1.4 \u00b1 1.6 MiB per 1000 over the last nine tenths, +6.0 \u00b1 3.8 over the second half; floor 2.9 MiB per 1000 (1 % of the level): does not grow"
   },
   {
    "case": "soak",
@@ -5798,9 +5800,10 @@
     "slope_se": 1.4524985616949224,
     "slope_second_half_per_1000": 55.00442935613527,
     "slope_second_half_se": 3.6142043780020865,
+    "growth_floor_per_1000": 3.465081953125,
     "growth": "grows"
    },
-   "cell": "3000, 0 errors; LibreOffice RSS 326 \u00b1 64 MiB (300 requests) over the first tenth / 347 \u00b1 65 MiB (1500 requests) over the second half; +24.6 \u00b1 1.5 MiB per 1000 over the last nine tenths, +55.0 \u00b1 3.6 over the second half: grows"
+   "cell": "3000, 0 errors; LibreOffice RSS 326 \u00b1 64 MiB (300 requests) over the first tenth / 347 \u00b1 65 MiB (1500 requests) over the second half; +24.6 \u00b1 1.5 MiB per 1000 over the last nine tenths, +55.0 \u00b1 3.6 over the second half; floor 3.5 MiB per 1000 (1 % of the level): grows"
   },
   {
    "case": "soak",
@@ -5813,9 +5816,10 @@
     "slope_se": 7.87566563858208,
     "slope_second_half_per_1000": -26.943238835455343,
     "slope_second_half_se": 17.433488908559386,
+    "growth_floor_per_1000": 3.290871640625,
     "growth": "levels off"
    },
-   "cell": "1000, 0 errors; LibreOffice RSS 304 \u00b1 75 MiB (100 requests) over the first tenth / 329 \u00b1 56 MiB (500 requests) over the second half; +30.3 \u00b1 7.9 MiB per 1000 over the last nine tenths, -26.9 \u00b1 17.4 over the second half: levels off"
+   "cell": "1000, 0 errors; LibreOffice RSS 304 \u00b1 75 MiB (100 requests) over the first tenth / 329 \u00b1 56 MiB (500 requests) over the second half; +30.3 \u00b1 7.9 MiB per 1000 over the last nine tenths, -26.9 \u00b1 17.4 over the second half; floor 3.3 MiB per 1000 (1 % of the level): levels off"
   }
  ]
 }
