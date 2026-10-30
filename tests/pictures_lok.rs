@@ -1,8 +1,8 @@
 //! Pictures past the threshold with real LibreOffice: a PNG or JPEG past the threshold is downscaled and LibreOffice draws it at
 //! its new size; a damaged one is replaced by the placeholder, drawn in the picture's frame; under the threshold the
 //! picture is drawn at its own size. The corpus's `px-4mpx` (one 2 000² RGB PNG, a 12 MB bitmap) is converted with
-//! the threshold below and above that bitmap, and with its PNG cut in half; the corpus's `tdf81345` with its largest
-//! JPEG past the threshold, as it is and made progressive (both halved), and made CMYK (the
+//! the threshold below and above that bitmap, and with its PNG cut in half; the corpus's `case-study-pictures` with
+//! its largest JPEG past the threshold, as it is and made progressive (both halved), and made CMYK (the
 //! placeholder). `pdfimages -list` (poppler-utils, in `tools/instance-test/`) reads the PDF.
 //!
 //! LibreOfficeKit does not run on macOS: this runs in `tools/instance-test/` (`run.sh`) and CI's `test` job.
@@ -193,11 +193,11 @@ async fn libreoffice_draws_the_downscaled_picture_or_the_placeholder_in_its_fram
         "the picture itself: {drawn:?}"
     );
 
-    // The corpus's tdf81345 holds a baseline 4:4:4 JPEG of 888 × 552 (a 1 470 528-byte bitmap) beside a
+    // The corpus's case-study-pictures holds a baseline 4:4:4 JPEG of 888 × 552 (a 1 470 528-byte bitmap) beside a
     // smaller JPEG and two PNGs under 1 MiB. Under 1 MiB it is halved by DCT scaling and LibreOffice draws it so.
     let document = std::fs::read(
         Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("tests/corpus/documents/third-party/libreoffice/tdf81345.docx"),
+            .join("tests/corpus/documents/features/case-study-pictures.docx"),
     )
     .unwrap();
     let (status, headers, pdf) = post(&app(1024 * 1024), &document).await;

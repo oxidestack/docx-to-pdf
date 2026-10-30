@@ -533,16 +533,17 @@ fn the_scaled_idct_of_a_dc_only_block_is_its_mean_and_rounds() {
     reason = "the names are this repository's own and lowercase"
 )]
 fn the_corpus_jpegs_are_scaled_as_libjpeg_scales_them() {
-    // Real encoders' output: fdo66474's 4:2:0 pictures of odd sizes (61 × 71, 195 × 129), tdf81345's 4:4:4 ones.
+    // Real encoders' output (libjpeg-turbo, through Pillow): smartart-pictures' 4:2:0 pictures of odd sizes (61 × 71,
+    // 195 × 129, 129 × 195, 97 × 61) at qualities 75 and 80, case-study-pictures' 4:4:4 ones at 94 and 97.
     // `jpeg-decoder`'s own DCT scaling (`Decoder::scale`, libjpeg's reduced IDCT) is the reference for the decode:
     // the luma ours decodes at 1/2, 1/4 and 1/8 is the same. The re-encoded output then differs from it by the
     // requantisation at the source's own tables, as any re-encoding at the source's quality does: measured, a mean
-    // of 0.03 to 1.05 levels of luma for the quality 94-99 pictures, 5.6 to 5.9 for fdo66474's quality 75 one.
+    // of 0.57 to 1.20 levels of luma for the quality 94 and 97 pictures, 1.6 to 4.4 for the quality 75 and 80 ones.
     use std::io::Read as _;
-    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/corpus/documents/third-party/libreoffice");
+    let root =
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/corpus/documents/features");
     let mut seen = 0;
-    for document in ["fdo66474.docx", "tdf81345.docx"] {
+    for document in ["smartart-pictures.docx", "case-study-pictures.docx"] {
         let mut archive =
             ::zip::ZipArchive::new(std::fs::File::open(root.join(document)).unwrap()).unwrap();
         for i in 0..archive.len() {
@@ -587,10 +588,11 @@ fn the_corpus_jpegs_are_scaled_as_libjpeg_scales_them() {
 #[test]
 fn at_full_scale_the_decoder_gives_the_first_component_jpeg_decoder_does() {
     use std::io::Read as _;
-    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/corpus/documents/third-party/libreoffice");
+    let root =
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/corpus/documents/features");
     let mut archive =
-        ::zip::ZipArchive::new(std::fs::File::open(root.join("fdo66474.docx")).unwrap()).unwrap();
+        ::zip::ZipArchive::new(std::fs::File::open(root.join("smartart-pictures.docx")).unwrap())
+            .unwrap();
     let mut sources = vec![
         Source::rgb(203, 117, F_2_2).encode(),
         Source::gray(61, 71).encode(),

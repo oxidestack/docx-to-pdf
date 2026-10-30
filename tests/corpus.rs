@@ -47,8 +47,9 @@ struct Document {
     name: String,
     /// The input, under `tests/corpus/documents/`.
     path: String,
-    /// Where the input comes from: `generated` (the bench's seeded generator), `docx2pdf` (the project author's
-    /// fixtures), or a third party, whose documents sit under `documents/third-party/<origin>/` beside its licence.
+    /// Where the input comes from: `generated` (the bench's seeded generator), `features` (this project's feature
+    /// documents, `documents/features/generate.py`), `docx2pdf` (the project author's fixtures), or a third party,
+    /// whose documents sit under `documents/third-party/<origin>/` beside its licence.
     origin: String,
     feature: String,
     /// The approved PDF under `tests/rendering-baseline/`, if the user approved one.
@@ -470,8 +471,9 @@ fn every_document_has_an_input_and_a_golden() {
     assert!(missing.is_empty(), "missing:\n{}", missing.join("\n"));
 }
 
-/// The origins that are not third parties: what the bench generates, and the project author's own fixtures.
-const FIRST_PARTY: [&str; 2] = ["generated", "docx2pdf"];
+/// The origins that are not third parties: what the bench generates, this project's feature documents, and the
+/// project author's own fixtures.
+const FIRST_PARTY: [&str; 3] = ["generated", "features", "docx2pdf"];
 
 #[test]
 fn every_third_party_document_sits_beside_its_licence() {

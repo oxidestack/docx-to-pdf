@@ -19,10 +19,9 @@ installs it unmodified.
 
 The corpus documents under tests/corpus/documents/third-party/ (tests/corpus/README.md) are copied
 unmodified, each origin's licence text beside its documents:
-- third-party/libreoffice/: test documents of LibreOffice core (https://github.com/LibreOffice/core),
-  Mozilla Public License 2.0.
 - third-party/apache-poi/: test documents of Apache POI (https://github.com/apache/poi), Apache License
   2.0, with Apache POI's NOTICE.
 Each folder's README.md names every document's path and git blob in its origin's repository. The five
 under tests/corpus/documents/docx2pdf/ (harvest11, ramp_adv_1, sample1, sample2, size40) come from the
-fixtures of the docx2pdf project by this project's author.
+fixtures of the docx2pdf project by this project's author. The documents under
+tests/corpus/documents/features/ are this project's own, written by generate.py beside them.

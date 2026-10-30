@@ -6,12 +6,17 @@ and against oxidestack/docx-to-pdf's own approved rendering baseline. The harnes
 ## What is in it
 
 The bench's documents (`tools/bench/generate.py`, `make bench-generate`), the user's choice of 2026-10-22, every
-one whose PDF from oxidestack/docx-to-pdf is at most 1 MB, so the inputs and both PDFs fit in the repository: 55
-documents, 3.7 MB of inputs.
+one whose PDF from oxidestack/docx-to-pdf is at most 1 MB, so the inputs and both PDFs fit in the repository, and the
+project's own feature documents: 55 documents.
 
-- The 44 feature documents of the visual review (`tests/rendering-baseline/`), as a sibling project's corpus fetcher
-  fetched them (their names in the manifest still start `objects-`):
-  - `documents/third-party/libreoffice/`: 37 test documents of LibreOffice core, under the Mozilla Public License 2.0;
+- `documents/features/`: 37 feature documents this project wrote, under the Apache License 2.0 as the rest of the
+  repository. `documents/features/generate.py` (Python and Pillow) writes them part by part, seeded, so the same run
+  gives the same bytes; its `README.md` names what each one exercises: sections, headers and footers, fields and
+  tables of contents, footnotes and endnotes, tracked changes, content controls and legacy form fields, floating and
+  damaged tables, Office Math, charts, SmartArt, an embedded spreadsheet, text boxes, frames and drop caps, VML
+  shapes and horizontal rules, page backgrounds, theme fonts, right-to-left, Chinese and vertical Japanese text,
+  JPEG, PNG, GIF and WMF pictures, Strict Open XML, and `full-width-line`, which hangs moalhaddar/docx-to-pdf.
+- The 7 documents of the first visual review (`tests/rendering-baseline/`) that are not the project's own:
   - `documents/third-party/apache-poi/`: 2 test documents of Apache POI, under the Apache License 2.0;
   - `documents/docx2pdf/`: 5 plain text documents of the project author's docx2pdf fixtures (`harvest11`,
     `ramp_adv_1`, `sample1`, `sample2`, `size40`), generated there: the author's own work, not a
@@ -19,17 +24,18 @@ documents, 3.7 MB of inputs.
 
   Each `third-party/<origin>/` folder holds its documents unmodified, the origin's licence text (`LICENSE`, and
   Apache POI's `NOTICE`), and a `README.md` naming each document's path and git blob in the origin's repository.
-  `NOTICE` at the repository's root names them too.
+  `NOTICE` at the repository's root names them too. Their names in the manifest start `objects-`, as a sibling
+  project's corpus fetcher named them.
 - `documents/{text,report,tables,px}/`: the generated classes the bench seeds, so the bytes are the same on every
   run: plain text of 1, 10 and 100 pages, the report shape without pictures (2, 5, 20 pages), 10 tables, one
   picture of 4 to 256 megapixels.
 
 Left out, bench only: the documents whose PDF runs to megabytes (`bytes-*`, `mix-*`, `report-img*`, `tables-100`,
-`tables-1000`, `text-500p`; 2 to 53 MB each) and the hostile ones (a 1-gigapixel picture, and `tdf38575`, which hangs
-moalhaddar/docx-to-pdf for good).
+`tables-1000`, `text-500p`; 2 to 53 MB each) and the hostile ones (a 1-gigapixel picture, and LibreOffice's
+`tdf38575`, which hangs moalhaddar/docx-to-pdf for good and is not distributed here).
 
 `manifest.tsv` has one row per document: `name`, `document` (the path under `documents/`), its `origin`
-(`libreoffice`, `apache-poi`, `docx2pdf` or `generated`; `tests/corpus.rs` holds a third-party one to its folder and
+(`features`, `apache-poi`, `docx2pdf` or `generated`; `tests/corpus.rs` holds a third-party one to its folder and
 licence), its `sha256`, the `feature` it was chosen for, and `baseline`, the approved PDF under
 `tests/rendering-baseline/` (empty until the user approves one).
 
@@ -46,7 +52,7 @@ divergence: `name`, `check` (`pages`, `sizes` or `text`) and `divergence`, the r
 as the document's words, without their order (`document_words_difference`): LibreOffice 26.8 fits a line more or
 less on a page than 7.3 and extracts a floating table or a footnote elsewhere in the flow, which moves text across
 pages without changing it. A row whose difference is gone fails the run, so the list empties as the divergences do.
-The check `converts` names a document moalhaddar/docx-to-pdf does not convert at all (`tdf38575_fullWidthLine` hangs
+The check `converts` names a document moalhaddar/docx-to-pdf does not convert at all (`full-width-line` hangs
 it): it has no golden, is not sent at recording, and is checked against the baseline only.
 
 The rendered pages against moalhaddar/docx-to-pdf are reported, not gated: the same layout changes alter many
