@@ -9,8 +9,10 @@ import {
   bombs,
   headline,
   loadEarlier,
+  otherShapes,
   ratioOver,
   runsOf,
+  shapeDiff,
   span,
   tortureCell,
   SPEED,
@@ -137,9 +139,27 @@ test('the earlier runs are of the latest run\'s shape, and earlier', () => {
   const runs = runsOf(results, earlier)
   assert.equal(runs.at(-1), results)
   assert.ok(runs.slice(0, -1).every((r, i, a) => i === 0 || a[i - 1].meta.stamp < r.meta.stamp))
-  const other = { ...earlier[0], meta: { ...earlier[0].meta, blocks: 5 } }
-  assert.throws(() => runsOf(results, [other]), /differs from the latest in meta\.blocks/)
+  assert.deepEqual(otherShapes(results, earlier), [])
   assert.throws(() => runsOf(results, [results]), /is not earlier/)
+  assert.throws(() => otherShapes(results, [results]), /is not earlier/)
+})
+
+test('a run of another shape stays published, in no range, and the page names how it differs', () => {
+  const other = { ...earlier[0], meta: { ...earlier[0].meta, vm_cpus: 4, blocks: 5 } }
+  assert.equal(plain(shapeDiff(other, results)), '5 blocks, 4 vCPUs')
+  assert.equal(shapeDiff(earlier[0], results), null)
+  // Beside the runs of the latest's shape: the ranges are theirs alone, the page lists it apart.
+  const mixed = [...earlier, other]
+  assert.deepEqual(runsOf(results, mixed), runsOf(results, earlier))
+  assert.equal(readmeBlock(results, mixed), readmeBlock(results, earlier))
+  assert.equal(guideBlock(results, mixed), guideBlock(results, earlier))
+  const shown = plain(page(results, mixed))
+  assert.match(shown, /## Earlier runs[\s\S]*of another shape than this one[\s\S]*, 5 blocks, 4 vCPUs\n/)
+  assert.deepEqual(strays(page(results, mixed)), [])
+  // Alone: the latest run is quoted as one run again, its ratio ± its standard error, and the page still lists it.
+  assert.equal(readmeBlock(results, [other]), readmeBlock(results))
+  assert.match(plain(page(results, [other])), /## Earlier runs\n\nEarlier full runs of another shape/)
+  assert.deepEqual(check(results, withBlock(shell, readmeBlock(results, [other])), withBlock(guideShell, guideBlock(results, [other])), [other]), [])
 })
 
 test('a range reads one figure when its ends read alike, and every part is marked', () => {

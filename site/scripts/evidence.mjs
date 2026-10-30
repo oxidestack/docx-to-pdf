@@ -191,26 +191,50 @@ export function loadEarlier(dir = EARLIER) {
 }
 
 /**
- * Every run, the earlier ones by date and the latest last. A run of another shape than the latest (another mode,
- * block count, conversions a block, architecture, vCPU count, chip where both record one, or speed cell) is refused:
- * a range over it would mix two experiments.
+ * How run `r` differs in shape from `latest`, as marked text (`a run of 4 vCPUs`), or null when it has the same shape:
+ * the same mode, block count, conversions a block, architecture, vCPU count, chip where both record one, and speed
+ * cell. A range over runs of two shapes would mix two experiments.
  */
-export function runsOf(results, earlier = []) {
-  const runs = [...earlier].sort((a, b) => a.meta.stamp.localeCompare(b.meta.stamp))
-  const cell = (r) => {
-    const c = r.speed?.cells?.ours?.[0]
+export function shapeDiff(r, latest) {
+  const cell = (x) => {
+    const c = x.speed?.cells?.ours?.[0]
     return c ? [c.cpus, c.pool, c.docs, c.memory].join(' ') : null
   }
-  for (const r of runs) {
-    const name = `the run of ${r.meta.stamp}`
-    if (r.meta.stamp >= results.meta.stamp) throw new Error(`${name} is not earlier than the latest, ${results.meta.stamp}`)
-    for (const k of ['mode', 'blocks', 'conversions', 'docker_arch', 'vm_cpus'])
-      if (r.meta[k] !== results.meta[k]) throw new Error(`${name} differs from the latest in meta.${k}`)
-    if (r.meta.host && results.meta.host && r.meta.host.cpu_model !== results.meta.host.cpu_model)
-      throw new Error(`${name} ran on another chip, ${r.meta.host.cpu_model}`)
-    if (cell(r) !== cell(results)) throw new Error(`${name} has another speed cell`)
-  }
-  return [...runs, results]
+  const [m, l] = [r.meta, latest.meta]
+  const what = []
+  if (m.mode !== l.mode) what.push(`a ${v(m.mode)} run`)
+  if (m.blocks !== l.blocks) what.push(`${v(m.blocks)} blocks`)
+  if (m.conversions !== l.conversions) what.push(`${v(m.conversions)} conversions a service in a block`)
+  if (m.docker_arch !== l.docker_arch) what.push(`an ${v(m.docker_arch)} host`)
+  if (m.vm_cpus !== l.vm_cpus) what.push(`${v(m.vm_cpus)} vCPUs`)
+  if (m.host && l.host && m.host.cpu_model !== l.host.cpu_model) what.push(`an ${v(m.host.cpu_model)}`)
+  if (cell(r) !== cell(latest)) what.push('another speed cell')
+  return what.length ? what.join(', ') : null
+}
+
+/** The earlier runs, by date, each refused when it is not earlier than the latest. */
+function byDate(results, earlier) {
+  const runs = [...earlier].sort((a, b) => a.meta.stamp.localeCompare(b.meta.stamp))
+  for (const r of runs)
+    if (r.meta.stamp >= results.meta.stamp)
+      throw new Error(`the run of ${r.meta.stamp} is not earlier than the latest, ${results.meta.stamp}`)
+  return runs
+}
+
+/**
+ * The runs the ranges are over: the earlier runs of the latest run's shape by date, and the latest last. A run of
+ * another shape stays published in earlier/ and is left out (`otherShapes`): when a new kind of host arrives, its
+ * runs start their own ranges, and a single run is quoted as its ratio ± its standard error again.
+ */
+export function runsOf(results, earlier = []) {
+  return [...byDate(results, earlier).filter((r) => shapeDiff(r, results) === null), results]
+}
+
+/** The earlier runs of another shape than the latest, by date, each with how it differs: in no range. */
+export function otherShapes(results, earlier = []) {
+  return byDate(results, earlier)
+    .map((run) => ({ run, diff: shapeDiff(run, results) }))
+    .filter((x) => x.diff !== null)
 }
 
 /** `lo–hi` of figures written by `format`, or one figure when both ends read alike; every part marked. */
@@ -685,6 +709,17 @@ export function page(results, earlier = []) {
       ),
     )
   }
+  const others = otherShapes(results, earlier)
+  if (others.length) {
+    if (!before.length) L.push('', '## Earlier runs')
+    L.push(
+      '',
+      'Earlier full runs of another shape than this one, kept for download and quoted nowhere, since a range over',
+      'them would mix two experiments:',
+      '',
+      ...others.map(({ run, diff }) => `- [${at(run)}](/docx-to-pdf/benchmarks/earlier/${run.meta.stamp}.json), ${diff}`),
+    )
+  }
   L.push('', '## Versions', '', '| | Image |', '| --- | --- |')
   for (const [name, ref] of Object.entries(meta.images)) L.push(`| ${v(name)} | \`${v(ref)}\` |`)
   L.push('', '## Documents', '', 'Generated with fixed seeds, or fetched by commit; each one\'s SHA-256:', '', '| Document | SHA-256 |', '| --- | --- |')
@@ -839,7 +874,8 @@ function main() {
   }
   mkdirSync(dirname(PAGE), { recursive: true })
   writeFileSync(PAGE, plain(page(results, earlier)))
-  console.log(`evidence: the Benchmarks page and the two blocks from results.json (${results.meta.stamp}) and ${earlier.length} earlier runs`)
+  const same = runsOf(results, earlier).length - 1
+  console.log(`evidence: the Benchmarks page and the two blocks from results.json (${results.meta.stamp}) and ${same} earlier runs of its shape; ${earlier.length - same} of another shape in no range`)
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {

@@ -39,8 +39,15 @@ Nothing is copied into this directory by hand. Every build runs [`scripts/stage.
 ## The Benchmarks page, the README's numbers and the comparison guide's
 
 [`public/benchmarks/results.json`](public/benchmarks/results.json) is the raw output of the latest full run of
-`make compare` ([`examples/compare/`](../examples/compare/)), committed as it was written and served beside the page
-for download. [`scripts/evidence.mjs`](scripts/evidence.mjs) reads it on every build and writes the Benchmarks page
+`make compare` ([`examples/compare/`](../examples/compare/)), and
+[`public/benchmarks/earlier/<stamp>.json`](public/benchmarks/earlier/) those of the earlier full runs, each committed
+as it was written and served beside the page for download. One run's figure moves from one virtual machine to the next
+more than its own σ says, so the README and the comparison guide quote a ratio, a time or a peak as the range over the
+latest run and the earlier runs of its shape: the same mode, blocks, conversions, architecture, vCPU count, chip and
+speed cell. An earlier run of another shape stays in `earlier/` and is listed on the Benchmarks page with what
+differs, and no range includes it: a new kind of host starts its own ranges, and its first run is quoted as its
+ratio ± its standard error. [`scripts/evidence.mjs`](scripts/evidence.mjs) reads them on every build and writes the
+Benchmarks page
 (the speed and memory table with its charts, the ratios, the rows where Gotenberg is ahead, the torture cases, the
 soaks, the machine, the versions and the documents), the README's headline block, which the site shows as its home
 page, and the block of `docs/guide/comparison.md` (the run, the ratios, the rows where Gotenberg is ahead and the
@@ -53,8 +60,10 @@ something is:
 | The README and the comparison guide outside their blocks | a number with a unit of measure (×, %, s, MiB, MB, conversions), outside code: a setting is written as code (`180s`) |
 | The generator itself | a digit in the text of a page that is not a value read from the results, so a figure written into a template |
 
-A new run replaces `results.json` (the run's own `.bench/compare/<stamp>/results.json`), then `make evidence` and
-`make site`.
+A new full run is published with `make evidence RUN=.bench/compare/<stamp>`, then `make site`:
+[`scripts/publish.mjs`](scripts/publish.mjs) moves the published `results.json` to `earlier/<its stamp>.json`, puts
+the run's own `results.json` in its place, and the blocks are rewritten from them all. It refuses, changing nothing, a
+quick run, a run not newer than the published one and a stamp already in `earlier/`.
 
 ## The checks
 

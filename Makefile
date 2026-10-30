@@ -56,11 +56,15 @@ chart-docs: ## regenerate charts/docx-to-pdf/README.md from README.md.gotmpl and
 
 # The README's headline numbers, rewritten from the committed results of the latest full `make compare` run
 # (site/public/benchmarks/results.json) by site/scripts/evidence.mjs in the same pinned node image; `make site` fails
-# on a README whose block differs from what this writes.
+# on a README whose block differs from what this writes. RUN=.bench/compare/<stamp> publishes a new full run first
+# (site/scripts/publish.mjs): the published results.json moves to site/public/benchmarks/earlier/<its stamp>.json and
+# the run's takes its place.
+RUN ?=
 .PHONY: evidence
-evidence: ## rewrite the README's and the comparison guide's blocks from site/public/benchmarks/results.json
+evidence: ## rewrite the README's and the comparison guide's blocks from the results; RUN=<run dir> publishes it first
 	docker run --rm --name docx-to-pdf-evidence-$$$$ --user "$$(id -u):$$(id -g)" -e HOME=/tmp -v "$(CURDIR):/src" -w /src \
-		$$(sh tools/lint/lint.sh --list | awk '$$1 == "markdownlint" { print $$3 }') node site/scripts/evidence.mjs --write-readme
+		$$(sh tools/lint/lint.sh --list | awk '$$1 == "markdownlint" { print $$3 }') \
+		sh -c '$(if $(RUN),node site/scripts/publish.mjs "$(RUN)" && )node site/scripts/evidence.mjs --write-readme'
 
 # The documentation site (site/README.md): README.md and docs/guide/ built with Astro Starlight into site/dist/, a
 # broken internal link or anchor failing the build. Node runs only in the `markdownlint` gate's pinned node image
