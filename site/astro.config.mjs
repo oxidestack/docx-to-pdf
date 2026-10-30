@@ -13,6 +13,10 @@ export default defineConfig({
   integrations: [
     starlight({
       title: 'docx-to-pdf',
+      // The project's mark, beside the title, and as the favicon (public/favicon.svg): copies of oxidestack/artwork's
+      // projects/docx-to-pdf/mark.svg (site/README.md).
+      logo: { src: './src/assets/docx-to-pdf-mark.svg', alt: '' },
+      favicon: '/favicon.svg',
       description:
         'An HTTP service that turns office documents into PDF with LibreOffice: fast, bounded in memory, safe against hostile documents.',
       social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/oxidestack/docx-to-pdf' }],
