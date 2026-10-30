@@ -20,7 +20,7 @@ ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 IMAGES="$ROOT/tools/lint/images.Dockerfile"
 
 # Gates in the order `make lint` runs them: the quick ones first.
-GATES="fmt workflows hadolint public commits typos actions shell ruff yamllint markdownlint links editorconfig gitleaks machete chart-lint chart-kubeconform chart-kube-linter chart-unittest chart-docs deny clippy doc msrv fuzz coverage"
+GATES="fmt workflows hadolint public commits typos actions shell ruff yamllint security-insights markdownlint links editorconfig gitleaks machete chart-lint chart-kubeconform chart-kube-linter chart-unittest chart-docs deny clippy doc msrv fuzz coverage"
 
 gate_stage() {
 	case "$1" in
@@ -31,7 +31,7 @@ gate_stage() {
 	msrv) echo msrv ;;
 	workflows) echo ruby ;;
 	hadolint) echo hadolint ;;
-	public | commits) echo python ;;
+	public | commits | security-insights) echo python ;;
 	chart-*) echo chart-testing ;;
 	*) return 1 ;;
 	esac
@@ -62,6 +62,26 @@ gate_run() {
 		"$deny" --locked check || rc=1
 		"$deny" --locked --manifest-path fuzz/Cargo.toml check || rc=1
 		return $rc
+		;;
+	security-insights)
+		# security-insights.yml against the OpenSSF schema of the version its `header.schema-version` names, and
+		# only that one: tools/lint/tools.txt pins one schema, so a file that moves to another version fails until the
+		# pin follows it. The schema's definitions are closed, so a misspelt or unknown key fails as well.
+		cue=$(sh tools/lint/fetch-tool.sh cue)
+		schema=$(sh tools/lint/fetch-tool.sh security-insights-schema)
+		pinned=$(awk '$1 == "security-insights-schema" { print $2; exit }' tools/lint/tools.txt)
+		named=$("$cue" export --out text -e 'header."schema-version"' security-insights.yml) || return 1
+		[ "$named" = "$pinned" ] || {
+			echo "security-insights: security-insights.yml names schema $named, tools/lint/tools.txt pins $pinned" >&2
+			return 1
+		}
+		# cue loads a schema by its extension; the fetched file has none.
+		dir=target/lint/security-insights
+		rm -rf "$dir"
+		mkdir -p "$dir"
+		cp "$schema" "$dir/schema.cue"
+		# -c: a required field left out is a failure, not an incomplete value that vet lets pass.
+		"$cue" vet -c -d '#SecurityInsights' "$dir/schema.cue" security-insights.yml && echo "security-insights: valid against schema $pinned"
 		;;
 	machete)
 		# A dependency no source file names, in Cargo.toml and fuzz/Cargo.toml.

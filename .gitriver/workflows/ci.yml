@@ -328,6 +328,15 @@ jobs:
       - run: apk add --no-cache make
       - run: make lint-run GATE=yamllint
 
+  lint-security-insights:
+    # security-insights.yml against the OpenSSF schema its header names; cue and the schema are fetched, pinned
+    # (tools/lint/tools.txt). The image has no make.
+    image: python:3.14.8-alpine@sha256:f6a589d43c42b9e7f7dc67a12d37132491f362859a5d750607710cc56da3bc72
+    timeout: 5m
+    steps:
+      - run: apk add --no-cache make
+      - run: make lint-run GATE=security-insights
+
   lint-markdownlint:
     # The Markdown (.markdownlint-cli2.jsonc). npm fetches the lockfile's tree from the registry. The image has no make.
     image: node:24.22.1-alpine3.24@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53

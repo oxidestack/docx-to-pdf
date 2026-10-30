@@ -401,6 +401,21 @@ jobs:
           persist-credentials: false
       - run: make lint-run GATE=yamllint
 
+  lint-security-insights:
+    # security-insights.yml against the OpenSSF schema its header names; cue and the schema are fetched, pinned.
+    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read  # actions/checkout reads the repository
+    container: python:3.14.8-alpine@sha256:f6a589d43c42b9e7f7dc67a12d37132491f362859a5d750607710cc56da3bc72
+    timeout-minutes: 5
+    steps:
+      - run: apk add --no-cache make
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - run: make lint-run GATE=security-insights
+
   lint-markdownlint:
     # The Markdown (.markdownlint-cli2.jsonc); npm fetches the lockfile's tree.
     if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}

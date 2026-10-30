@@ -5,7 +5,7 @@
 # have one), so a CI job runs in the chart-testing stage of images.Dockerfile, whose entrypoint is empty, and fetches
 # these into it. A bump changes the version and both hashes on one line each (the release page lists the digests).
 #
-# <tool> <version> <arch> <sha256 of the asset> <url>
+# <tool> <version> <arch> <sha256 of the asset> <url>    (<arch>: arm64, amd64, or any for a file that is no binary)
 kubeconform 0.8.0 arm64 1f53fc8e81258197a35e8603054162a5af1de8c5af13746c71ab680d9534ed87 https://github.com/yannh/kubeconform/releases/download/v0.8.0/kubeconform-linux-arm64.tar.gz
 kubeconform 0.8.0 amd64 9bc2bffbf71f261128533edaf912153948b7ff238f9a531ae6d34466ec287883 https://github.com/yannh/kubeconform/releases/download/v0.8.0/kubeconform-linux-amd64.tar.gz
 kube-linter 0.8.3 arm64 802e1b09eabd08f6f0a060a6b8ab2bf7bc7e6bf4f673bb2692303704c84b3e22 https://github.com/stackrox/kube-linter/releases/download/v0.8.3/kube-linter-linux_arm64.tar.gz
@@ -59,3 +59,10 @@ gitleaks 8.30.1 arm64 e4a487ee7ccd7d3a7f7ec08657610aa3606637dab924210b3aee62570f
 gitleaks 8.30.1 amd64 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz
 editorconfig-checker 4.0.2 arm64 abad76da8c9950fdc2a314bcd66969172aa823e9c595fa7e3a389a91e34d025e https://github.com/editorconfig-checker/editorconfig-checker/releases/download/v4.0.2/editorconfig-checker-linux-arm64.tar.gz
 editorconfig-checker 4.0.2 amd64 44efaef3ed14c6ab52eb87481d78e5e5c204796dccf26e2f4598a61ba17f8003 https://github.com/editorconfig-checker/editorconfig-checker/releases/download/v4.0.2/editorconfig-checker-linux-amd64.tar.gz
+# The `security-insights` gate: cue vets security-insights.yml against the `schema.cue` that OpenSSF publishes with
+# the spec's release tag, fetched by that tag and pinned by its sha256 rather than vendored (the spec's licence is the
+# Community Specification License, not ours to redistribute). The file is the same on every architecture: `any`.
+# cue's own image has cue as its ENTRYPOINT, so it is a release binary here, run in the python stage.
+cue 0.17.1 arm64 0d729be30d52c952ca38fc9dcb692caa09d8463fa0b64df5781312779183fbcd https://github.com/cue-lang/cue/releases/download/v0.17.1/cue_v0.17.1_linux_arm64.tar.gz
+cue 0.17.1 amd64 a39b0c97695069d95d276d99be0f5dbabb081d801bfdc9ba49b76efaf94e2369 https://github.com/cue-lang/cue/releases/download/v0.17.1/cue_v0.17.1_linux_amd64.tar.gz
+security-insights-schema 2.2.0 any 4e4b61470b5484fc8969f2a8a77ffbe0712a7c8a870c2079188f246c14cd58b1 https://raw.githubusercontent.com/ossf/security-insights/v2.2.0/spec/schema.cue

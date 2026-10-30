@@ -28,7 +28,8 @@ x86_64 | amd64) arch=amd64 ;;
 	;;
 esac
 
-line=$(awk -v t="$tool" -v a="$arch" '$1 == t && $3 == a { print $2, $4, $5; exit }' "$PINS")
+# A pin for the arch `any` (a file that is no binary, the same everywhere) serves both.
+line=$(awk -v t="$tool" -v a="$arch" '$1 == t && ($3 == a || $3 == "any") { print $2, $4, $5; exit }' "$PINS")
 [ -n "$line" ] || {
 	echo "fetch-tool: no '$tool' for $arch in $PINS" >&2
 	exit 2
