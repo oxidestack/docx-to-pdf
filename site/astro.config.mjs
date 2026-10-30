@@ -13,8 +13,8 @@ export default defineConfig({
   integrations: [
     starlight({
       title: 'docx-to-pdf',
-      // The project's mark, beside the title, and as the favicon (public/favicon.svg): copies of oxidestack/artwork's
-      // projects/docx-to-pdf/mark.svg (site/README.md).
+      // The project's mark beside the title, and its small mark as the favicon (public/favicon.svg): copies of
+      // oxidestack/artwork's projects/docx-to-pdf/mark.svg and mark-small.svg (site/README.md).
       logo: { src: './src/assets/docx-to-pdf-mark.svg', alt: '' },
       favicon: '/favicon.svg',
       description:

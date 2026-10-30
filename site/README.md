@@ -86,6 +86,7 @@ every push and deploys it with GitHub Pages on a push to `main`; the repository'
 ## The logo
 
 `src/assets/docx-to-pdf-mark.svg` (beside the title) and `public/favicon.svg` are the one exception to the rule above:
-unchanged copies of `projects/docx-to-pdf/mark.svg` in [oxidestack/artwork](https://github.com/oxidestack/artwork),
-where every OxideStack logo is made, since Starlight takes a logo only from a local file. When the mark changes there,
-copy it again over both; never edit them here. The README links to the same file there instead of copying it.
+unchanged copies of `projects/docx-to-pdf/mark.svg` and of `projects/docx-to-pdf/mark-small.svg` (the mark for 16-64
+px) in [oxidestack/artwork](https://github.com/oxidestack/artwork), where every OxideStack logo is made, since
+Starlight takes a logo only from a local file. When a mark changes there, copy it again; never edit them here. The
+README links to the same file there instead of copying it.
