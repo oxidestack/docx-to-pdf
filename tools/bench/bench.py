@@ -51,8 +51,6 @@ BENCH = os.path.join(ROOT, "tools", "bench")
 DATA = os.path.join(ROOT, ".bench")
 DOCS = os.path.join(DATA, "docs")
 RUNS = os.path.join(DATA, "runs")
-# A local directory of LibreOffice's DOCX regression documents (the `objects` and `hostile` sets read it).
-FIXTURES = os.environ.get("DOCX_TO_PDF_FIXTURES", "")
 
 TOOLS_IMAGE = "docx-to-pdf-bench-tools:dev"
 K6_IMAGE = "grafana/k6:2.3.0@sha256:9c2dee7f8ed74d317e4027c06a10f169b625638189de8d4555d0b3486a5aeb34"
@@ -1071,9 +1069,7 @@ def main():
             + (["--heavy"] if args.heavy else [])
             + (["--only", args.only] if args.only else [])
         )
-        return tool(
-            "generate.py", "/data/docs", *extra, mounts=[(FIXTURES, "/fixtures:ro")] if os.path.isdir(FIXTURES) else []
-        )
+        return tool("generate.py", "/data/docs", *extra)
     if args.command == "cell":
         return cell(args)
     if args.command == "matrix":

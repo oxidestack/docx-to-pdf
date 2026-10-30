@@ -277,7 +277,7 @@ def document_seed(name):
 
 
 def documents(rows):
-    """Each manifest row's checksum, size and seed (the copied fixtures have none: their bytes are the source)."""
+    """Each manifest row's checksum, size and seed (copied documents have none: their bytes are the source)."""
     return {
         r["name"]: {
             "sha256": r.get("sha256"),

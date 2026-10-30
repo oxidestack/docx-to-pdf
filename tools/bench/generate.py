@@ -1,6 +1,6 @@
 """The bench's documents: DOCX only, each a fixed, seeded file.
 
-    python generate.py OUT [--fixtures DIR] [--baseline MANIFEST] [--only NAME,...] [--hostile] [--heavy]
+    python generate.py OUT [--features DIR] [--only NAME,...] [--hostile] [--heavy]
 
 Writes OUT/<class>/<name>.docx and OUT/manifest.tsv. The same arguments give the same bytes: images come from a
 seeded generator and the ZIP entries carry a fixed date. Classes, each varying one thing:
@@ -12,10 +12,12 @@ seeded generator and the ZIP entries carry a fixed date. Classes, each varying o
 - px      one flat PNG, by decoded megapixels (4 to 256): many pixels in few bytes
 - bytes   16-megapixel noise JPEGs, by file size (1 to 150 MB): the most bytes per pixel
 - mix     photo-like JPEGs of 2-12 megapixels placed at 150-300 DPI, by file size (5 to 150 MB)
-- objects the corpus documents whose renderings were approved by eye (charts, SmartArt, formulas, tables, ...),
-          copied from the fixture tree by tests/rendering-baseline/manifest.tsv
-- hostile (with --hostile) a 1-gigapixel PNG and the document that hangs moalhaddar/docx-to-pdf; never in throughput
-          runs
+- objects 36 of the corpus's 37 feature documents (charts, SmartArt, Office Math, tables, sections, fields,
+          notes, tracked changes, right-to-left and vertical text, ...), copied from
+          tests/corpus/documents/features/, each with a rendering approved by eye; not full-width-line, which
+          hangs moalhaddar/docx-to-pdf
+- hostile (with --hostile) a 1-gigapixel PNG and full-width-line, the feature document that hangs
+          moalhaddar/docx-to-pdf; never in throughput runs
 - heavy   (with --heavy; several GB) the `bytes` and `mix` classes from 300 MB to 1.1 GB, `text` to
           250 000 pages, and the content bombs: `tables` to 10 000, `px` to 4 gigapixels and eight 1-gigapixel PNGs
           in one document, a 512-megapixel RGB PNG, `pages` (one paragraph repeated for 500 000 pages in under 2 MB);
@@ -239,7 +241,27 @@ GENERATED = [
     *[("mix", f"mix-{n}mb", mix, n) for n in (5, 20, 50, 100, 150)],
 ]
 HOSTILE = [("hostile", "hostile-px-1024mpx", lambda name, n: px(name, n, "L"), 1024)]
-HOSTILE_FIXTURES = ["tdf38575_fullWidthLine.docx"]
+# The feature document that hangs moalhaddar/docx-to-pdf's LibreOffice: hostile, so never in `objects`.
+HOSTILE_FEATURES = ["full-width-line.docx"]
+
+
+def feature_documents(directory):
+    """The feature documents in `directory`, sorted, but the hostile ones."""
+    return sorted(f for f in os.listdir(directory) if f.endswith(".docx") and f not in HOSTILE_FEATURES)
+
+
+def feature_descriptions(directory):
+    """What each feature document exercises, from the table in the directory's README (none if it has none)."""
+    readme = os.path.join(directory, "README.md")
+    if not os.path.exists(readme):
+        return {}
+    descriptions = {}
+    with open(readme) as f:
+        for line in f:
+            cols = [c.strip() for c in line.strip().strip("|").split("|")]
+            if len(cols) == 2 and cols[0].startswith("`") and cols[0].endswith("`"):
+                descriptions[f"{cols[0].strip('`')}.docx"] = " ".join(cols[1].split())
+    return descriptions
 
 
 def streamed(write):
@@ -297,8 +319,9 @@ def sha256(path):
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("out")
-    parser.add_argument("--fixtures", default="/fixtures", help="the fixture tree's docx/ directory")
-    parser.add_argument("--baseline", default="/repo/tests/rendering-baseline/manifest.tsv")
+    parser.add_argument(
+        "--features", default="/repo/tests/corpus/documents/features", help="the corpus's feature documents"
+    )
     parser.add_argument("--only", help="comma-separated names to (re)generate")
     parser.add_argument("--hostile", action="store_true")
     parser.add_argument("--heavy", action="store_true")
@@ -342,26 +365,16 @@ def main():
             save(doc, path)
         record(cls, name, path, meta)
 
-    features = {}
-    review = "/repo/review/0035/results.tsv"
-    if os.path.exists(review):
-        with open(review) as f:
-            for line in f:
-                cols = line.rstrip("\n").split("\t")
-                features[cols[1]] = cols[2]
-    fixture_sets = [("objects", None)] + ([("hostile", HOSTILE_FIXTURES)] if args.hostile else [])
-    for cls, names in fixture_sets:
-        if names is None:
-            with open(args.baseline) as f:
-                f.readline()
-                names = [line.split("\t")[1].removeprefix("docx/") for line in f if line.strip()]
+    features = feature_descriptions(args.features)
+    copied = [("objects", feature_documents(args.features))] + ([("hostile", HOSTILE_FEATURES)] if args.hostile else [])
+    for cls, names in copied:
         os.makedirs(os.path.join(args.out, cls), exist_ok=True)
         for file in names:
             name = f"{cls}-{file.removesuffix('.docx')}"
             if only and name not in only:
                 continue
             path = os.path.join(args.out, cls, file)
-            shutil.copyfile(os.path.join(args.fixtures, file), path)
+            shutil.copyfile(os.path.join(args.features, file), path)
             record(cls, name, path, {"feature": features.get(file, "")})
 
     header = [

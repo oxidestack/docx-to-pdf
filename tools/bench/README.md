@@ -15,8 +15,22 @@ on amd64 (a Xeon Gold 6248R cloud VM).
    1.1 GB, `text-*` to 250 000 pages, and the content bombs `tables-2000..10000`, `px-2048/4096mpx`,
    `px-8x1024mpx` and `pages-500000p` (one paragraph repeated, under 2 MB). The text, tables, pixels and pages ones
    are streamed by `heavy.py` (standard library, tested in `tools/tests/test_bench_heavy.py`), so writing them takes
-   little memory; the `bytes`/`mix` ones go through python-docx and take about three times their size. Pass
-   `--only` on a host without the fixture tree, or the `objects` copy fails.
+   little memory; the `bytes`/`mix` ones go through python-docx and take about three times their size.
+
+   The `objects` class is copied, not generated: 36 of the 37 documents in
+   [`tests/corpus/documents/features/`](../../tests/corpus/documents/features/README.md), 834 kB in all, each
+   with a rendering approved by eye. They are `arabic-lists`, `bidi-worksheet`, `case-study-pictures`,
+   `chart-ole-textbox`, `chinese-spec`, `citations-comments`, `column-section-breaks`, `content-control-form`,
+   `drop-cap-dashes`, `endnote-continuation`, `equation-captions`, `floating-table-math`, `floating-tables-columns`,
+   `footnotes-per-page`, `japanese-vertical`, `legacy-form-fields`, `letterhead-sections`, `long-footnotes`,
+   `long-toc-form`, `math-paper-damaged-table`, `multilevel-numbering`, `page-background-gradient`, `page-x-of-y`,
+   `relative-width-lines`, `smartart-pictures`, `smartart-sections`, `strict-ooxml`, `table-formulas-unicode`,
+   `table-vertical-text`, `theme-fonts`, `toc-field-f`, `toc-section-margins`, `toc-styleref`,
+   `tracked-changes-sections`, `tracked-table-cells` and `tracked-table-columns`: charts, SmartArt, Office Math,
+   floating and damaged tables, sections, fields, notes, tracked changes, form fields, right-to-left and vertical
+   text; the manifest's `feature` column says what each exercises. The 37th, `full-width-line`, hangs
+   moalhaddar/docx-to-pdf, so it is in the `hostile` class instead. The bench needs nothing outside the
+   repository.
 3. `make image IMAGE=docx-to-pdf:bench` builds the subject.
 4. Run the measurements:
    - `make bench-matrix MATRIX=tools/bench/matrices/screen.tsv REPS=3` runs every cell × replicate in random
@@ -90,7 +104,7 @@ Each `samples.jsonl` line records:
 - `commit`: the checkout's commit and whether tracked files differed from it;
 - `images`: the service's, k6's, the Collector's and the tool image by id, digests and their revision label;
 - `documents`: each document's SHA-256, size and generator seed (the first 8 bytes of SHA-256 of its name; none
-  for the copied fixtures).
+  for the copied feature documents).
 
 ## Matrices
 
