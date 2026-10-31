@@ -22,7 +22,8 @@
 import { readFileSync, writeFileSync, mkdirSync, rmSync, readdirSync, existsSync } from 'node:fs'
 import { dirname, join, basename, posix } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { TRANSLATIONS } from '../locales.mjs'
+import { createHash } from 'node:crypto'
+import { TRANSLATIONS, README } from '../locales.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const REPO = join(here, '..', '..')
@@ -40,9 +41,9 @@ const SITE = 'https://oxidestack.github.io'
 
 /**
  * The staged files: repository path → the page's slug ('' is the site's home page) and language ('' is English).
- * A translation is docs/i18n/<language>/ with the original's own path: docs/i18n/ru/README.md,
- * docs/i18n/ru/guide/installation.md. It is staged as the same page under its language, and a translation of no page
- * fails the staging.
+ * A translation of README.md is its language's README beside it (locales.mjs, README.ru.md); a translation of a guide
+ * page is docs/i18n/<language>/guide/ with the page's name, docs/i18n/ru/guide/installation.md. It is staged as the
+ * same page under its language, and a translation of no page fails the staging.
  */
 function pages() {
   const map = new Map([['README.md', { slug: '', locale: '' }]])
@@ -51,7 +52,7 @@ function pages() {
   }
   for (const locale of TRANSLATIONS) {
     for (const [original, { slug }] of [...map].filter(([, page]) => page.locale === '')) {
-      const translation = `docs/i18n/${locale}/${original.replace(/^docs\//, '')}`
+      const translation = original === 'README.md' ? README[locale] : `docs/i18n/${locale}/${original.replace(/^docs\//, '')}`
       if (existsSync(join(REPO, translation))) map.set(translation, { slug, locale })
     }
     const dir = join(REPO, 'docs', 'i18n', locale)
@@ -63,12 +64,9 @@ function pages() {
   return map
 }
 
-/** The original of a translation's repository path: docs/i18n/ru/README.md is README.md, docs/i18n/ru/guide/api.md is
+/** The original of a translation's repository path: README.ru.md is README.md, docs/i18n/ru/guide/api.md is
  * docs/guide/api.md. */
-const original = (path) => {
-  const rest = path.replace(/^docs\/i18n\/[^/]+\//, '')
-  return rest === 'README.md' ? rest : `docs/${rest}`
-}
+const original = (path) => (Object.values(README).includes(path) ? 'README.md' : path.replace(/^docs\/i18n\/[^/]+\//, 'docs/'))
 
 const LANGUAGES = /<!-- languages:begin -->[\s\S]*?<!-- languages:end -->\n*/
 
@@ -207,10 +205,48 @@ function retargetLinks(source, from, staged, locale) {
 /** A string as YAML, quoted the one way that always holds. */
 const yaml = (s) => `"${s.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`
 
+/**
+ * A translation's record of the original it translates: `<!-- translation of README.md: 1a2b3c4d5e6f -->`, the first
+ * 12 hex digits of the original's SHA-256 when it was translated (`sha256sum README.md | cut -c1-12`). Every
+ * translation has one; when the original's digest is another, the original changed since, and the translated page
+ * says it may be out of date and links the original.
+ */
+const SOURCE = /<!-- translation of (\S+): ([0-9a-f]{12}) -->\n*/
+
+const digest = (text) => createHash('sha256').update(text).digest('hex').slice(0, 12)
+
+/** "This translation may be out of date" in each translated language, with the link to the original. */
+const OUTDATED = {
+  ru: (href) => `Перевод может быть устаревшим: английский оригинал изменился после него. <a href="${href}">Читать оригинал</a>.`,
+  zh: (href) => `此翻译可能已过时：英文原文在翻译之后有过修改。<a href="${href}">阅读原文</a>。`,
+  es: (href) => `Esta traducción puede estar desactualizada: el original en inglés ha cambiado desde entonces. <a href="${href}">Leer el original</a>.`,
+}
+
+/** The translation's source without its record, and whether its original changed since; the original as it is. */
+function freshness(source, from, locale) {
+  if (!locale) return { source, outdated: false }
+  const record = SOURCE.exec(source)
+  const of = original(from)
+  if (!record || record[1] !== of) {
+    throw new Error(`${from}: a translation records its original, <!-- translation of ${of}: <its sha256, 12 hex digits> --> (site/README.md, "Languages")`)
+  }
+  const now = digest(readFileSync(join(REPO, of)))
+  return { source: source.replace(SOURCE, ''), outdated: record[2] !== now }
+}
+
+/** The translations whose original changed since, for the build's log. */
+const outdated = []
+
 function stage(from, { slug, locale }, staged) {
-  const { text, body } = title(languages(readFileSync(join(REPO, from), 'utf8'), from, staged), from)
+  const fresh = freshness(readFileSync(join(REPO, from), 'utf8'), from, locale)
+  const { text, body } = title(languages(fresh.source, from, staged), from)
   const content = overProse(retargetLinks(body, from, staged, locale), escapeAngles)
-  const head = ['---', `title: ${yaml(text)}`, `editUrl: ${yaml(`${GITHUB}/edit/main/${from}`)}`, '---', '']
+  const head = ['---', `title: ${yaml(text)}`, `editUrl: ${yaml(`${GITHUB}/edit/main/${from}`)}`]
+  if (fresh.outdated) {
+    outdated.push(from)
+    head.push('banner:', `  content: ${yaml(OUTDATED[locale](sitePath(slug, '')))}`)
+  }
+  head.push('---', '')
   const target = join(DOCS, locale, `${slug || 'index'}.md`)
   mkdirSync(dirname(target), { recursive: true })
   writeFileSync(target, `${head.join('\n')}${content.trimEnd()}\n`)
@@ -221,7 +257,8 @@ function main() {
   const staged = pages()
   for (const [from, page] of staged) stage(from, page, staged)
   const translated = [...staged.values()].filter((page) => page.locale !== '').length
-  console.log(`staged: ${staged.size - translated} pages (README.md and docs/guide/), ${translated} translations (docs/i18n/)`)
+  console.log(`staged: ${staged.size - translated} pages (README.md and docs/guide/), ${translated} translations (README.<language>.md and docs/i18n/)`)
+  for (const from of outdated) console.log(`staged: ${from} may be out of date: ${original(from)} changed since it was translated`)
 }
 
 if (existsSync(join(REPO, 'Cargo.toml')) && existsSync(join(REPO, 'docs', 'guide'))) main()

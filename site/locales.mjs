@@ -1,6 +1,7 @@
 // The site's languages (site/README.md, "Languages"). English is the original, at the site's root; every other
-// language is a directory of the site, /docx-to-pdf/<dir>/, staged from docs/i18n/<dir>/ (scripts/stage.mjs). A page
-// without a translation is shown in English there, with Starlight's note that it is not translated yet.
+// language is a directory of the site, /docx-to-pdf/<dir>/, staged from its README beside README.md and from
+// docs/i18n/<dir>/ (scripts/stage.mjs). A page without a translation is shown in English there, with Starlight's note
+// that it is not translated yet.
 //
 // A label is the language's code and its own name for itself, so a reader finds their language whatever the page's.
 
@@ -14,6 +15,12 @@ export const LOCALES = {
 
 /** The translated languages' directories: every locale but the original. */
 export const TRANSLATIONS = Object.keys(LOCALES).filter((dir) => dir !== 'root')
+
+/**
+ * Each language's README, beside README.md: README.<tag>.md, the usual name on GitHub. Gitee and other hosts show
+ * README.zh-CN.md to a reader whose browser asks for Chinese.
+ */
+export const README = { ru: 'README.ru.md', zh: 'README.zh-CN.md', es: 'README.es.md' }
 
 /** A sidebar label in every language: `t('Installation', 'Установка', '安装', 'Instalación')`. */
 export function t(en, ru, zh, es) {

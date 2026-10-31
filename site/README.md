@@ -24,7 +24,7 @@ and open <http://localhost:4321/docx-to-pdf/>.
 ## A page has one home, and it is not here
 
 Nothing is copied into this directory by hand. Every build runs [`scripts/stage.mjs`](scripts/stage.mjs), which reads
-`README.md`, `docs/guide/*.md` and their translations in `docs/i18n/` ([Languages](#languages)) and writes them into
+`README.md`, `docs/guide/*.md` and their translations ([Languages](#languages)) and writes them into
 `src/content/docs/` with these changes and no others:
 
 | Change | Why |
@@ -71,11 +71,12 @@ it on a push to `main`; a release runs that deployment again on `main` once its 
 
 ## Languages
 
-English is the original. A page is translated into Russian, Chinese and Spanish as a file of
-[`docs/i18n/`](../docs/i18n/) with the original's own path under its language: `docs/i18n/ru/README.md` translates
-`README.md`, `docs/i18n/zh/guide/upgrading.md` translates `docs/guide/upgrading.md`. The languages are
-[`locales.mjs`](locales.mjs)'s, each labelled with its code and its own name, `RU (Русский)`; adding one is a line
-there and a directory there.
+English is the original. The README is translated into Russian, Chinese and Spanish beside it, as GitHub projects
+usually name them: `README.ru.md`, `README.zh-CN.md`, `README.es.md` (a host such as Gitee shows `README.zh-CN.md` to
+a reader whose browser asks for Chinese). A guide page is translated as a file of [`docs/i18n/`](../docs/i18n/) at the
+page's own path under its language: `docs/i18n/zh/guide/upgrading.md` translates `docs/guide/upgrading.md`. The
+languages and their READMEs are [`locales.mjs`](locales.mjs)'s, each labelled with its code and its own name,
+`RU (Русский)`; adding one is a line there, a README and a directory.
 
 On GitHub, an original and its translations link each other in a languages line at their head, between
 `<!-- languages:begin -->` and `<!-- languages:end -->`, the way the CNCF's code of conduct links its own. On the
@@ -85,8 +86,14 @@ a page without a translation is shown in English there, with Starlight's note th
 translation's link to it leads there. A translation writes its links as they resolve from its own file, so that they
 work on GitHub too: `../../../guide/installation.md` from `docs/i18n/ru/guide/`.
 
-A translation follows its original: a change to an original changes its translations in the same commit, or the
-commit says which it leaves behind. The README's benchmark block is generated in English and has no translation; a
+A translation follows its original, and records which version of it it translates: after its languages line,
+`<!-- translation of README.md: 1a2b3c4d5e6f -->`, the first 12 hex digits of the original's SHA-256
+(`sha256sum README.md | cut -c1-12`). The staging fails on a translation without one; when the original's digest is
+another, the staging logs the translation as possibly out of date, and the page carries Starlight's banner saying so,
+in its language, with a link to the original. A change to an original updates its translations and their records in
+the same commit, or leaves them marked out of date until someone does; translating only the record's digest without
+the change it stands for defeats it. CONTRIBUTING.md ("Translating the documentation") says the same to a
+translator. The README's benchmark block is generated in English and has no translation; a
 translated README says what it claims and links the Benchmarks page instead.
 
 ## The Benchmarks page, the README's numbers and the comparison guide's

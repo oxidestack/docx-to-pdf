@@ -1,7 +1,7 @@
 # docx-to-pdf
 
 <!-- languages:begin -->
-**English** · [Русский](docs/i18n/ru/README.md) · [中文](docs/i18n/zh/README.md) · [Español](docs/i18n/es/README.md)
+**English** · [Русский](README.ru.md) · [中文](README.zh-CN.md) · [Español](README.es.md)
 <!-- languages:end -->
 
 ![docx-to-pdf logo](site/src/assets/docx-to-pdf-mark.svg)
@@ -81,7 +81,8 @@ Every release is signed and carries its SBOM and build provenance;
 - **Telemetry**: traces, logs and metrics over OTLP, Prometheus metrics at `/metrics`, and the health checks
   `/livez` and `/readyz` for Kubernetes.
 - **A locked-down container** for `linux/amd64` and `linux/arm64`: a non-root user, a read-only root file system, no
-  Linux capabilities, and only free fonts, metric-compatible with the common Microsoft ones.
+  Linux capabilities, and only free fonts: metric-compatible with the common Microsoft ones, and covering Chinese,
+  Japanese and Korean (Noto CJK), so a CJK document converts without a font of your own.
 
 ## Documentation
 

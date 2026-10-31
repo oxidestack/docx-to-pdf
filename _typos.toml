@@ -13,6 +13,9 @@ extend-exclude = [
     # The translations of the documentation: Russian, Chinese and Spanish prose, which an English dictionary reads as
     # misspellings (site/README.md, "Languages").
     "docs/i18n/",
+    "README.ru.md",
+    "README.zh-CN.md",
+    "README.es.md",
     # The GitRiver workflow lint, vendored and never edited here.
     "tools/ci/lint-gitriver-workflows",
 ]

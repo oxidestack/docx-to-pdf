@@ -5,7 +5,9 @@ pass, and how to write the commits of a pull request.
 
 ## Where to go
 
-- **A question** (how to deploy it, why a document looks the way it does, whether it fits your case): start a
+- **A question** (how to deploy it, why a document looks the way it does, whether it fits your case):
+  [DeepWiki](https://deepwiki.com/oxidestack/docx-to-pdf) answers from the code and the documentation, which win where
+  the two disagree; what it does not settle, start a
   [discussion in Q&A](https://github.com/oxidestack/docx-to-pdf/discussions/categories/q-a).
 - **An idea** you would like to talk through before it becomes a request:
   [Ideas](https://github.com/oxidestack/docx-to-pdf/discussions/categories/ideas).
@@ -125,6 +127,25 @@ branch, `git rebase --signoff main`; then push the branch with `--force-with-lea
 - A change to what a client sends or gets back, a setting, a chart value or a metric updates the guide that documents
   it (`docs/guide/`, the chart's `README.md.gotmpl`) in the same pull request.
 - For a larger change, start with an issue or a discussion, so that the approach is agreed before the code is written.
+
+## Translating the documentation
+
+The documentation is in English, Russian, Chinese and Spanish, and a reader who speaks one of them natively is the
+best reviewer its translation can have. English is the original: a change starts there, and a translation follows
+it. A translation of the README sits beside it (`README.ru.md`, `README.zh-CN.md`, `README.es.md`), a translation of
+a guide page in `docs/i18n/<language>/guide/` (`ru`, `zh`, `es`). Fixing a translation, translating a page that has
+none yet, or bringing an outdated one up to date are all welcome pull requests.
+
+- A translation keeps the original's structure: its headings in the same order, its code, commands, setting names and
+  values exactly as they are, and links that resolve from its own file.
+- It opens with the languages line every version of the page shares, and a record of the original it translates,
+  `<!-- translation of docs/guide/upgrading.md: 1a2b3c4d5e6f -->`: the first 12 hex digits of the original's SHA-256
+  (`sha256sum docs/guide/upgrading.md | cut -c1-12`). When the original changes and the record does not, the site
+  marks the translation as possibly out of date and links the original; bringing it up to date means translating
+  what changed, then writing the original's new digest.
+- A new translated page is listed in the original's languages line, and `make site` checks that it is.
+
+`site/README.md` ("Languages") says how the site serves the translations.
 
 ## Licences
 

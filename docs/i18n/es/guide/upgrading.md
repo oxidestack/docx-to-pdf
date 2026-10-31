@@ -4,6 +4,7 @@
 [English](../../../guide/upgrading.md) · [Русский](../../ru/guide/upgrading.md) · [中文](../../zh/guide/upgrading.md)
 · **Español**
 <!-- languages:end -->
+<!-- translation of docs/guide/upgrading.md: f032a2684681 -->
 
 Cómo llevar un despliegue de la versión que ejecuta a una más nueva. Busque la sección de cada versión más nueva que
 la suya y aplíquelas empezando por la más antigua: pasar de 1.0.0 a 1.2.0 significa la sección de 1.1.0 y después

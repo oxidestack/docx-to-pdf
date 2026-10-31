@@ -1,10 +1,11 @@
 # docx-to-pdf
 
 <!-- languages:begin -->
-[English](../../../README.md) · [Русский](../ru/README.md) · **中文** · [Español](../es/README.md)
+[English](README.md) · [Русский](README.ru.md) · **中文** · [Español](README.es.md)
 <!-- languages:end -->
+<!-- translation of README.md: 7d76e532ff3d -->
 
-![docx-to-pdf 标志](../../../site/src/assets/docx-to-pdf-mark.svg)
+![docx-to-pdf 标志](site/src/assets/docx-to-pdf-mark.svg)
 
 **文档：[oxidestack.github.io/docx-to-pdf](https://oxidestack.github.io/docx-to-pdf/)**
 
@@ -37,7 +38,7 @@ curl -F document=@report.docx http://localhost:8080/pdf -o report.pdf
 `report.pdf` 就是 LibreOffice 排版后的文档。有一个测试会对服务重放这条 `curl`。
 
 每个版本都经过签名，并附带 SBOM 和构建来源证明；
-[Verifying a release](../../guide/installation.md#verifying-a-release) 说明如何用 `cosign` 和
+[Verifying a release](docs/guide/installation.md#verifying-a-release) 说明如何用 `cosign` 和
 `gh attestation verify` 检查镜像或 chart。
 
 ## 它提供什么
@@ -52,7 +53,8 @@ curl -F document=@report.docx http://localhost:8080/pdf -o report.pdf
 - **遥测**：通过 OTLP 输出 trace、日志和指标，在 `/metrics` 提供 Prometheus 指标，并为 Kubernetes
   提供健康检查 `/livez` 和 `/readyz`。
 - **加固的容器**，支持 `linux/amd64` 和 `linux/arm64`：非 root 用户、只读根文件系统、没有 Linux
-  capabilities，且只带自由字体，与常见的 Microsoft 字体度量兼容。
+  capabilities，且只带自由字体：与常见的 Microsoft 字体度量兼容，并覆盖中文、日文和韩文（Noto CJK），
+  因此中日韩文档无需自备字体即可转换。
 
 ## 文档
 
@@ -60,17 +62,17 @@ curl -F document=@report.docx http://localhost:8080/pdf -o report.pdf
 根路径是最新版本，每个版本都在各自的版本号下。与 `main` 上一致的同一批页面位于 `docs/guide/`（英文）
 和 `docs/i18n/zh/`（已翻译）：
 
-- [Installation](../../guide/installation.md)——`docker run`、Docker Compose，以及使用 Helm chart
+- [Installation](docs/guide/installation.md)——`docker run`、Docker Compose，以及使用 Helm chart
   的 Kubernetes，还有需要分配的资源
-- [升级](guide/upgrading.md)——每个版本对部署有什么要求，以及如何迁移到更新的版本
-- [Configuration](../../guide/configuration.md)——每个环境变量、其默认值和作用
-- [API reference](../../guide/api.md)——端点、接受的格式、每个状态码及其详情
-- [Operations](../../guide/operations.md)——容器、健康检查、Kubernetes、遥测与指标、限制、容量规划和字体
-- [Troubleshooting](../../guide/troubleshooting.md)——每种错误响应和其他问题，各自的含义以及如何处理
-- [Migrating from moalhaddar/docx-to-pdf](../../guide/migration.md)——哪些保持不变，客户端或部署需要改什么，
+- [升级](docs/i18n/zh/guide/upgrading.md)——每个版本对部署有什么要求，以及如何迁移到更新的版本
+- [Configuration](docs/guide/configuration.md)——每个环境变量、其默认值和作用
+- [API reference](docs/guide/api.md)——端点、接受的格式、每个状态码及其详情
+- [Operations](docs/guide/operations.md)——容器、健康检查、Kubernetes、遥测与指标、限制、容量规划和字体
+- [Troubleshooting](docs/guide/troubleshooting.md)——每种错误响应和其他问题，各自的含义以及如何处理
+- [Migrating from moalhaddar/docx-to-pdf](docs/guide/migration.md)——哪些保持不变，客户端或部署需要改什么，
   以及每一处有意的差异
-- [Changelog](../../../CHANGELOG.md)——每个版本改了什么，以及版本要求运维人员做什么
-- [Compared with Gotenberg and moalhaddar/docx-to-pdf](../../guide/comparison.md)——各自能做什么，
+- [Changelog](CHANGELOG.md)——每个版本改了什么，以及版本要求运维人员做什么
+- [Compared with Gotenberg and moalhaddar/docx-to-pdf](docs/guide/comparison.md)——各自能做什么，
   基于已记录测量的速度、内存和恶意文档表现，以及重复这些测量的命令
 
 ## 构建与测试
@@ -89,20 +91,20 @@ git clone --recursive https://github.com/oxidestack/docx-to-pdf.git
   Debian 上 `apt-get install poppler-utils`），转换真实文档的测试还需要 LibreOffice。
   `tools/instance-test/run.sh` 在一个包含这三者的 Linux 容器中运行它们。
 - `make lint` 运行 CI 所运行的全部质量检查，每项都在各自固定版本的容器中；CONTRIBUTING.md 的
-  [checks](../../../CONTRIBUTING.md#the-checks) 列出了它们，CI 徽章显示它们在 `main` 上的状态。
+  [checks](CONTRIBUTING.md#the-checks) 列出了它们，CI 徽章显示它们在 `main` 上的状态。
 
 ## 获取帮助
 
 关于服务如何工作的问题，可以先问 [DeepWiki](https://deepwiki.com/oxidestack/docx-to-pdf)：
 它根据本仓库的代码和文档作答；当它与文档不一致时，以文档为准。它解决不了的问题请到 [Discussions](https://github.com/oxidestack/docx-to-pdf/discussions)，缺陷请提
 [issues](https://github.com/oxidestack/docx-to-pdf/issues/new/choose)，漏洞请私下报告
-（[SECURITY.md](../../../SECURITY.md)）。[CONTRIBUTING.md](../../../CONTRIBUTING.md)
+（[SECURITY.md](SECURITY.md)）。[CONTRIBUTING.md](CONTRIBUTING.md)
 说明如何构建、测试和提交修改。
 
 ## 许可证
 
-代码采用 [Apache License, Version 2.0](../../../LICENSE)（`Apache-2.0`）许可。文档——README、`docs/`
+代码采用 [Apache License, Version 2.0](LICENSE)（`Apache-2.0`）许可。文档——README、`docs/`
 下的指南和 chart 的 README——采用
 [Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/)（`CC-BY-4.0`）许可。
 取自 moalhaddar/docx-to-pdf 的材料、字体和 LibreOffice 保留各自的许可证，并在
-[`NOTICE`](../../../NOTICE) 中注明。
+[`NOTICE`](NOTICE) 中注明。

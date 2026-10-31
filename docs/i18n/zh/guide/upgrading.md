@@ -4,6 +4,7 @@
 [English](../../../guide/upgrading.md) · [Русский](../../ru/guide/upgrading.md) · **中文** ·
 [Español](../../es/guide/upgrading.md)
 <!-- languages:end -->
+<!-- translation of docs/guide/upgrading.md: f032a2684681 -->
 
 如何把部署从当前运行的版本迁移到更新的版本。找到比你的版本更新的每个版本的章节，从最旧的开始依次应用：
 从 1.0.0 升级到 1.2.0，就是先应用 1.1.0 的章节，再应用 1.2.0 的章节。不需要任何改动的版本会明确说明。
