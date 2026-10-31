@@ -13,7 +13,10 @@
 #
 # The caller grants the deploy job's permissions, since a called workflow can narrow its caller's and never widen
 # them. `build` runs on every push and pull request: `make site` in the pinned node image, which checks the lockfile's
-# licences and fails on a broken internal link or anchor. `deploy` publishes the build on a push to `main`, only while
+# licences and fails on a broken internal link or anchor, then `make site-versions`, the site Pages serves: every
+# release's documentation built by its own tag, the latest at the root, each under /docx-to-pdf/<x.y>/, with the
+# version picker (site/README.md, "Versions"); `main`'s own pages are checked and never published. `deploy` publishes
+# it on a push to `main`, and when the release workflow asks after a release (workflow_dispatch on `main`), only while
 # the repository is public: GitHub Pages refuses a private repository of a Free organisation. It needs the repository's
 # Settings → Pages → Source set to GitHub Actions. The helm repository's index is not here: Pages keeps one deployment
 # a commit, and a release tag's commit is one `main` has already deployed, so the index is a file of each GitHub
@@ -22,6 +25,8 @@ name: site
 
 on:
   workflow_call:
+  # The release workflow runs it on `main` once a release is out, so the new release becomes the root.
+  workflow_dispatch:
 
 permissions: {}
 
@@ -36,15 +41,18 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           persist-credentials: false
+          fetch-depth: 0  # every release tag, each release's documentation is built from its own
       - run: make site
+      - run: make site-versions
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9  # v5.0.0
         with:
-          path: site/dist
+          path: target/site/pages
 
   deploy:
     name: deploy
     if: >-
-      github.event_name == 'push' && !github.event.repository.private && github.ref == 'refs/heads/main'
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && !github.event.repository.private &&
+      github.ref == 'refs/heads/main'
     needs: [build]
     runs-on: ubuntu-24.04
     timeout-minutes: 10

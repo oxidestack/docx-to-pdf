@@ -11,7 +11,7 @@ cd "$(dirname "$0")"
 node scripts/licences.mjs
 # The evidence generator's own tests: the figures it prints are compare.py's, and a number typed by hand fails
 # (scripts/evidence.mjs; the build's prebuild runs the check itself on the README and the Benchmarks page).
-node --test scripts/*.test.mjs
+node --test scripts/*.test.mjs versions/*.test.mjs
 # npm's cache stays in the repository's target/, never in the source tree or a home directory.
 npm ci --ignore-scripts --no-audit --no-fund --no-update-notifier --cache ../target/site/npm-cache --loglevel=error
 # Astro's telemetry would send a request home on every build, and npm's update check one more.

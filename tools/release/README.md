@@ -16,7 +16,11 @@ that edited section is what the GitHub release says.
    `Cargo.toml`): `chore(release): draft vX.Y.Z`.
 3. **Edit the section by hand** and commit it alone: `chore(release): vX.Y.Z`. Merge duplicates, reword what is unclear
    to someone who runs the service, add an introduction when the release needs one, and set the heading's date to
-   the day of the tag. The diff between the two commits is the edit; nothing else changes in this one.
+   the day of the tag. When the section has Action required, write the release's section of the upgrade guide in the
+   same commit, `## Upgrading to X.Y.Z` at the head of the releases in `docs/guide/upgrading.md`: the steps a
+   deployment or a client takes, under Action required, Deprecated and Removed; the gate refuses the tag without it.
+   A release that asks nothing gets a section only to say so. The diff between the two commits is the edit; nothing
+   else changes in this one.
 4. **Tag the edited commit** `vX.Y.Z` (annotated: `git tag -a vX.Y.Z -m vX.Y.Z`) and push the commit, then the tag.
    The tag starts `.github/workflows/release.yml` (below).
 5. **The release body is that section**: the workflow takes the text of `## [X.Y.Z]` in `CHANGELOG.md` at the tag,
@@ -58,8 +62,9 @@ One tag publishes every artifact, quay.io first; the header of `.github/workflow
   `.intoto.jsonl` one for the full score.
 - **index**: the GitHub release gets `index.yaml`, the Helm repository index of every release's chart, which
   `helm repo add docx-to-pdf https://github.com/oxidestack/docx-to-pdf/releases/latest/download` reads, signed and
-  attested the same way (`index.yaml.sigstore.json`, `index.yaml.intoto.jsonl`). The documentation site deploys from
-  `main`.
+  attested the same way (`index.yaml.sigstore.json`, `index.yaml.intoto.jsonl`).
+- **site**: for a release, `site.yml` is run on `main`, which deploys the documentation site with the release at its
+  root and under its version (`site/README.md`, "Versions"). A pre-release has no documentation version.
 
 A manual run (`gh workflow run release.yml`) is the dry run: both architectures built and tested, the chart and the
 notes made at version `0.0.0-dry-run`, the chart and the index signed and verified with a throwaway key (`release.sh
@@ -80,6 +85,10 @@ to `cliff.toml`'s template or to `CHANGELOG.md`'s head changes those files in th
 `release.sh changes` on `expected-tagged.txt` as drafted, on `changes-changelog.txt` (wrapped entries, quotes, a
 backslash, hand-written entries, a Security section, the next release's section) and on `CHANGELOG.md`'s first
 release, and that a pre-release without a section gets none. It needs only `sh` and `awk`.
+
+`tools/release/test_release_check.py`, in the same runs, checks the gate's upgrade guide rule (step 3): a release
+whose section has Action required and no `## Upgrading to X.Y.Z` fails `release.sh check`, one with it passes, and a
+release that asks nothing and a pre-release need none. It needs only `sh` and `awk`.
 
 `tools/release/test_release_body.py`, in the same runs, checks the release body (step 5): `release.sh notes` on
 `expected-tagged.txt` gives the section without its compare link, then the Install and Verify blocks with the version,

@@ -31,8 +31,9 @@
 #   both are verified before the release is made. Then the `helm repo add` index of every release's chart is attached
 #   as index.yaml, signed and attested the same way (index.yaml.sigstore.json, index.yaml.intoto.jsonl): the
 #   repository URL https://github.com/oxidestack/docx-to-pdf/releases/latest/download serves the latest release's.
-#   Not on Pages: Pages keeps one deployment a commit, and the tag's commit is one `main` has already deployed. The
-#   documentation site deploys from `main` (site.yml).
+#   Not on Pages: Pages keeps one deployment a commit, and the tag's commit is one `main` has already deployed.
+# - `site`: for a release, runs site.yml on `main`, which deploys the documentation site with this release at its root
+#   and under its version (site/README.md, "Versions").
 #
 # A manual run (`gh workflow run release.yml`, or Actions → Release → Run workflow) is the dry run: both architectures
 # built and tested, the chart packaged and the notes written at version 0.0.0-dry-run, the chart and the index signed
@@ -423,6 +424,24 @@ jobs:
           cp "$BUNDLE" "$index.intoto.jsonl"
           gh attestation verify "$index" --repo "$REPOSITORY" --bundle "$index.intoto.jsonl" > /dev/null
           gh release upload "$REF_NAME" --clobber "$index" "$index.sigstore.json" "$index.intoto.jsonl"
+
+  site:
+    # The documentation site serves the latest release at its root and every release under its version
+    # (site/README.md, "Versions"), built from the release tags. It deploys from `main` only, so once this release
+    # is out the site workflow is run again on `main`, where the tag now exists. A pre-release has no documentation
+    # version: its notes are its GitHub release's.
+    if: >-
+      github.event_name == 'push' && !github.event.repository.private && !contains(needs.gate.outputs.version, '-')
+    needs: [gate, github-release]
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: write  # starts site.yml on main
+    timeout-minutes: 5
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        run: gh workflow run site.yml --repo "$REPOSITORY" --ref main
 
   dry-run:
     if: ${{ github.event_name == 'workflow_dispatch' }}

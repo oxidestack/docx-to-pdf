@@ -37,6 +37,37 @@ Nothing is copied into this directory by hand. Every build runs [`scripts/stage.
 `docs/guide/…`, never a staged page. A new guide page is staged by being there; it appears in the navigation once
 [`astro.config.mjs`](astro.config.mjs)'s `sidebar` names it.
 
+## Versions
+
+The site Pages serves is the documentation of the releases, never of `main`: the latest release at the root,
+<https://oxidestack.github.io/docx-to-pdf/>, and every release under its version, `/docx-to-pdf/1.0/`,
+`/docx-to-pdf/1.1/` and so on, the latest included. A version is a minor, built from its latest patch tag: `1.1` is
+`v1.1.3` once that is out. A release candidate (`vX.Y.Z-rc.N`) has no version here; its notes are its GitHub
+release's. A page of `main` reaches the site with the next release, and `make site` checks it on every push before.
+
+```sh
+make site-versions    # target/site/pages/, as Pages serves it
+```
+
+[`versions/extract.sh`](versions/extract.sh) lists the release tags and unpacks each tag's tree under
+`target/site/versions/`, on the host since it needs git. [`versions/build.sh`](versions/build.sh), in the same pinned
+node image as `make site`, builds each one with **its own** `site/`: its lockfile, its staging, its pages, as it was
+released, so a change here never changes what an older release's documentation says, nor breaks its build. It sets
+the release's base path with `SITE_BASE` and the git ref its links to repository files name with `SITE_REF` (the
+tag); `astro.config.mjs`, `scripts/stage.mjs` and `scripts/evidence.mjs` read both. 1.0 and 1.1 were released before
+those settings, so the build writes their base where they hard-code it, and drops their README's first image, a mark
+that no longer resolves; the header shows the mark anyway.
+
+[`versions/inject.mjs`](versions/inject.mjs) then makes the releases one site: `versions.json`, the list of
+versions, and [`versions/versions.js`](versions/versions.js) at the root, and in the head of every page its version,
+that script and, under `/docx-to-pdf/<x.y>/`, `noindex`, so a search engine finds the root's copy of a page. The
+script reads the list at run time, so a release built long ago lists the ones after it. It puts the version picker
+beside the theme select, which opens the same page in another version or that version's home when it has none, and
+on an older release a banner linking the same page in the latest and the latest's upgrade guide
+([`docs/guide/upgrading.md`](../docs/guide/upgrading.md)). The CI builds the versioned site on every push and deploys
+it on a push to `main`; a release runs that deployment again on `main` once its tag exists
+(`.github/workflows/release.yml`, `site`).
+
 ## The Benchmarks page, the README's numbers and the comparison guide's
 
 [`public/benchmarks/results.json`](public/benchmarks/results.json) is the raw output of the latest full run of

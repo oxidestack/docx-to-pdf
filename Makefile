@@ -74,6 +74,16 @@ site: ## build the documentation site into site/dist/ in the pinned node image; 
 	docker run --rm --name docx-to-pdf-site-$$$$ --user "$$(id -u):$$(id -g)" -e HOME=/tmp -v "$(CURDIR):/src" -w /src \
 		$$(sh tools/lint/lint.sh --list | awk '$$1 == "markdownlint" { print $$3 }') sh site/build.sh
 
+# The site GitHub Pages publishes (site/README.md, "Versions"): every release's documentation built by its own tag,
+# the latest at the root and each under /docx-to-pdf/<x.y>/, with the version picker, into target/site/pages/. git
+# runs on the host (site/versions/extract.sh), node in the same image as `make site` (site/versions/build.sh).
+.PHONY: site-versions
+site-versions: ## build every release's documentation into target/site/pages/, as GitHub Pages serves it
+	sh site/versions/extract.sh
+	docker run --rm --name docx-to-pdf-site-versions-$$$$ --user "$$(id -u):$$(id -g)" -e HOME=/tmp \
+		-v "$(CURDIR):/src" -w /src \
+		$$(sh tools/lint/lint.sh --list | awk '$$1 == "markdownlint" { print $$3 }') sh site/versions/build.sh
+
 # The publication gate (tools/public/public_check.py): no company's name, nothing of the author's environment, no
 # internal host and no local path in a pushed tree or commit message. The denylist names the private things and so
 # lives outside the repository: PUBLIC_DENYLIST, default ~/.config/oxidestack/public-denylist (one per organisation,

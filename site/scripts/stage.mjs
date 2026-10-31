@@ -27,9 +27,13 @@ const here = dirname(fileURLToPath(import.meta.url))
 const REPO = join(here, '..', '..')
 const DOCS = join(here, '..', 'src', 'content', 'docs')
 
-/** The site's base path (astro.config.mjs `base`): every internal link carries it. */
-const BASE = '/docx-to-pdf'
+/** The site's root path: the latest release's documentation, and what the README writes the site's address with. */
+const ROOT = '/docx-to-pdf'
+/** The site's base path (astro.config.mjs `base`): every internal link carries it. A release's own is its version's. */
+const BASE = process.env.SITE_BASE || ROOT
 const GITHUB = 'https://github.com/oxidestack/docx-to-pdf'
+/** The git ref a link to a file of the repository names: the release's tag for a release's documentation. */
+const REF = process.env.SITE_REF || 'main'
 /** The site's origin (astro.config.mjs `site`). */
 const SITE = 'https://oxidestack.github.io'
 
@@ -111,7 +115,7 @@ const STAGED_DIR = 'site/src/content/docs'
 function retarget(href, from, staged, image) {
   // The site's own address, as the README writes it to link a page GitHub does not carry: a path under the base on
   // the site, so the validator checks the page and the anchor it names.
-  if (href.startsWith(`${SITE}${BASE}/`)) return href.slice(SITE.length)
+  if (href.startsWith(`${SITE}${ROOT}/`)) return BASE + href.slice(SITE.length + ROOT.length)
   if (/^([a-z][a-z0-9+.-]*:|#|\/)/i.test(href)) return href
   const [path, hash = ''] = href.split('#')
   const anchor = hash ? `#${hash}` : ''
@@ -127,7 +131,7 @@ function retarget(href, from, staged, image) {
     return posix.relative(STAGED_DIR, target) + anchor
   }
   const kind = path.endsWith('/') ? 'tree' : 'blob'
-  return `${GITHUB}/${kind}/main/${target}${anchor}`
+  return `${GITHUB}/${kind}/${REF}/${target}${anchor}`
 }
 
 function retargetLinks(source, from, staged) {

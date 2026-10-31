@@ -35,6 +35,8 @@ const README = join(REPO, 'README.md')
 const GUIDE = join(REPO, 'docs', 'guide', 'comparison.md')
 
 const SITE = 'https://oxidestack.github.io/docx-to-pdf'
+/** The site's base path (astro.config.mjs `base`), which a release's documentation sets to its version's. */
+const BASE = process.env.SITE_BASE || '/docx-to-pdf'
 const GITHUB = 'https://github.com/oxidestack/docx-to-pdf'
 export const BEGIN = '<!-- benchmarks:begin: `make evidence` writes this block from site/public/benchmarks/results.json -->'
 const END = '<!-- benchmarks:end -->'
@@ -619,7 +621,7 @@ export function page(results, earlier = []) {
   const L = []
   L.push('---', 'title: Benchmarks', 'description: "Every figure of the latest full make compare run: oxidestack/docx-to-pdf, Gotenberg and moalhaddar/docx-to-pdf, with the raw results."', '---', '')
   L.push(
-    `Every number on this page is read from one file, the [raw results](/docx-to-pdf/benchmarks/results.json) of the`,
+    `Every number on this page is read from one file, the [raw results](${BASE}/benchmarks/results.json) of the`,
     `latest full run of \`make compare\`, the comparison anyone can rerun ([how](#run-it-yourself)). The site's build`,
     'generates this page, the README\'s headline numbers and the home page from it, and fails on a number that is not',
     'read from it. Each figure is the mean ± σ (n) over the blocks of the run, σ the sample standard deviation; two',
@@ -705,7 +707,7 @@ export function page(results, earlier = []) {
       '',
       ...before.map(
         (r) =>
-          `- [${at(r)}](/docx-to-pdf/benchmarks/earlier/${r.meta.stamp}.json), ${release(r.meta) ? `release ${v(release(r.meta))}` : 'the code of that day, built by the command'}`,
+          `- [${at(r)}](${BASE}/benchmarks/earlier/${r.meta.stamp}.json), ${release(r.meta) ? `release ${v(release(r.meta))}` : 'the code of that day, built by the command'}`,
       ),
     )
   }
@@ -717,7 +719,7 @@ export function page(results, earlier = []) {
       'Earlier full runs of another shape than this one, kept for download and quoted nowhere, since a range over',
       'them would mix two experiments:',
       '',
-      ...others.map(({ run, diff }) => `- [${at(run)}](/docx-to-pdf/benchmarks/earlier/${run.meta.stamp}.json), ${diff}`),
+      ...others.map(({ run, diff }) => `- [${at(run)}](${BASE}/benchmarks/earlier/${run.meta.stamp}.json), ${diff}`),
     )
   }
   L.push('', '## Versions', '', '| | Image |', '| --- | --- |')
@@ -738,7 +740,7 @@ export function page(results, earlier = []) {
     '```',
     '',
     `[\`examples/compare/\`](${GITHUB}/tree/main/examples/compare) says what each mode runs. The run writes the tables`,
-    'and a `results.json` like [this one](/docx-to-pdf/benchmarks/results.json).',
+    `and a \`results.json\` like [this one](${BASE}/benchmarks/results.json).`,
   )
   return `${L.join('\n')}\n`
 }

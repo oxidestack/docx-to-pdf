@@ -6,7 +6,8 @@
 #
 #   sh tools/ci/release.sh check <tag>
 #       The tag's version (publish-image.sh's rule) on stdout. For a release (no `-`) the tree must already say it:
-#       Chart.yaml's version and appVersion, Cargo.toml's version and a `## [<version>]` section in CHANGELOG.md
+#       Chart.yaml's version and appVersion, Cargo.toml's version and a `## [<version>]` section in CHANGELOG.md, and
+#       when that section has Action required, a `## Upgrading to <version>` section in docs/guide/upgrading.md
 #       (tools/release/README.md). A pre-release needs none of them.
 #   sh tools/ci/release.sh on-main <owner/repo> <sha>
 #       Exit 0 when <sha> is on the default branch (`main` contains it), so a tag on a side branch publishes nothing.
@@ -61,7 +62,8 @@
 #
 # Environment: DOCKER_CONFIG, the registry credentials every tool here reads (default ~/.docker; crane's CRANE_CONFIG
 # should name the same directory); REGISTRY_PLAIN_HTTP=1 for a plain-HTTP test registry; COSIGN_KEY/COSIGN_PUB (and
-# COSIGN_PASSWORD) to sign and verify with a key pair instead of keyless, CHANGELOG another changelog (the local tests);
+# COSIGN_PASSWORD) to sign and verify with a key pair instead of keyless, CHANGELOG another changelog and UPGRADING
+# another upgrade guide (the local tests);
 # QUAY_AUDIENCE, the audience quay-login asks GitHub's OIDC token for (default `quay`, the one quay.io's federation form
 # proposes).
 # Exit 0: done; 1: a step failed; 2: usage.
@@ -74,9 +76,10 @@ CHART_REPOSITORY=quay.io/oxidestack/charts/docx-to-pdf
 RETRY_DELAYS=${RETRY_DELAYS:-10 30}
 AUTH=${DOCKER_CONFIG:-$HOME/.docker}/config.json
 CHANGELOG=${CHANGELOG:-$ROOT/CHANGELOG.md}
+UPGRADING=${UPGRADING:-$ROOT/docs/guide/upgrading.md}
 
 usage() {
-	sed -n '7,57p' "$0" >&2
+	sed -n '7,58p' "$0" >&2
 	exit 2
 }
 
@@ -220,6 +223,12 @@ check)
 			say "CHANGELOG.md has no section ## [$version] (tools/release/README.md, steps 1-3)"
 			rc=1
 		}
+		if section "$version" | grep -q '^### Action required'; then
+			grep -qx "## Upgrading to $version" "$UPGRADING" || {
+				say "CHANGELOG.md's $version asks for action, and docs/guide/upgrading.md has no ## Upgrading to $version (tools/release/README.md, step 3)"
+				rc=1
+			}
+		fi
 		[ $rc -eq 0 ] || exit 1
 		;;
 	esac

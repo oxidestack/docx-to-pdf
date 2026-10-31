@@ -5,10 +5,11 @@ import starlightLinksValidator from 'starlight-links-validator'
 
 // A project page of the organisation's GitHub Pages: `oxidestack.github.io` is shared by every project of the
 // organisation, so this site lives under `/docx-to-pdf/`, and every internal link carries that base. The staging
-// script writes the links with it (scripts/stage.mjs, BASE), and the validator below fails a link without it.
+// script writes the links with it (scripts/stage.mjs, BASE), and the validator below fails a link without it. A
+// release's documentation is built under its own version, `/docx-to-pdf/<x.y>/`, with SITE_BASE (site/versions/).
 export default defineConfig({
   site: 'https://oxidestack.github.io',
-  base: '/docx-to-pdf',
+  base: process.env.SITE_BASE || '/docx-to-pdf',
   trailingSlash: 'always',
   integrations: [
     starlight({
@@ -29,6 +30,7 @@ export default defineConfig({
           items: [
             { label: 'Introduction and quick start', link: '/' },
             { label: 'Installation', slug: 'installation' },
+            { label: 'Upgrading', slug: 'upgrading' },
           ],
         },
         { label: 'API reference', slug: 'api' },

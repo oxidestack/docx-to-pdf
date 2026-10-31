@@ -80,11 +80,13 @@ Every release is signed and carries its SBOM and build provenance;
 
 ## Documentation
 
-The guide is published at [oxidestack.github.io/docx-to-pdf](https://oxidestack.github.io/docx-to-pdf/); the same
-pages are in `docs/guide/`:
+The guide is published at [oxidestack.github.io/docx-to-pdf](https://oxidestack.github.io/docx-to-pdf/), the latest
+release's at the root and every release's under its version; the same pages, as they are on `main`, are in
+`docs/guide/`:
 
 - [Installation](docs/guide/installation.md) — `docker run`, Docker Compose and Kubernetes with the Helm chart, and the
   resources to give it
+- [Upgrading](docs/guide/upgrading.md) — what each release asks of a deployment, and how to move to a newer one
 - [Configuration](docs/guide/configuration.md) — every environment variable, its default and its effect
 - [API reference](docs/guide/api.md) — the endpoints, the formats accepted, every status and its detail
 - [Operations](docs/guide/operations.md) — the container, health checks, Kubernetes, telemetry and metrics, limits,
