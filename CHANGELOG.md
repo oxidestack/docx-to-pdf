@@ -14,19 +14,32 @@ its section below.
 
 ## [1.2.0] - 2026-10-31
 
+The documentation, by release and in four languages: the site serves each release's documentation with a version
+picker, a new upgrade guide says what each release asks of a deployment, and the home page and the upgrade guide are
+in Russian, Chinese and Spanish too. An Excel spreadsheet embedded in a document now reaches the PDF, and the chart is
+listed on Artifact Hub again. Nothing to change in a deployment; the image and the chart upgrade in place from 1.1.0.
+
 ### Bug fixes
 
-- The Benchmarks page's soak verdict ignores a memory rise under 1 % of LibreOffice's level per 1000 conversions; release 1.0.0's soak, +0.5 MiB per 1000 at 391 MiB, now reads "does not grow" instead of "grows". (bench, ab680b1)
-- The installation guide and the release notes say that `cosign verify-blob` needs cosign 3 or later for the release files' Sigstore bundles (cosign 2 with `--new-bundle-format`). (release, 2885366)
-- The Benchmarks soak verdict says "grows" only when memory still rises over the soak's second half; a rise the second half cannot confirm reads "rose, second half unresolved". No published verdict changes. (bench, 1bf99fb)
-- The bench's objects class is the corpus's 36 feature documents and is generated without an external fixture tree. (bench, 025fb56)
-- An embedded Excel spreadsheet in a document is drawn with its cells. It was left out of the PDF, with neither its cells nor its preview picture, because the image did not carry LibreOffice Calc. (image, 616d2f3)
-- The Helm chart is listed on Artifact Hub again: its 1.1.0 was refused for a category Artifact Hub does not accept yet, which the chart no longer names. (chart, e345065)
+- An Excel spreadsheet embedded in a document is drawn with its cells. It was left out of the PDF, with neither its
+  cells nor its preview picture, because the image did not carry LibreOffice Calc. (image, 616d2f3)
+- The Helm chart is listed on Artifact Hub again: its 1.1.0 was refused for a category Artifact Hub does not accept
+  yet, which the chart no longer names. (chart, e345065)
+- The installation guide and the release notes say that `cosign verify-blob` needs cosign 3 or later for the release
+  files' Sigstore bundles (cosign 2 with `--new-bundle-format`). (release, 2885366)
+- The Benchmarks page's soak verdict says "grows" only when memory still rises over the soak's second half by at least
+  1 % of LibreOffice's level per 1000 conversions: release 1.0.0's soak, +0.5 MiB per 1000 at 391 MiB, now reads "does
+  not grow", and a rise the second half cannot confirm reads "rose, second half unresolved". (bench, 1bf99fb)
 
 ### Other changes
 
-- The documentation site at oxidestack.github.io/docx-to-pdf shows the latest release's documentation, every release's under its version with a version picker, and a new Upgrading page says what each release asks of a deployment. (eaaa257)
-- The documentation site has a language picker: the home page and the upgrade guide are in Russian, Chinese and Spanish, and every other page is shown in English under each language until it is translated. (e35b01d)
+- The documentation site at <https://oxidestack.github.io/docx-to-pdf/> serves the latest release's documentation at
+  its root and every release's under its version, with a version picker on every page and, on an older release, a
+  banner linking the same page in the latest. The new
+  [Upgrading](https://oxidestack.github.io/docx-to-pdf/upgrading/) page says what each release asks of a deployment.
+  (eaaa257)
+- The site has a language picker: EN (English), RU (Русский), ZH (中文) and ES (Español). The home page and the upgrade
+  guide are translated; every other page is shown in English under each language until it is. (e35b01d)
 
 [1.2.0]: https://github.com/oxidestack/docx-to-pdf/compare/v1.1.0...v1.2.0
 

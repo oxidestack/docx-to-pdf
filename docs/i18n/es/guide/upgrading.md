@@ -42,6 +42,10 @@ actualización sustituye los contenedores y nada más, y una vuelta atrás es el
    ([Operations](../../../guide/operations.md#telemetry)). Para volver atrás, ejecute el paso 3 con la versión que
    tenía.
 
+## Actualizar a 1.2.0
+
+Nada que cambiar: la imagen y el chart se actualizan en su sitio desde 1.1.0.
+
 ## Actualizar a 1.1.0
 
 Nada que cambiar: la imagen y el chart se actualizan en su sitio desde 1.0.0.
