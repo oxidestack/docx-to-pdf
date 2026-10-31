@@ -21,8 +21,6 @@ maintainers:
 annotations:
   # The chart's licence, the code's: Artifact Hub shows it.
   artifacthub.io/license: Apache-2.0
-  # One of Artifact Hub's fixed categories; without it a model guesses one from the name and keywords.
-  artifacthub.io/category: data-processing
   # `support` is the name Artifact Hub highlights as the place to report an issue.
   artifacthub.io/links: |
     - name: Documentation
