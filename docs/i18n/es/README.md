@@ -103,7 +103,10 @@ En un clon hecho sin `--recursive`, ejecute `git submodule update --init` una ve
 
 ## Ayuda
 
-Las preguntas van a [Discussions](https://github.com/oxidestack/docx-to-pdf/discussions), los errores a
+Una pregunta sobre cómo funciona el servicio puede ir primero a
+[DeepWiki](https://deepwiki.com/oxidestack/docx-to-pdf): responde a partir del código y la documentación de este
+repositorio, y cuando no coincide con la documentación, la documentación tiene razón. Las preguntas que no resuelva
+van a [Discussions](https://github.com/oxidestack/docx-to-pdf/discussions), los errores a
 [issues](https://github.com/oxidestack/docx-to-pdf/issues/new/choose) y las vulnerabilidades a un informe privado
 ([SECURITY.md](../../../SECURITY.md)). [CONTRIBUTING.md](../../../CONTRIBUTING.md) explica cómo compilar, probar y
 enviar un cambio.

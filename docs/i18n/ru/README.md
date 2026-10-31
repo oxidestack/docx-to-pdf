@@ -104,7 +104,10 @@ git clone --recursive https://github.com/oxidestack/docx-to-pdf.git
 
 ## Помощь
 
-Вопросы — в [Discussions](https://github.com/oxidestack/docx-to-pdf/discussions), ошибки — в
+Вопрос о том, как устроен сервис, можно сначала задать [DeepWiki](https://deepwiki.com/oxidestack/docx-to-pdf):
+он отвечает по коду и документации этого репозитория, а там, где он расходится с документацией, права
+документация. Вопросы, которые он не решил, — в
+[Discussions](https://github.com/oxidestack/docx-to-pdf/discussions), ошибки — в
 [issues](https://github.com/oxidestack/docx-to-pdf/issues/new/choose), уязвимости — в закрытом сообщении
 ([SECURITY.md](../../../SECURITY.md)). [CONTRIBUTING.md](../../../CONTRIBUTING.md) объясняет, как собрать,
 протестировать и прислать изменение.

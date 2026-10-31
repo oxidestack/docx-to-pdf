@@ -93,7 +93,8 @@ git clone --recursive https://github.com/oxidestack/docx-to-pdf.git
 
 ## 获取帮助
 
-问题请到 [Discussions](https://github.com/oxidestack/docx-to-pdf/discussions)，缺陷请提
+关于服务如何工作的问题，可以先问 [DeepWiki](https://deepwiki.com/oxidestack/docx-to-pdf)：
+它根据本仓库的代码和文档作答；当它与文档不一致时，以文档为准。它解决不了的问题请到 [Discussions](https://github.com/oxidestack/docx-to-pdf/discussions)，缺陷请提
 [issues](https://github.com/oxidestack/docx-to-pdf/issues/new/choose)，漏洞请私下报告
 （[SECURITY.md](../../../SECURITY.md)）。[CONTRIBUTING.md](../../../CONTRIBUTING.md)
 说明如何构建、测试和提交修改。

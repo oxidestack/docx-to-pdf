@@ -9,6 +9,7 @@
 [![CI](https://github.com/oxidestack/docx-to-pdf/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/oxidestack/docx-to-pdf/actions/workflows/ci.yml?query=branch%3Amain)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/oxidestack/docx-to-pdf/badge)](https://scorecard.dev/viewer/?uri=github.com/oxidestack/docx-to-pdf)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/16076/badge)](https://www.bestpractices.dev/projects/16076)
+[![Ask DeepWiki](https://img.shields.io/badge/Ask-DeepWiki-1f6feb)](https://deepwiki.com/oxidestack/docx-to-pdf)
 
 **Documentation: [oxidestack.github.io/docx-to-pdf](https://oxidestack.github.io/docx-to-pdf/)**
 
@@ -124,7 +125,10 @@ In a clone made without `--recursive`, run `git submodule update --init` once.
 
 ## Getting help
 
-Questions go to [Discussions](https://github.com/oxidestack/docx-to-pdf/discussions), bugs to
+A question about how the service works can go to [DeepWiki](https://deepwiki.com/oxidestack/docx-to-pdf) first: it
+answers from this repository's code and documentation, and where it disagrees with the documentation, the
+documentation is right. Questions it does not settle go to
+[Discussions](https://github.com/oxidestack/docx-to-pdf/discussions), bugs to
 [issues](https://github.com/oxidestack/docx-to-pdf/issues/new/choose), vulnerabilities to a private report
 ([SECURITY.md](SECURITY.md)). [CONTRIBUTING.md](CONTRIBUTING.md) says how to build, test and send a change.
 
