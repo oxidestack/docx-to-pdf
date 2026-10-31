@@ -27,7 +27,7 @@ OpenTelemetry.
 ## Быстрый старт
 
 ```sh
-docker run --rm -p 8080:8080 quay.io/oxidestack/docx-to-pdf:1.1.0
+docker run --rm -p 8080:8080 quay.io/oxidestack/docx-to-pdf:1.2.0
 ```
 
 В другом терминале, когда сервис запустится:

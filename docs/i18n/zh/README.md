@@ -25,7 +25,7 @@
 ## 快速开始
 
 ```sh
-docker run --rm -p 8080:8080 quay.io/oxidestack/docx-to-pdf:1.1.0
+docker run --rm -p 8080:8080 quay.io/oxidestack/docx-to-pdf:1.2.0
 ```
 
 启动后，在另一个终端中：

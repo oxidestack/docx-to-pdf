@@ -26,7 +26,7 @@ en Rust, incluye un LibreOffice actual e informa de lo que hace mediante OpenTel
 ## Inicio rápido
 
 ```sh
-docker run --rm -p 8080:8080 quay.io/oxidestack/docx-to-pdf:1.1.0
+docker run --rm -p 8080:8080 quay.io/oxidestack/docx-to-pdf:1.2.0
 ```
 
 En otra terminal, una vez que haya arrancado:
