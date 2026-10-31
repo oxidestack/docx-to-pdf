@@ -24,13 +24,14 @@ and open <http://localhost:4321/docx-to-pdf/>.
 ## A page has one home, and it is not here
 
 Nothing is copied into this directory by hand. Every build runs [`scripts/stage.mjs`](scripts/stage.mjs), which reads
-`README.md` and `docs/guide/*.md` and writes them into `src/content/docs/` with three changes and no others:
+`README.md` and `docs/guide/*.md` and writes them into `src/content/docs/` with four changes and no others:
 
 | Change | Why |
 | --- | --- |
 | The first `#` heading becomes the page's title | Starlight takes the title from frontmatter |
 | `[Configuration](configuration.md#server)` becomes `/docx-to-pdf/configuration/#server`; a link to any other file of the repository becomes a link to it on GitHub | right on GitHub, a 404 on the site, which carries only the documentation |
 | `<name>` outside code becomes `&lt;name>` | a renderer reads it as an HTML tag and drops it |
+| An image, `![…](site/src/assets/…)`, is linked relative to the staged page; an image of another file of the repository fails the staging | a GitHub page is no image, and a file under `src/` is bundled by the build |
 
 `src/content/docs/`, `dist/`, `.astro/` and `node_modules/` are build output, ignored by git: edit `README.md` or
 `docs/guide/…`, never a staged page. A new guide page is staged by being there; it appears in the navigation once
@@ -85,8 +86,8 @@ every push and deploys it with GitHub Pages on a push to `main`; the repository'
 
 ## The logo
 
-`src/assets/docx-to-pdf-mark.svg` (beside the title) and `public/favicon.svg` are the one exception to the rule above:
-unchanged copies of `projects/docx-to-pdf/mark.svg` and of `projects/docx-to-pdf/mark-small.svg` (the mark for 16-64
-px) in [oxidestack/artwork](https://github.com/oxidestack/artwork), where every OxideStack logo is made, since
-Starlight takes a logo only from a local file. When a mark changes there, copy it again; never edit them here. The
-README links to the same file there instead of copying it.
+`src/assets/docx-to-pdf-mark.svg` (the mark, beside the title and atop the README) and `public/favicon.svg` (the small
+mark, for 16-64 px) are the one exception to the rule above: they are drawn with the rest of OxideStack's artwork,
+outside this repository, and are their unchanged copies. When a mark changes, copy it again; never edit them here.
+The README shows the mark from this same file, and the staging links it relative to the home page so the build bundles
+it.

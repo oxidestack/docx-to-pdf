@@ -11,7 +11,9 @@
 //      lifted out so the page has one <h1>, not two.
 //   2. Links that resolve. `[Configuration](configuration.md#server)` is right on GitHub and a 404 here, where the
 //      page is /docx-to-pdf/configuration/. A link to a staged file becomes its page; a link to any other file of the
-//      repository becomes a link to that file on GitHub, since the site does not carry it.
+//      repository becomes a link to that file on GitHub, since the site does not carry it. An image is the exception:
+//      a GitHub page is no image, so an image must be one of the site's own sources (site/src/…), linked relative
+//      to the staged page so the build bundles it; any other image fails the staging.
 //      A link to the site's own address (the README's to the Benchmarks page, which only the site has) becomes a
 //      path under the base, so the build checks it like any other.
 //   3. Angle brackets that survive: outside code a renderer reads `<name>` as an HTML tag and drops it, so it is
@@ -102,8 +104,11 @@ function escapeAngles(text) {
   return text.replace(/<(?!https?:\/\/|!--)/g, '&lt;')
 }
 
-/** One link target, as seen from the repository file `from`. */
-function retarget(href, from, staged) {
+/** The staged pages' directory, as a repository path: every page is staged flat into it. */
+const STAGED_DIR = 'site/src/content/docs'
+
+/** One link target, as seen from the repository file `from`; `image` when it is an image's source. */
+function retarget(href, from, staged, image) {
   // The site's own address, as the README writes it to link a page GitHub does not carry: a path under the base on
   // the site, so the validator checks the page and the anchor it names.
   if (href.startsWith(`${SITE}${BASE}/`)) return href.slice(SITE.length)
@@ -117,6 +122,10 @@ function retarget(href, from, staged) {
   }
   if (target.startsWith('..')) throw new Error(`${from}: the link ${href} leaves the repository`)
   if (!existsSync(join(REPO, target))) throw new Error(`${from}: the link ${href} names no file of the repository`)
+  if (image) {
+    if (!target.startsWith('site/src/')) throw new Error(`${from}: the image ${href} is not under site/src/, so the site cannot show it`)
+    return posix.relative(STAGED_DIR, target) + anchor
+  }
   const kind = path.endsWith('/') ? 'tree' : 'blob'
   return `${GITHUB}/${kind}/main/${target}${anchor}`
 }
@@ -125,7 +134,9 @@ function retargetLinks(source, from, staged) {
   return overProse(
     source,
     (text) =>
-      text.replace(/(!?\[[^\]]*\]\()([^)\s]+)(\))/g, (_, open, href, close) => open + retarget(href, from, staged) + close),
+      text.replace(/(!?\[[^\]]*\]\()([^)\s]+)(\))/g, (_, open, href, close) =>
+        open + retarget(href, from, staged, open.startsWith('!')) + close,
+      ),
     { spans: true },
   )
 }
