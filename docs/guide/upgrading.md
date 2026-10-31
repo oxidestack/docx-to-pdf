@@ -1,5 +1,10 @@
 # Upgrading
 
+<!-- languages:begin -->
+**English** · [Русский](../i18n/ru/guide/upgrading.md) · [中文](../i18n/zh/guide/upgrading.md) ·
+[Español](../i18n/es/guide/upgrading.md)
+<!-- languages:end -->
+
 How to move a deployment from the release it runs to a newer one. Find the section of every release newer than
 yours, and apply them oldest first: going from 1.0.0 to 1.2.0 means the section of 1.1.0, then the one of 1.2.0. A
 release with nothing to change says so. Then [upgrade](#how-to-upgrade) to the newest release in one step: a release

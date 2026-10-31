@@ -1,5 +1,9 @@
 # docx-to-pdf
 
+<!-- languages:begin -->
+**English** · [Русский](docs/i18n/ru/README.md) · [中文](docs/i18n/zh/README.md) · [Español](docs/i18n/es/README.md)
+<!-- languages:end -->
+
 ![docx-to-pdf logo](site/src/assets/docx-to-pdf-mark.svg)
 
 [![CI](https://github.com/oxidestack/docx-to-pdf/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/oxidestack/docx-to-pdf/actions/workflows/ci.yml?query=branch%3Amain)

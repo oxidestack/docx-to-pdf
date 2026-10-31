@@ -10,6 +10,9 @@ extend-exclude = [
     "tests/scenarios/",
     "fuzz/corpus/",
     "fuzz/artifacts/",
+    # The translations of the documentation: Russian, Chinese and Spanish prose, which an English dictionary reads as
+    # misspellings (site/README.md, "Languages").
+    "docs/i18n/",
     # The GitRiver workflow lint, vendored and never edited here.
     "tools/ci/lint-gitriver-workflows",
 ]
@@ -21,6 +24,8 @@ extend-ignore-re = [
 ]
 
 [default.extend-words]
+# Spanish, in the site's translated sidebar labels (site/astro.config.mjs): "Solución de problemas".
+problemas = "problemas"
 # in-toto, the attestation format: a release's provenance is <name>.intoto.jsonl.
 intoto = "intoto"
 # LibreOfficeKit, as the code and the docs abbreviate it.

@@ -22,6 +22,7 @@
 import { readFileSync, writeFileSync, mkdirSync, rmSync, readdirSync, existsSync } from 'node:fs'
 import { dirname, join, basename, posix } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { TRANSLATIONS } from '../locales.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const REPO = join(here, '..', '..')
@@ -37,13 +38,64 @@ const REF = process.env.SITE_REF || 'main'
 /** The site's origin (astro.config.mjs `site`). */
 const SITE = 'https://oxidestack.github.io'
 
-/** The staged files: repository path → page slug ('' is the site's home page). */
+/**
+ * The staged files: repository path → the page's slug ('' is the site's home page) and language ('' is English).
+ * A translation is docs/i18n/<language>/ with the original's own path: docs/i18n/ru/README.md,
+ * docs/i18n/ru/guide/installation.md. It is staged as the same page under its language, and a translation of no page
+ * fails the staging.
+ */
 function pages() {
-  const map = new Map([['README.md', '']])
+  const map = new Map([['README.md', { slug: '', locale: '' }]])
   for (const file of readdirSync(join(REPO, 'docs', 'guide')).sort()) {
-    if (file.endsWith('.md')) map.set(`docs/guide/${file}`, basename(file, '.md'))
+    if (file.endsWith('.md')) map.set(`docs/guide/${file}`, { slug: basename(file, '.md'), locale: '' })
+  }
+  for (const locale of TRANSLATIONS) {
+    for (const [original, { slug }] of [...map].filter(([, page]) => page.locale === '')) {
+      const translation = `docs/i18n/${locale}/${original.replace(/^docs\//, '')}`
+      if (existsSync(join(REPO, translation))) map.set(translation, { slug, locale })
+    }
+    const dir = join(REPO, 'docs', 'i18n', locale)
+    for (const file of existsSync(dir) ? readdirSync(dir, { recursive: true }) : []) {
+      const path = `docs/i18n/${locale}/${file}`
+      if (path.endsWith('.md') && !map.has(path)) throw new Error(`${path} translates no page: README.md and docs/guide/*.md are`)
+    }
   }
   return map
+}
+
+/** The original of a translation's repository path: docs/i18n/ru/README.md is README.md, docs/i18n/ru/guide/api.md is
+ * docs/guide/api.md. */
+const original = (path) => {
+  const rest = path.replace(/^docs\/i18n\/[^/]+\//, '')
+  return rest === 'README.md' ? rest : `docs/${rest}`
+}
+
+const LANGUAGES = /<!-- languages:begin -->[\s\S]*?<!-- languages:end -->\n*/
+
+/**
+ * The languages line of an original page, `<!-- languages:begin -->` to `<!-- languages:end -->`: on GitHub it links
+ * each translation, as the CNCF's code of conduct links its own; on the site the language picker does, so the
+ * staging takes it out. It must link every translation the page has, and only those.
+ */
+function languages(source, from, staged) {
+  const block = LANGUAGES.exec(source)
+  const translations = [...staged]
+    .filter(([path, page]) => page.locale !== '' && original(path) === from)
+    .map(([path]) => path)
+  if (staged.get(from).locale === '') {
+    const linked = block
+      ? [...block[0].matchAll(/\]\(([^)#\s]+)/g)].map((m) => posix.normalize(posix.join(posix.dirname(from), m[1])))
+      : []
+    const missing = translations.filter((path) => !linked.includes(path))
+    const extra = linked.filter((path) => !translations.includes(path))
+    if (missing.length || extra.length) {
+      throw new Error(
+        `${from}: its languages line must link its translations, ${translations.join(', ') || 'none'}; ` +
+          `it misses ${missing.join(', ') || 'none'} and links ${extra.join(', ') || 'nothing else'} besides`,
+      )
+    }
+  }
+  return source.replace(LANGUAGES, '')
 }
 
 /** The first `# ` heading as the title, and the body without it. */
@@ -108,38 +160,45 @@ function escapeAngles(text) {
   return text.replace(/<(?!https?:\/\/|!--)/g, '&lt;')
 }
 
-/** The staged pages' directory, as a repository path: every page is staged flat into it. */
+/** The staged pages' directory, as a repository path: every page is staged flat into it, a translation into its
+ * language's directory. */
 const STAGED_DIR = 'site/src/content/docs'
 
-/** One link target, as seen from the repository file `from`; `image` when it is an image's source. */
-function retarget(href, from, staged, image) {
+/** A page's path on the site, in the language `locale`. */
+const sitePath = (slug, locale) => `${BASE}/${locale ? `${locale}/` : ''}${slug ? `${slug}/` : ''}`
+
+/**
+ * One link target, as seen from the repository file `from`, a page in the language `locale`; `image` when it is an
+ * image's source. A link to a page, original or translated, is to that page in the linking page's language: a
+ * translation linking an untranslated page links its English fallback there.
+ */
+function retarget(href, from, staged, image, locale) {
   // The site's own address, as the README writes it to link a page GitHub does not carry: a path under the base on
   // the site, so the validator checks the page and the anchor it names.
-  if (href.startsWith(`${SITE}${ROOT}/`)) return BASE + href.slice(SITE.length + ROOT.length)
+  if (href.startsWith(`${SITE}${ROOT}/`)) {
+    return BASE + (locale ? `/${locale}` : '') + href.slice(SITE.length + ROOT.length)
+  }
   if (/^([a-z][a-z0-9+.-]*:|#|\/)/i.test(href)) return href
   const [path, hash = ''] = href.split('#')
   const anchor = hash ? `#${hash}` : ''
   const target = posix.normalize(posix.join(posix.dirname(from), path))
-  if (staged.has(target)) {
-    const slug = staged.get(target)
-    return `${BASE}/${slug ? `${slug}/` : ''}${anchor}`
-  }
+  if (staged.has(target)) return sitePath(staged.get(target).slug, locale) + anchor
   if (target.startsWith('..')) throw new Error(`${from}: the link ${href} leaves the repository`)
   if (!existsSync(join(REPO, target))) throw new Error(`${from}: the link ${href} names no file of the repository`)
   if (image) {
     if (!target.startsWith('site/src/')) throw new Error(`${from}: the image ${href} is not under site/src/, so the site cannot show it`)
-    return posix.relative(STAGED_DIR, target) + anchor
+    return posix.relative(locale ? `${STAGED_DIR}/${locale}` : STAGED_DIR, target) + anchor
   }
   const kind = path.endsWith('/') ? 'tree' : 'blob'
   return `${GITHUB}/${kind}/${REF}/${target}${anchor}`
 }
 
-function retargetLinks(source, from, staged) {
+function retargetLinks(source, from, staged, locale) {
   return overProse(
     source,
     (text) =>
       text.replace(/(!?\[[^\]]*\]\()([^)\s]+)(\))/g, (_, open, href, close) =>
-        open + retarget(href, from, staged, open.startsWith('!')) + close,
+        open + retarget(href, from, staged, open.startsWith('!'), locale) + close,
       ),
     { spans: true },
   )
@@ -148,11 +207,11 @@ function retargetLinks(source, from, staged) {
 /** A string as YAML, quoted the one way that always holds. */
 const yaml = (s) => `"${s.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`
 
-function stage(from, slug, staged) {
-  const { text, body } = title(readFileSync(join(REPO, from), 'utf8'), from)
-  const content = overProse(retargetLinks(body, from, staged), escapeAngles)
+function stage(from, { slug, locale }, staged) {
+  const { text, body } = title(languages(readFileSync(join(REPO, from), 'utf8'), from, staged), from)
+  const content = overProse(retargetLinks(body, from, staged, locale), escapeAngles)
   const head = ['---', `title: ${yaml(text)}`, `editUrl: ${yaml(`${GITHUB}/edit/main/${from}`)}`, '---', '']
-  const target = join(DOCS, `${slug || 'index'}.md`)
+  const target = join(DOCS, locale, `${slug || 'index'}.md`)
   mkdirSync(dirname(target), { recursive: true })
   writeFileSync(target, `${head.join('\n')}${content.trimEnd()}\n`)
 }
@@ -160,8 +219,9 @@ function stage(from, slug, staged) {
 function main() {
   rmSync(DOCS, { recursive: true, force: true })
   const staged = pages()
-  for (const [from, slug] of staged) stage(from, slug, staged)
-  console.log(`staged: ${staged.size} pages (README.md and docs/guide/)`)
+  for (const [from, page] of staged) stage(from, page, staged)
+  const translated = [...staged.values()].filter((page) => page.locale !== '').length
+  console.log(`staged: ${staged.size - translated} pages (README.md and docs/guide/), ${translated} translations (docs/i18n/)`)
 }
 
 if (existsSync(join(REPO, 'Cargo.toml')) && existsSync(join(REPO, 'docs', 'guide'))) main()

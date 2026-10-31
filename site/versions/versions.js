@@ -24,6 +24,47 @@ async function go(version, rest) {
   }
 }
 
+/** The picker's and the banner's words in the page's language (site/locales.mjs), English when it has none. */
+const WORDS = {
+  en: {
+    picker: 'Documentation version',
+    latest: (v) => `${v} (latest)`,
+    banner: (name, current, latest) => `This is the documentation of ${name} ${current}. The latest release is ${latest}: `,
+    same: 'this page in the latest release',
+    and: ', and ',
+    upgrade: 'how to upgrade',
+    changed: 'what changed',
+  },
+  ru: {
+    picker: 'Версия документации',
+    latest: (v) => `${v} (последняя)`,
+    banner: (name, current, latest) => `Это документация ${name} ${current}. Последний релиз — ${latest}: `,
+    same: 'эта страница в последнем релизе',
+    and: ' и ',
+    upgrade: 'как обновиться',
+    changed: 'что изменилось',
+  },
+  zh: {
+    picker: '文档版本',
+    latest: (v) => `${v}（最新）`,
+    banner: (name, current, latest) => `这是 ${name} ${current} 的文档。最新版本是 ${latest}：`,
+    same: '最新版本中的本页',
+    and: '，以及',
+    upgrade: '如何升级',
+    changed: '更新内容',
+  },
+  es: {
+    picker: 'Versión de la documentación',
+    latest: (v) => `${v} (última)`,
+    banner: (name, current, latest) => `Esta es la documentación de ${name} ${current}. La última versión es ${latest}: `,
+    same: 'esta página en la última versión',
+    and: ' y ',
+    upgrade: 'cómo actualizar',
+    changed: 'qué ha cambiado',
+  },
+}
+const words = WORDS[document.documentElement.lang.split('-')[0]] ?? WORDS.en
+
 const css = `
 .dv-picker { display: flex; align-items: center; gap: 0.125rem; color: var(--sl-color-gray-1); }
 .dv-picker:hover { color: var(--sl-color-white); }
@@ -41,11 +82,11 @@ function picker(versions, latest, current, rest) {
   const label = document.createElement('label')
   label.className = 'dv-picker'
   const select = document.createElement('select')
-  select.setAttribute('aria-label', 'Documentation version')
+  select.setAttribute('aria-label', words.picker)
   for (const v of versions) {
     const option = document.createElement('option')
     option.value = v.version
-    option.textContent = v.version === latest ? `${v.version} (latest)` : v.version
+    option.textContent = v.version === latest ? words.latest(v.version) : v.version
     option.selected = v.version === current
     select.append(option)
   }
@@ -71,18 +112,21 @@ function render({ latest, changelog, versions }) {
   const banner = document.createElement('div')
   banner.className = 'dv-banner'
   banner.setAttribute('role', 'note')
-  banner.append(`This is the documentation of ${name} ${current}. The latest release is ${latest}: `)
+  banner.append(words.banner(name, current, latest))
   const same = document.createElement('a')
   same.href = newest.path + rest
-  same.textContent = 'this page in the latest release'
+  same.textContent = words.same
   same.addEventListener('click', (e) => {
     e.preventDefault()
     go(newest, rest)
   })
   const upgrade = document.createElement('a')
-  upgrade.href = newest.upgrading ? `${newest.path}upgrading/` : changelog
-  upgrade.textContent = newest.upgrading ? 'how to upgrade' : 'what changed'
-  banner.append(same, ', and ', upgrade, '.')
+  // The upgrade guide in the page's language: a language's directory is its tag's first part (site/locales.mjs).
+  const dir = document.documentElement.lang.split('-')[0]
+  const language = rest.startsWith(`${dir}/`) ? `${dir}/` : ''
+  upgrade.href = newest.upgrading ? `${newest.path}${language}upgrading/` : changelog
+  upgrade.textContent = newest.upgrading ? words.upgrade : words.changed
+  banner.append(same, words.and, upgrade, document.documentElement.lang.startsWith('zh') ? '。' : '.')
   // At the head of the page's own column, beside the table of contents rather than under it.
   const column = document.querySelector('main') ?? document.body
   column.prepend(banner)

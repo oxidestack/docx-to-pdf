@@ -24,4 +24,4 @@ for tag in $tags; do
 	git -C "$ROOT" archive "$tag" | tar -x -C "$WORK/$tag"
 	echo "$tag" >> "$WORK/tags"
 done
-echo "site-versions: $(echo $tags | tr ' ' ',')" >&2
+echo "site-versions: $(echo "$tags" | tr '\n' ',' | sed 's/,$//')" >&2

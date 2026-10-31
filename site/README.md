@@ -24,7 +24,8 @@ and open <http://localhost:4321/docx-to-pdf/>.
 ## A page has one home, and it is not here
 
 Nothing is copied into this directory by hand. Every build runs [`scripts/stage.mjs`](scripts/stage.mjs), which reads
-`README.md` and `docs/guide/*.md` and writes them into `src/content/docs/` with four changes and no others:
+`README.md`, `docs/guide/*.md` and their translations in `docs/i18n/` ([Languages](#languages)) and writes them into
+`src/content/docs/` with these changes and no others:
 
 | Change | Why |
 | --- | --- |
@@ -67,6 +68,26 @@ on an older release a banner linking the same page in the latest and the latest'
 ([`docs/guide/upgrading.md`](../docs/guide/upgrading.md)). The CI builds the versioned site on every push and deploys
 it on a push to `main`; a release runs that deployment again on `main` once its tag exists
 (`.github/workflows/release.yml`, `site`).
+
+## Languages
+
+English is the original. A page is translated into Russian, Chinese and Spanish as a file of
+[`docs/i18n/`](../docs/i18n/) with the original's own path under its language: `docs/i18n/ru/README.md` translates
+`README.md`, `docs/i18n/zh/guide/upgrading.md` translates `docs/guide/upgrading.md`. The languages are
+[`locales.mjs`](locales.mjs)'s, each labelled with its code and its own name, `RU (Русский)`; adding one is a line
+there and a directory there.
+
+On GitHub, an original and its translations link each other in a languages line at their head, between
+`<!-- languages:begin -->` and `<!-- languages:end -->`, the way the CNCF's code of conduct links its own. On the
+site the language picker does that, so the staging takes the line out, and it fails when an original's line does not
+link exactly the translations it has. A translated page is served under its language, `/docx-to-pdf/ru/upgrading/`;
+a page without a translation is shown in English there, with Starlight's note that it is not translated yet, and a
+translation's link to it leads there. A translation writes its links as they resolve from its own file, so that they
+work on GitHub too: `../../../guide/installation.md` from `docs/i18n/ru/guide/`.
+
+A translation follows its original: a change to an original changes its translations in the same commit, or the
+commit says which it leaves behind. The README's benchmark block is generated in English and has no translation; a
+translated README says what it claims and links the Benchmarks page instead.
 
 ## The Benchmarks page, the README's numbers and the comparison guide's
 

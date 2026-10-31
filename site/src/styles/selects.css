@@ -1,0 +1,10 @@
+/* Starlight sizes the language and theme selects for one-word labels, and cuts the rest. A language's label is its
+   code and its own name, `RU (Русский)` (locales.mjs), and the theme's is longer in some languages (`Automático`):
+   both get the width of their longest label. */
+starlight-lang-select label {
+  --sl-select-width: 8.75em !important;
+}
+
+starlight-theme-select label {
+  --sl-select-width: 7.5em !important;
+}
