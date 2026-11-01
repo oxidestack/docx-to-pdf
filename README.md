@@ -9,6 +9,7 @@
 [![CI](https://github.com/oxidestack/docx-to-pdf/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/oxidestack/docx-to-pdf/actions/workflows/ci.yml?query=branch%3Amain)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/oxidestack/docx-to-pdf/badge)](https://scorecard.dev/viewer/?uri=github.com/oxidestack/docx-to-pdf)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/16076/badge)](https://www.bestpractices.dev/projects/16076)
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/docx-to-pdf)](https://artifacthub.io/packages/helm/docx-to-pdf/docx-to-pdf)
 [![Ask DeepWiki](https://img.shields.io/badge/Ask-DeepWiki-1f6feb)](https://deepwiki.com/oxidestack/docx-to-pdf)
 
 **Documentation: [oxidestack.github.io/docx-to-pdf](https://oxidestack.github.io/docx-to-pdf/)**

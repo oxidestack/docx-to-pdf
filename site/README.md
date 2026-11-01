@@ -148,5 +148,6 @@ every push and deploys it with GitHub Pages on a push to `main`; the repository'
 `src/assets/docx-to-pdf-mark.svg` (the mark, beside the title and atop the README) and `public/favicon.svg` (the small
 mark, for 16-64 px) are the one exception to the rule above: they are drawn with the rest of OxideStack's artwork,
 outside this repository, and are their unchanged copies. When a mark changes, copy it again; never edit them here.
-The README shows the mark from this same file, and the staging links it relative to the home page so the build bundles
+The chart's `icon`, Artifact Hub's logo of the package, is this file on `main` too, so it keeps its path. The
+README shows the mark from this same file, and the staging links it relative to the home page so the build bundles
 it.

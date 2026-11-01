@@ -3,7 +3,7 @@
 <!-- languages:begin -->
 [English](README.md) · **Русский** · [中文](README.zh-CN.md) · [Español](README.es.md)
 <!-- languages:end -->
-<!-- translation of README.md: 7d76e532ff3d -->
+<!-- translation of README.md: 4ab3eca7c4d0 -->
 
 ![логотип docx-to-pdf](site/src/assets/docx-to-pdf-mark.svg)
 

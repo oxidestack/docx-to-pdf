@@ -9,6 +9,8 @@ appVersion: "1.2.0"
 kubeVersion: ">=1.30.0-0"
 keywords: [docx, pdf, libreoffice, converter]
 home: https://github.com/oxidestack/docx-to-pdf
+# The project's mark: Artifact Hub shows it as the package's logo, read when it indexes a chart version.
+icon: https://raw.githubusercontent.com/oxidestack/docx-to-pdf/main/site/src/assets/docx-to-pdf-mark.svg
 sources:
   - https://github.com/oxidestack/docx-to-pdf
 maintainers:
