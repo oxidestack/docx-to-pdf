@@ -35,3 +35,8 @@ annotations:
       url: https://quay.io/repository/oxidestack/docx-to-pdf
     - name: Verifying a release
       url: https://github.com/oxidestack/docx-to-pdf/blob/main/docs/guide/installation.md#verifying-a-release
+  # The charts a deployment of this one usually runs beside: an OpenTelemetry Collector for its OTLP traces, logs and
+  # metrics (otel.endpoint), and the Prometheus operator for its ServiceMonitor (serviceMonitor.enabled).
+  artifacthub.io/recommendations: |
+    - url: https://artifacthub.io/packages/helm/opentelemetry-helm/opentelemetry-collector
+    - url: https://artifacthub.io/packages/helm/prometheus-community/kube-prometheus-stack
