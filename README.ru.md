@@ -40,7 +40,7 @@ curl -F document=@report.docx http://localhost:8080/pdf -o report.pdf
 `report.pdf` — документ в той вёрстке, которую дал LibreOffice. Тест повторяет этот `curl` против сервиса.
 
 Каждый релиз подписан и несёт свой SBOM и сведения о сборке;
-[Verifying a release](docs/guide/installation.md#verifying-a-release) показывает, как проверить образ или чарт с
+[Проверка релиза](docs/i18n/ru/guide/installation.md#проверка-релиза) показывает, как проверить образ или чарт с
 помощью `cosign` и `gh attestation verify`.
 
 ## Что он даёт
@@ -68,20 +68,21 @@ curl -F document=@report.docx http://localhost:8080/pdf -o report.pdf
 последний релиз в корне, каждый релиз под своей версией. Те же страницы в том виде, в каком они в `main`, лежат в
 `docs/guide/` (по-английски) и в `docs/i18n/ru/` (переведённые):
 
-- [Installation](docs/guide/installation.md) — `docker run`, Docker Compose и Kubernetes с чартом Helm, и
+- [Установка](docs/i18n/ru/guide/installation.md) — `docker run`, Docker Compose и Kubernetes с чартом Helm, и
   какие ресурсы ему дать
 - [Обновление](docs/i18n/ru/guide/upgrading.md) — что каждый релиз требует от развёртывания и как перейти на более новый
-- [Configuration](docs/guide/configuration.md) — каждая переменная окружения, её значение по умолчанию и действие
-- [API reference](docs/guide/api.md) — эндпоинты, принимаемые форматы, каждый статус и его подробности
-- [Operations](docs/guide/operations.md) — контейнер, проверки здоровья, Kubernetes, телеметрия и метрики,
+- [Конфигурация](docs/i18n/ru/guide/configuration.md) — каждая переменная окружения, её значение по умолчанию и
+  действие
+- [Справочник API](docs/i18n/ru/guide/api.md) — эндпоинты, принимаемые форматы, каждый статус и его подробности
+- [Эксплуатация](docs/i18n/ru/guide/operations.md) — контейнер, проверки здоровья, Kubernetes, телеметрия и метрики,
   ограничения, расчёт ресурсов и шрифты
-- [Troubleshooting](docs/guide/troubleshooting.md) — каждый ответ с ошибкой и другие проблемы: что каждая значит и
-  что делать
-- [Migrating from moalhaddar/docx-to-pdf](docs/guide/migration.md) — что остаётся тем же, что меняет клиент или
+- [Устранение неполадок](docs/i18n/ru/guide/troubleshooting.md) — каждый ответ с ошибкой и другие проблемы: что
+  каждая значит и что делать
+- [Переход с moalhaddar/docx-to-pdf](docs/i18n/ru/guide/migration.md) — что остаётся тем же, что меняет клиент или
   развёртывание, и каждое намеренное отличие
 - [Changelog](CHANGELOG.md) — что изменил каждый релиз и что должен сделать оператор, когда релиз этого
   требует
-- [Compared with Gotenberg and moalhaddar/docx-to-pdf](docs/guide/comparison.md) — что делает каждый, скорость,
+- [Сравнение с Gotenberg и moalhaddar/docx-to-pdf](docs/i18n/ru/guide/comparison.md) — что делает каждый, скорость,
   память и враждебные документы по записанным замерам, и команды, которые их повторяют
 
 ## Сборка и тесты
