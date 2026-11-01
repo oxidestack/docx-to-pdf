@@ -210,9 +210,9 @@ Kubernetes добавьте сон `preStop` из [Эксплуатации: о�
 
 Кто-то запустил пробу платформы на этой реплике, а проба занимает все экземпляры на минуту-две. Сервис пишет в лог
 `"message":"the pool is reserved for the platform probe; draining it"`, когда она начинается, и
-`"message":"the platform probe has given the pool back"`, когда она заканчивается. Пробуйте реплику, которая не
-получает трафика, и держите [`DOCX_TO_PDF_PROBE_PORT`](configuration.md#сервер) подальше от клиентов; снимайте его,
-когда ничего не измеряете.
+`"message":"the platform probe has given the pool back"`, когда она заканчивается. Запускайте пробу на реплике,
+которая не получает трафика, и держите [`DOCX_TO_PDF_PROBE_PORT`](configuration.md#сервер) подальше от клиентов;
+снимайте его, когда ничего не измеряете.
 
 ### 504 `the conversion did not finish within the conversion timeout`
 
@@ -263,7 +263,7 @@ LibreOffice не может открыть один из документов, �
 
 Прежде чем занять экземпляры, проба ждёт, пока завершатся уже идущие конвертации. Они не завершились за
 [`DOCX_TO_PDF_CONVERSION_TIMEOUT`](configuration.md#пул-экземпляров-libreoffice) плюс
-`DOCX_TO_PDF_INSTANCE_START_TIMEOUT`. Реплика занята трафиком: пробуйте ту, что трафика не получает.
+`DOCX_TO_PDF_INSTANCE_START_TIMEOUT`. Реплика занята трафиком: запускайте пробу на той, что трафика не получает.
 
 ## Другие проблемы
 
