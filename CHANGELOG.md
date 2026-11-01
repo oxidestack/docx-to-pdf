@@ -12,6 +12,18 @@ required, Features, Bug fixes, Performance and Other changes. The versions follo
 The changes since the last release are the release notes of the commits after its tag; a release gathers them into
 its section below.
 
+## [1.2.1] - 2026-11-01
+
+### Other changes
+
+- The Helm chart carries the project's logo, which Artifact Hub shows on its page. (chart, 2993b4e)
+- The chart's Artifact Hub page recommends the OpenTelemetry Collector and kube-prometheus-stack charts, which receive the service's telemetry. (chart, 8e8daed)
+- The guide is translated into Russian. (i18n, 07ae746)
+- The guide is translated into Chinese. (i18n, f653b3d)
+- The guide is translated into Spanish. (i18n, 3576980)
+
+[1.2.1]: https://github.com/oxidestack/docx-to-pdf/compare/v1.2.0...v1.2.1
+
 ## [1.2.0] - 2026-10-31
 
 The documentation, by release and in four languages: the site serves each release's documentation with a version

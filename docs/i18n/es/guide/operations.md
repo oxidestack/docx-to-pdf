@@ -4,7 +4,7 @@
 [English](../../../guide/operations.md) · [Русский](../../ru/guide/operations.md) ·
 [中文](../../zh/guide/operations.md) · **Español**
 <!-- languages:end -->
-<!-- translation of docs/guide/operations.md: c560ba149348 -->
+<!-- translation of docs/guide/operations.md: 90936084b4bb -->
 
 Cómo ejecutar el servicio en un contenedor o en Kubernetes, vigilarlo, acotar lo que puede costar un documento,
 dimensionar un despliegue y darle fuentes. Cada ajuste que se nombra aquí es una variable de entorno descrita en
@@ -36,7 +36,7 @@ Está hecha para ejecutarse blindada, y se prueba así:
 docker run --rm -p 8080:8080 \
   --user 10001:10001 --read-only --cap-drop ALL --security-opt no-new-privileges \
   --mount type=volume,dst=/tmp \
-  quay.io/oxidestack/docx-to-pdf:1.2.0
+  quay.io/oxidestack/docx-to-pdf:1.2.1
 ```
 
 ### `/tmp`: en disco o en memoria
@@ -118,7 +118,7 @@ spec:
       terminationGracePeriodSeconds: 225
       containers:
         - name: docx-to-pdf
-          image: quay.io/oxidestack/docx-to-pdf:1.2.0
+          image: quay.io/oxidestack/docx-to-pdf:1.2.1
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
@@ -408,7 +408,7 @@ de arriba no se parecen lo suficiente:
 docker run --rm -p 8080:8080 --user 10001:10001 --read-only --cap-drop ALL \
   --mount type=volume,dst=/tmp \
   -v "$PWD/fonts:/usr/share/fonts/custom:ro" \
-  quay.io/oxidestack/docx-to-pdf:1.2.0
+  quay.io/oxidestack/docx-to-pdf:1.2.1
 ```
 
 En Kubernetes, monte un Secret, un ConfigMap o cualquier volumen en la misma ruta (el valor `fonts` del chart de Helm

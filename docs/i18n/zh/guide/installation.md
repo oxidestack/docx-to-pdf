@@ -4,7 +4,7 @@
 [English](../../../guide/installation.md) · [Русский](../../ru/guide/installation.md) · **中文** ·
 [Español](../../es/guide/installation.md)
 <!-- languages:end -->
-<!-- translation of docs/guide/installation.md: 6e981a1d56b9 -->
+<!-- translation of docs/guide/installation.md: fb96eac62937 -->
 
 如何运行本服务：用 `docker run` 试用，在单台机器上用 Docker Compose 运行，以及用 Helm chart 在
 Kubernetes 上运行。无论哪种方式，最终都是服务在端口 `8080` 上响应 `POST /pdf`；要发送什么，见
@@ -19,7 +19,7 @@ Kubernetes 上运行。无论哪种方式，最终都是服务在端口 `8080` �
 ## Docker
 
 ```sh
-docker run --rm -p 8080:8080 quay.io/oxidestack/docx-to-pdf:1.2.0
+docker run --rm -p 8080:8080 quay.io/oxidestack/docx-to-pdf:1.2.1
 ```
 
 镜像和 chart 发布在 quay.io。`ghcr.io/oxidestack/docx-to-pdf` 和
@@ -30,7 +30,7 @@ docker run --rm -p 8080:8080 quay.io/oxidestack/docx-to-pdf:1.2.0
 若只允许本机访问，请把端口绑定到 `127.0.0.1`：
 
 ```sh
-docker run --rm -p 127.0.0.1:8080:8080 quay.io/oxidestack/docx-to-pdf:1.2.0
+docker run --rm -p 127.0.0.1:8080:8080 quay.io/oxidestack/docx-to-pdf:1.2.1
 ```
 
 启动完成后（`/readyz` 返回 `200`，通常在几秒之内），转换一份文档：
@@ -51,7 +51,7 @@ curl -F document=@report.docx http://localhost:8080/pdf -o report.pdf
 # docx-to-pdf on this machine only: http://127.0.0.1:8080 (docs/guide/installation.md).
 services:
   docx-to-pdf:
-    image: quay.io/oxidestack/docx-to-pdf:1.2.0
+    image: quay.io/oxidestack/docx-to-pdf:1.2.1
     ports:
       - "127.0.0.1:8080:8080"
     environment:
@@ -88,7 +88,7 @@ docker compose up -d
 # docx-to-pdf sending its traces, logs and metrics to an OpenTelemetry Collector (docs/guide/installation.md).
 services:
   docx-to-pdf:
-    image: quay.io/oxidestack/docx-to-pdf:1.2.0
+    image: quay.io/oxidestack/docx-to-pdf:1.2.1
     ports:
       - "127.0.0.1:8080:8080"
     environment:
@@ -163,7 +163,7 @@ docker compose logs -f otel-collector
 chart 发布在 `oci://quay.io/oxidestack/charts`。使用默认值时，它运行一个 pod，一次转换一份文档：
 
 ```sh
-helm install docx-to-pdf oci://quay.io/oxidestack/charts/docx-to-pdf --version 1.2.0 \
+helm install docx-to-pdf oci://quay.io/oxidestack/charts/docx-to-pdf --version 1.2.1 \
   --namespace docx-to-pdf --create-namespace
 ```
 
@@ -185,7 +185,7 @@ networkPolicy:
 ```
 
 ```sh
-helm upgrade --install docx-to-pdf oci://quay.io/oxidestack/charts/docx-to-pdf --version 1.2.0 \
+helm upgrade --install docx-to-pdf oci://quay.io/oxidestack/charts/docx-to-pdf --version 1.2.1 \
   --namespace docx-to-pdf --create-namespace --values values.yaml
 ```
 
@@ -211,7 +211,7 @@ docx-to-pdf --namespace docx-to-pdf` 会通过它转换一份小文档。
 渲染一次 chart 并保存输出：
 
 ```sh
-helm template docx-to-pdf oci://quay.io/oxidestack/charts/docx-to-pdf --version 1.2.0 \
+helm template docx-to-pdf oci://quay.io/oxidestack/charts/docx-to-pdf --version 1.2.1 \
   --namespace docx-to-pdf --values values.yaml --skip-tests > docx-to-pdf.yaml
 kubectl create namespace docx-to-pdf
 kubectl apply --namespace docx-to-pdf -f docx-to-pdf.yaml
@@ -269,7 +269,7 @@ Helm chart 根据 `poolSize` 计算 CPU request 和内存；compose 文件把 `m
 
 ```sh
 helm repo add docx-to-pdf https://github.com/oxidestack/docx-to-pdf/releases/latest/download
-helm install docx-to-pdf docx-to-pdf/docx-to-pdf --version 1.2.0 --namespace docx-to-pdf --create-namespace
+helm install docx-to-pdf docx-to-pdf/docx-to-pdf --version 1.2.1 --namespace docx-to-pdf --create-namespace
 ```
 
 该 chart 以其 quay.io 仓库登记在 [Artifact Hub](https://artifacthub.io/) 上。预发布版本（`0.2.0-rc.1`）
@@ -282,11 +282,11 @@ helm install docx-to-pdf docx-to-pdf/docx-to-pdf --version 1.2.0 --namespace doc
 证书写明了生成它的工作流和标签，签名记录在 Sigstore 的公开透明日志中。要检查某个镜像是否就是该版本生成的镜像：
 
 ```sh
-cosign verify quay.io/oxidestack/docx-to-pdf:1.2.0 \
-  --certificate-identity https://github.com/oxidestack/docx-to-pdf/.github/workflows/release.yml@refs/tags/v1.2.0 \
+cosign verify quay.io/oxidestack/docx-to-pdf:1.2.1 \
+  --certificate-identity https://github.com/oxidestack/docx-to-pdf/.github/workflows/release.yml@refs/tags/v1.2.1 \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com
-cosign verify quay.io/oxidestack/charts/docx-to-pdf:1.2.0 \
-  --certificate-identity https://github.com/oxidestack/docx-to-pdf/.github/workflows/release.yml@refs/tags/v1.2.0 \
+cosign verify quay.io/oxidestack/charts/docx-to-pdf:1.2.1 \
+  --certificate-identity https://github.com/oxidestack/docx-to-pdf/.github/workflows/release.yml@refs/tags/v1.2.1 \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com
 ```
 
@@ -295,8 +295,8 @@ cosign verify quay.io/oxidestack/charts/docx-to-pdf:1.2.0 \
 [GitHub CLI](https://cli.github.com/) 可以检查它们：
 
 ```sh
-gh attestation verify oci://quay.io/oxidestack/docx-to-pdf:1.2.0 --repo oxidestack/docx-to-pdf
-gh attestation verify oci://quay.io/oxidestack/charts/docx-to-pdf:1.2.0 --repo oxidestack/docx-to-pdf
+gh attestation verify oci://quay.io/oxidestack/docx-to-pdf:1.2.1 --repo oxidestack/docx-to-pdf
+gh attestation verify oci://quay.io/oxidestack/charts/docx-to-pdf:1.2.1 --repo oxidestack/docx-to-pdf
 ```
 
 对于 SBOM，请用摘要指定某一个架构的镜像（`docker buildx imagetools inspect` 会列出它们），并指定其
@@ -304,21 +304,21 @@ predicate 类型 `--predicate-type https://spdx.dev/Document/v2.3`。SBOM 也以
 有 SPDX 和 CycloneDX 两种格式，每个架构一份，与 chart 和 compose 示例放在一起。
 
 附在 GitHub release 上的每个文件都以同样的方式签名，其 Sigstore bundle 作为 `<file>.sigstore.json`
-附在旁边，`docx-to-pdf-1.2.0.intoto.jsonl` 是所有这些文件的构建来源证明。这些 bundle 采用 Sigstore
+附在旁边，`docx-to-pdf-1.2.1.intoto.jsonl` 是所有这些文件的构建来源证明。这些 bundle 采用 Sigstore
 当前的 bundle 格式，cosign 3 起 `cosign verify-blob` 默认读取该格式。cosign 2 只有在命令中加上
 `--new-bundle-format` 时才能读取它们；不加的话，它会返回 `bundle does not contain cert for
 verification`。下载文件及其 bundle，然后用下面任一或两个命令检查：
 
 ```sh
-cosign verify-blob docx-to-pdf-1.2.0.tgz --bundle docx-to-pdf-1.2.0.tgz.sigstore.json \
-  --certificate-identity https://github.com/oxidestack/docx-to-pdf/.github/workflows/release.yml@refs/tags/v1.2.0 \
+cosign verify-blob docx-to-pdf-1.2.1.tgz --bundle docx-to-pdf-1.2.1.tgz.sigstore.json \
+  --certificate-identity https://github.com/oxidestack/docx-to-pdf/.github/workflows/release.yml@refs/tags/v1.2.1 \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com
-gh attestation verify docx-to-pdf-1.2.0.tgz --repo oxidestack/docx-to-pdf
+gh attestation verify docx-to-pdf-1.2.1.tgz --repo oxidestack/docx-to-pdf
 ```
 
 SBOM、compose 示例和 Helm 仓库的 `index.yaml` 也是如此。第一个版本 1.0.0 的文件是在 release
 开始为其签名之前附上的，因此没有 bundle：这两个命令从 1.1.0 起适用。
 
 ghcr.io 上的镜像站带有相同的摘要，以及随镜像一起复制的相同签名和证明，因此同样的命令也能验证
-`ghcr.io/oxidestack/docx-to-pdf:1.2.0` 和 `ghcr.io/oxidestack/charts/docx-to-pdf:1.2.0`
+`ghcr.io/oxidestack/docx-to-pdf:1.2.1` 和 `ghcr.io/oxidestack/charts/docx-to-pdf:1.2.1`
 （给 `gh attestation verify` 加上 `--bundle-from-oci`，即可从 registry 本身读取证明）。

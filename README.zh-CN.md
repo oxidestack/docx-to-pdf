@@ -3,7 +3,7 @@
 <!-- languages:begin -->
 [English](README.md) · [Русский](README.ru.md) · **中文** · [Español](README.es.md)
 <!-- languages:end -->
-<!-- translation of README.md: 4ab3eca7c4d0 -->
+<!-- translation of README.md: 14b3a2604d05 -->
 
 ![docx-to-pdf 标志](site/src/assets/docx-to-pdf-mark.svg)
 
@@ -26,7 +26,7 @@
 ## 快速开始
 
 ```sh
-docker run --rm -p 8080:8080 quay.io/oxidestack/docx-to-pdf:1.2.0
+docker run --rm -p 8080:8080 quay.io/oxidestack/docx-to-pdf:1.2.1
 ```
 
 启动后，在另一个终端中：

@@ -4,7 +4,7 @@
 [English](../../../guide/operations.md) · [Русский](../../ru/guide/operations.md) · **中文** ·
 [Español](../../es/guide/operations.md)
 <!-- languages:end -->
-<!-- translation of docs/guide/operations.md: c560ba149348 -->
+<!-- translation of docs/guide/operations.md: 90936084b4bb -->
 
 如何在容器中或 Kubernetes 上运行服务、监控它、限制一份文档可能造成的开销、规划部署容量以及为它提供字体。
 这里提到的每个设置都是一个环境变量，在[配置](configuration.md)中有说明；本页说明它们如何配合。
@@ -32,7 +32,7 @@
 docker run --rm -p 8080:8080 \
   --user 10001:10001 --read-only --cap-drop ALL --security-opt no-new-privileges \
   --mount type=volume,dst=/tmp \
-  quay.io/oxidestack/docx-to-pdf:1.2.0
+  quay.io/oxidestack/docx-to-pdf:1.2.1
 ```
 
 ### `/tmp`：放在磁盘上还是内存中
@@ -107,7 +107,7 @@ spec:
       terminationGracePeriodSeconds: 225
       containers:
         - name: docx-to-pdf
-          image: quay.io/oxidestack/docx-to-pdf:1.2.0
+          image: quay.io/oxidestack/docx-to-pdf:1.2.1
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
@@ -374,7 +374,7 @@ python3 tools/bench/bench.py size target --platform platform.json --latency 5 --
 docker run --rm -p 8080:8080 --user 10001:10001 --read-only --cap-drop ALL \
   --mount type=volume,dst=/tmp \
   -v "$PWD/fonts:/usr/share/fonts/custom:ro" \
-  quay.io/oxidestack/docx-to-pdf:1.2.0
+  quay.io/oxidestack/docx-to-pdf:1.2.1
 ```
 
 在 Kubernetes 上，把 Secret、ConfigMap 或任何卷挂载到同一路径（Helm chart 的 `fonts` 值就是这样做的）。
