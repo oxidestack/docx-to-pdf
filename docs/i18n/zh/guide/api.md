@@ -4,7 +4,7 @@
 [English](../../../guide/api.md) · [Русский](../../ru/guide/api.md) · **中文** ·
 [Español](../../es/guide/api.md)
 <!-- languages:end -->
-<!-- translation of docs/guide/api.md: f98dcbb15dbb -->
+<!-- translation of docs/guide/api.md: 75631133af9c -->
 
 服务每个请求把一份办公文档转换为 PDF。本页列出它响应的每个路径、请求携带的内容、它可能给出的每种响应，
 以及每种错误。有一个测试会把错误表格与代码可能给出的响应进行比对，并把下面每个 `curl` 示例对服务重放，

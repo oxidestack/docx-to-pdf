@@ -4,7 +4,7 @@
 [English](../../../guide/installation.md) · [Русский](../../ru/guide/installation.md) ·
 [中文](../../zh/guide/installation.md) · **Español**
 <!-- languages:end -->
-<!-- translation of docs/guide/installation.md: 5e99d608a7ce -->
+<!-- translation of docs/guide/installation.md: 6e981a1d56b9 -->
 
 Cómo ejecutar el servicio: con `docker run` para probarlo, con Docker Compose en una sola máquina y en Kubernetes con
 el chart de Helm. Cada forma termina con el servicio respondiendo a `POST /pdf` en el puerto `8080`; la

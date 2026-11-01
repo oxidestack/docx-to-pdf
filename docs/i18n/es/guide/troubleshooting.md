@@ -4,7 +4,7 @@
 [English](../../../guide/troubleshooting.md) · [Русский](../../ru/guide/troubleshooting.md) ·
 [中文](../../zh/guide/troubleshooting.md) · **Español**
 <!-- languages:end -->
-<!-- translation of docs/guide/troubleshooting.md: 00faa880a539 -->
+<!-- translation of docs/guide/troubleshooting.md: bc6fa1b9bcba -->
 
 Lo que encuentra un cliente o un operador cuando algo va mal, lo que significa y lo que hay que cambiar. La primera
 parte tiene una entrada por cada error que responde el servicio, encabezada por su estado y su `detail`, para que

@@ -4,7 +4,7 @@
 [English](../../../guide/operations.md) · [Русский](../../ru/guide/operations.md) ·
 [中文](../../zh/guide/operations.md) · **Español**
 <!-- languages:end -->
-<!-- translation of docs/guide/operations.md: a6665af01af5 -->
+<!-- translation of docs/guide/operations.md: c560ba149348 -->
 
 Cómo ejecutar el servicio en un contenedor o en Kubernetes, vigilarlo, acotar lo que puede costar un documento,
 dimensionar un despliegue y darle fuentes. Cada ajuste que se nombra aquí es una variable de entorno descrita en

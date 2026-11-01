@@ -4,7 +4,7 @@
 [English](../../../guide/comparison.md) · [Русский](../../ru/guide/comparison.md) ·
 [中文](../../zh/guide/comparison.md) · **Español**
 <!-- languages:end -->
-<!-- translation of docs/guide/comparison.md: f230995a7fb2 -->
+<!-- translation of docs/guide/comparison.md: c928c7195494 -->
 
 Otros dos servicios convierten documentos de oficina a PDF por HTTP con LibreOffice. **Gotenberg** es el más usado:
 una API de documentos de uso general en torno a Chromium, LibreOffice y herramientas de PDF.

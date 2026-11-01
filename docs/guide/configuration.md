@@ -1,5 +1,10 @@
 # Configuration
 
+<!-- languages:begin -->
+**English** · [Русский](../i18n/ru/guide/configuration.md) · [中文](../i18n/zh/guide/configuration.md) ·
+[Español](../i18n/es/guide/configuration.md)
+<!-- languages:end -->
+
 Every setting is an environment variable, read once when the service starts. This page lists all of them; a test
 compares its tables with the variables the code reads, so a setting cannot exist without a row here.
 

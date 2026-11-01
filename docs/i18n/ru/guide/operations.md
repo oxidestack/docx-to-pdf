@@ -4,7 +4,7 @@
 [English](../../../guide/operations.md) · **Русский** · [中文](../../zh/guide/operations.md) ·
 [Español](../../es/guide/operations.md)
 <!-- languages:end -->
-<!-- translation of docs/guide/operations.md: a6665af01af5 -->
+<!-- translation of docs/guide/operations.md: c560ba149348 -->
 
 Как запустить сервис в контейнере или в Kubernetes, наблюдать за ним, ограничить, во что может обойтись документ,
 рассчитать ресурсы развёртывания и дать ему шрифты. Каждая настройка, упомянутая здесь, — переменная окружения,

@@ -1,5 +1,10 @@
 # Migrating from moalhaddar/docx-to-pdf
 
+<!-- languages:begin -->
+**English** · [Русский](../i18n/ru/guide/migration.md) · [中文](../i18n/zh/guide/migration.md) ·
+[Español](../i18n/es/guide/migration.md)
+<!-- languages:end -->
+
 For anyone who runs `moalhaddar/docx-to-pdf` (2.1.0-x) or calls it, and wants to move to this service. It converts
 the same documents through the same interface, with a current LibreOffice, without the original's failure modes, and
 with OpenTelemetry built in. This page says what stays the same, what a client changes, what a deployment changes,

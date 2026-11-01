@@ -4,7 +4,7 @@
 [English](../../../guide/operations.md) · [Русский](../../ru/guide/operations.md) · **中文** ·
 [Español](../../es/guide/operations.md)
 <!-- languages:end -->
-<!-- translation of docs/guide/operations.md: a6665af01af5 -->
+<!-- translation of docs/guide/operations.md: c560ba149348 -->
 
 如何在容器中或 Kubernetes 上运行服务、监控它、限制一份文档可能造成的开销、规划部署容量以及为它提供字体。
 这里提到的每个设置都是一个环境变量，在[配置](configuration.md)中有说明；本页说明它们如何配合。

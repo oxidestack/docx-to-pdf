@@ -1,5 +1,10 @@
 # Compared with Gotenberg and moalhaddar/docx-to-pdf
 
+<!-- languages:begin -->
+**English** · [Русский](../i18n/ru/guide/comparison.md) · [中文](../i18n/zh/guide/comparison.md) ·
+[Español](../i18n/es/guide/comparison.md)
+<!-- languages:end -->
+
 Two other services turn office documents into PDF over HTTP with LibreOffice. **Gotenberg** is the most used: a
 general document API around Chromium, LibreOffice and PDF tools. **moalhaddar/docx-to-pdf** is the service whose
 interface this one keeps. This page says what each does, then compares speed, memory and what each does with a

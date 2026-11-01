@@ -1,5 +1,10 @@
 # Troubleshooting
 
+<!-- languages:begin -->
+**English** · [Русский](../i18n/ru/guide/troubleshooting.md) · [中文](../i18n/zh/guide/troubleshooting.md) ·
+[Español](../i18n/es/guide/troubleshooting.md)
+<!-- languages:end -->
+
 What a client or an operator meets when something goes wrong, what it means, and what to change. The first part has
 one entry for every error the service answers, headed by its status and its `detail`, so you can search this page
 for the sentence in the answer you got. The second part covers problems that are not an error answer: a pod killed

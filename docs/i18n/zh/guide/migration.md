@@ -4,7 +4,7 @@
 [English](../../../guide/migration.md) · [Русский](../../ru/guide/migration.md) · **中文** ·
 [Español](../../es/guide/migration.md)
 <!-- languages:end -->
-<!-- translation of docs/guide/migration.md: b71feba18a76 -->
+<!-- translation of docs/guide/migration.md: dc32e801d4cb -->
 
 本页面向运行或调用 `moalhaddar/docx-to-pdf`（2.1.0-x）并希望迁移到本服务的人。本服务通过相同的接口转换相同的文档，
 使用当前版本的 LibreOffice，没有原服务的那些故障模式，并内置 OpenTelemetry。本页说明哪些保持不变、

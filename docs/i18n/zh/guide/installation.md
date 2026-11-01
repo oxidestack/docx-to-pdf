@@ -4,7 +4,7 @@
 [English](../../../guide/installation.md) · [Русский](../../ru/guide/installation.md) · **中文** ·
 [Español](../../es/guide/installation.md)
 <!-- languages:end -->
-<!-- translation of docs/guide/installation.md: 5e99d608a7ce -->
+<!-- translation of docs/guide/installation.md: 6e981a1d56b9 -->
 
 如何运行本服务：用 `docker run` 试用，在单台机器上用 Docker Compose 运行，以及用 Helm chart 在
 Kubernetes 上运行。无论哪种方式，最终都是服务在端口 `8080` 上响应 `POST /pdf`；要发送什么，见

@@ -4,7 +4,7 @@
 [English](../../../guide/comparison.md) · [Русский](../../ru/guide/comparison.md) · **中文** ·
 [Español](../../es/guide/comparison.md)
 <!-- languages:end -->
-<!-- translation of docs/guide/comparison.md: f230995a7fb2 -->
+<!-- translation of docs/guide/comparison.md: c928c7195494 -->
 
 另外有两个服务也通过 HTTP 用 LibreOffice 把办公文档转换为 PDF。**Gotenberg** 是使用最广泛的：
 一个围绕 Chromium、LibreOffice 和 PDF 工具构建的通用文档 API。**moalhaddar/docx-to-pdf** 是本服务所保持其接口的那个服务。

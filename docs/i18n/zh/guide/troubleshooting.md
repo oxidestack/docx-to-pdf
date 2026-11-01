@@ -4,7 +4,7 @@
 [English](../../../guide/troubleshooting.md) · [Русский](../../ru/guide/troubleshooting.md) · **中文** ·
 [Español](../../es/guide/troubleshooting.md)
 <!-- languages:end -->
-<!-- translation of docs/guide/troubleshooting.md: 00faa880a539 -->
+<!-- translation of docs/guide/troubleshooting.md: bc6fa1b9bcba -->
 
 出现问题时客户端或运维人员会遇到什么、它意味着什么，以及应该改什么。第一部分为服务返回的每种错误各列一个条目，
 标题是其状态码和 `detail`，因此你可以在本页中搜索你收到的响应里的那句话。第二部分涵盖不是错误响应的问题：

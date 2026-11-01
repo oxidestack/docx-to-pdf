@@ -4,7 +4,7 @@
 [English](../../../guide/migration.md) · [Русский](../../ru/guide/migration.md) · [中文](../../zh/guide/migration.md)
 · **Español**
 <!-- languages:end -->
-<!-- translation of docs/guide/migration.md: b71feba18a76 -->
+<!-- translation of docs/guide/migration.md: dc32e801d4cb -->
 
 Para quien ejecuta `moalhaddar/docx-to-pdf` (2.1.0-x) o lo llama, y quiere pasar a este servicio. Convierte los mismos
 documentos a través de la misma interfaz, con un LibreOffice actual, sin los modos de fallo del original y con

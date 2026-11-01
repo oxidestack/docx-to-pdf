@@ -4,7 +4,7 @@
 [English](../../../guide/configuration.md) · **Русский** · [中文](../../zh/guide/configuration.md) ·
 [Español](../../es/guide/configuration.md)
 <!-- languages:end -->
-<!-- translation of docs/guide/configuration.md: 09049b88b00a -->
+<!-- translation of docs/guide/configuration.md: e87a3a075dd4 -->
 
 Каждая настройка — это переменная окружения, которая читается один раз при запуске сервиса. Эта страница перечисляет
 их все; тест сверяет её таблицы с переменными, которые читает код, поэтому настройки без строки здесь быть не может.

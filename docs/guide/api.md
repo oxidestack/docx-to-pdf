@@ -1,5 +1,10 @@
 # API reference
 
+<!-- languages:begin -->
+**English** · [Русский](../i18n/ru/guide/api.md) · [中文](../i18n/zh/guide/api.md) ·
+[Español](../i18n/es/guide/api.md)
+<!-- languages:end -->
+
 The service converts one office document to PDF per request. This page lists every path it answers, what a request
 carries, every answer it can give, and every error. A test compares the error tables with the answers the code can
 give, and replays each `curl` example below against the service, comparing its answer with the one shown, so the page

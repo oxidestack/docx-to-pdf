@@ -1,5 +1,10 @@
 # Installation
 
+<!-- languages:begin -->
+**English** · [Русский](../i18n/ru/guide/installation.md) · [中文](../i18n/zh/guide/installation.md) ·
+[Español](../i18n/es/guide/installation.md)
+<!-- languages:end -->
+
 How to run the service: with `docker run` to try it, with Docker Compose on one machine, and on Kubernetes with the
 Helm chart. Each way ends with the service answering `POST /pdf` on port `8080`; [API reference](api.md) says what
 to send it. A test holds this page to the files it shows: the compose files below are the ones in

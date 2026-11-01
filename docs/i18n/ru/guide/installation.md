@@ -4,7 +4,7 @@
 [English](../../../guide/installation.md) · **Русский** · [中文](../../zh/guide/installation.md) ·
 [Español](../../es/guide/installation.md)
 <!-- languages:end -->
-<!-- translation of docs/guide/installation.md: 5e99d608a7ce -->
+<!-- translation of docs/guide/installation.md: 6e981a1d56b9 -->
 
 Как запустить сервис: через `docker run`, чтобы попробовать, через Docker Compose на одной машине и в Kubernetes с
 чартом Helm. Каждый способ заканчивается тем, что сервис отвечает на `POST /pdf` на порту `8080`; что ему отправлять,

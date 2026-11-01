@@ -4,7 +4,7 @@
 [English](../../../guide/configuration.md) · [Русский](../../ru/guide/configuration.md) · **中文** ·
 [Español](../../es/guide/configuration.md)
 <!-- languages:end -->
-<!-- translation of docs/guide/configuration.md: 09049b88b00a -->
+<!-- translation of docs/guide/configuration.md: e87a3a075dd4 -->
 
 每个设置都是一个环境变量，在服务启动时读取一次。本页列出了全部设置；有一个测试会把本页的表格与代码读取的变量进行比对，
 因此任何设置都不可能在这里没有对应的行。

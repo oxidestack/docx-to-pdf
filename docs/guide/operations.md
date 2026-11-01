@@ -1,5 +1,10 @@
 # Operations
 
+<!-- languages:begin -->
+**English** · [Русский](../i18n/ru/guide/operations.md) · [中文](../i18n/zh/guide/operations.md) ·
+[Español](../i18n/es/guide/operations.md)
+<!-- languages:end -->
+
 How to run the service in a container or on Kubernetes, watch it, bound what a document may cost, size a
 deployment and give it fonts. Every setting named here is an environment variable described in
 [Configuration](configuration.md); this page says how they fit together. A test holds the page to the code: the

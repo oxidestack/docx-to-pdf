@@ -3,7 +3,7 @@
 <!-- languages:begin -->
 [English](../../../guide/api.md) · [Русский](../../ru/guide/api.md) · [中文](../../zh/guide/api.md) · **Español**
 <!-- languages:end -->
-<!-- translation of docs/guide/api.md: f98dcbb15dbb -->
+<!-- translation of docs/guide/api.md: 75631133af9c -->
 
 El servicio convierte un documento de oficina a PDF por petición. Esta página enumera cada ruta que responde, lo que
 lleva una petición, cada respuesta que puede dar y cada error. Una prueba compara las tablas de errores con las

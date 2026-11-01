@@ -3,7 +3,7 @@
 <!-- languages:begin -->
 [English](../../../guide/api.md) · **Русский** · [中文](../../zh/guide/api.md) · [Español](../../es/guide/api.md)
 <!-- languages:end -->
-<!-- translation of docs/guide/api.md: f98dcbb15dbb -->
+<!-- translation of docs/guide/api.md: 75631133af9c -->
 
 Сервис конвертирует один офисный документ в PDF за запрос. Эта страница перечисляет каждый путь, на который он
 отвечает, что несёт запрос, каждый ответ, который он может дать, и каждую ошибку. Тест сравнивает таблицы ошибок с

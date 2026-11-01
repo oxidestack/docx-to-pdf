@@ -4,7 +4,7 @@
 [English](../../../guide/troubleshooting.md) · **Русский** · [中文](../../zh/guide/troubleshooting.md) ·
 [Español](../../es/guide/troubleshooting.md)
 <!-- languages:end -->
-<!-- translation of docs/guide/troubleshooting.md: 00faa880a539 -->
+<!-- translation of docs/guide/troubleshooting.md: bc6fa1b9bcba -->
 
 С чем сталкивается клиент или оператор, когда что-то идёт не так, что это значит и что изменить. В первой части по
 одной записи на каждую ошибку, которой отвечает сервис, с заголовком из её статуса и её `detail`, так что по этой

@@ -4,7 +4,7 @@
 [English](../../../guide/configuration.md) · [Русский](../../ru/guide/configuration.md) ·
 [中文](../../zh/guide/configuration.md) · **Español**
 <!-- languages:end -->
-<!-- translation of docs/guide/configuration.md: 09049b88b00a -->
+<!-- translation of docs/guide/configuration.md: e87a3a075dd4 -->
 
 Cada ajuste es una variable de entorno, que se lee una sola vez cuando arranca el servicio. Esta página las enumera
 todas; una prueba compara sus tablas con las variables que lee el código, de modo que no puede existir un ajuste sin
