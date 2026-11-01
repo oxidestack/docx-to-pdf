@@ -37,6 +37,10 @@ the containers and nothing else, and a rollback is the same step with the older 
 4. Watch the first minutes: `/readyz`, the answers' statuses and the conversion metrics
    ([Operations](operations.md#telemetry)). To roll back, run step 3 with the version you had.
 
+## Upgrading to 1.2.1
+
+Nothing to change: the image and the chart upgrade in place from 1.2.0.
+
 ## Upgrading to 1.2.0
 
 Nothing to change: the image and the chart upgrade in place from 1.1.0.

@@ -14,13 +14,18 @@ its section below.
 
 ## [1.2.1] - 2026-11-01
 
+The whole guide in Russian, Chinese and Spanish, and the chart's logo and recommendations on Artifact Hub. Nothing to
+change in a deployment; the image and the chart upgrade in place from 1.2.0.
+
 ### Other changes
 
+- Every page of the guide is translated into Russian, Chinese and Spanish: the documentation site's language picker
+  shows each page in the reader's language, and on GitHub each page links its translations. A translation records the
+  version of the English page it translates, and a page whose original has changed since says it may be out of date.
+  (3591235)
 - The Helm chart carries the project's logo, which Artifact Hub shows on its page. (chart, 2993b4e)
-- The chart's Artifact Hub page recommends the OpenTelemetry Collector and kube-prometheus-stack charts, which receive the service's telemetry. (chart, 8e8daed)
-- The guide is translated into Russian. (i18n, 07ae746)
-- The guide is translated into Chinese. (i18n, f653b3d)
-- The guide is translated into Spanish. (i18n, 3576980)
+- The chart's Artifact Hub page recommends the OpenTelemetry Collector and kube-prometheus-stack charts, which receive
+  the service's telemetry. (chart, 8e8daed)
 
 [1.2.1]: https://github.com/oxidestack/docx-to-pdf/compare/v1.2.0...v1.2.1
 
