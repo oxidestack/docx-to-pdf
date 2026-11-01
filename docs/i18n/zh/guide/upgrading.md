@@ -24,16 +24,16 @@ docx-to-pdf 在两次转换之间不保存任何东西：它没有数据库，�
 
 1. 阅读下面每个比你的版本更新的版本章节，并把其中的改动应用到你的配置、chart 值或客户端。
 2. 如果你会校验版本，请校验新的镜像或 chart
-   （[Verifying a release](../../../guide/installation.md#verifying-a-release)）。
+   （[验证版本](installation.md#验证版本)）。
 3. 替换容器：
    - `docker run` 或 Docker Compose：修改镜像的标签（`quay.io/oxidestack/docx-to-pdf:<version>`），然后重新启动
      （`docker compose up -d`）。
-   - Helm：执行与 [Installation](../../../guide/installation.md#with-helm) 中相同的 `helm upgrade --install`，
+   - Helm：执行与[安装](installation.md#使用-helm)中相同的 `helm upgrade --install`，
      使用新的 `--version` 和你自己的 values 文件。chart 会先启动新 pod 再停止旧 pod；新 pod 在 `/readyz`
      返回 `200` 后开始接收转换，旧 pod 会先完成手头的转换再停止
-     （[Operations](../../../guide/operations.md#stopping)）。
+     （[运维](operations.md#停止)）。
 4. 观察最初几分钟：`/readyz`、响应的状态码和转换指标
-   （[Operations](../../../guide/operations.md#telemetry)）。要回滚，请用原来的版本执行第 3 步。
+   （[运维](operations.md#遥测)）。要回滚，请用原来的版本执行第 3 步。
 
 ## 升级到 1.2.0
 

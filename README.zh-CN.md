@@ -38,7 +38,7 @@ curl -F document=@report.docx http://localhost:8080/pdf -o report.pdf
 `report.pdf` 就是 LibreOffice 排版后的文档。有一个测试会对服务重放这条 `curl`。
 
 每个版本都经过签名，并附带 SBOM 和构建来源证明；
-[Verifying a release](docs/guide/installation.md#verifying-a-release) 说明如何用 `cosign` 和
+[验证版本](docs/i18n/zh/guide/installation.md#验证版本)说明如何用 `cosign` 和
 `gh attestation verify` 检查镜像或 chart。
 
 ## 它提供什么
@@ -62,17 +62,17 @@ curl -F document=@report.docx http://localhost:8080/pdf -o report.pdf
 根路径是最新版本，每个版本都在各自的版本号下。与 `main` 上一致的同一批页面位于 `docs/guide/`（英文）
 和 `docs/i18n/zh/`（已翻译）：
 
-- [Installation](docs/guide/installation.md)——`docker run`、Docker Compose，以及使用 Helm chart
+- [安装](docs/i18n/zh/guide/installation.md)——`docker run`、Docker Compose，以及使用 Helm chart
   的 Kubernetes，还有需要分配的资源
 - [升级](docs/i18n/zh/guide/upgrading.md)——每个版本对部署有什么要求，以及如何迁移到更新的版本
-- [Configuration](docs/guide/configuration.md)——每个环境变量、其默认值和作用
-- [API reference](docs/guide/api.md)——端点、接受的格式、每个状态码及其详情
-- [Operations](docs/guide/operations.md)——容器、健康检查、Kubernetes、遥测与指标、限制、容量规划和字体
-- [Troubleshooting](docs/guide/troubleshooting.md)——每种错误响应和其他问题，各自的含义以及如何处理
-- [Migrating from moalhaddar/docx-to-pdf](docs/guide/migration.md)——哪些保持不变，客户端或部署需要改什么，
+- [配置](docs/i18n/zh/guide/configuration.md)——每个环境变量、其默认值和作用
+- [API 参考](docs/i18n/zh/guide/api.md)——端点、接受的格式、每个状态码及其详情
+- [运维](docs/i18n/zh/guide/operations.md)——容器、健康检查、Kubernetes、遥测与指标、限制、容量规划和字体
+- [故障排查](docs/i18n/zh/guide/troubleshooting.md)——每种错误响应和其他问题，各自的含义以及如何处理
+- [从 moalhaddar/docx-to-pdf 迁移](docs/i18n/zh/guide/migration.md)——哪些保持不变，客户端或部署需要改什么，
   以及每一处有意的差异
 - [Changelog](CHANGELOG.md)——每个版本改了什么，以及版本要求运维人员做什么
-- [Compared with Gotenberg and moalhaddar/docx-to-pdf](docs/guide/comparison.md)——各自能做什么，
+- [与 Gotenberg 和 moalhaddar/docx-to-pdf 的比较](docs/i18n/zh/guide/comparison.md)——各自能做什么，
   基于已记录测量的速度、内存和恶意文档表现，以及重复这些测量的命令
 
 ## 构建与测试
