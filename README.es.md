@@ -39,8 +39,8 @@ curl -F document=@report.docx http://localhost:8080/pdf -o report.pdf
 `report.pdf` es el documento tal como lo maqueta LibreOffice. Una prueba repite este `curl` contra el servicio.
 
 Cada versión está firmada e incluye su SBOM y la procedencia de su compilación;
-[Verifying a release](docs/guide/installation.md#verifying-a-release) explica cómo comprobar una imagen o un chart
-con `cosign` y `gh attestation verify`.
+[Verificar una versión](docs/i18n/es/guide/installation.md#verificar-una-versión) explica cómo comprobar una imagen
+o un chart con `cosign` y `gh attestation verify`.
 
 ## Qué ofrece
 
@@ -67,21 +67,21 @@ La guía está publicada en [oxidestack.github.io/docx-to-pdf](https://oxidestac
 versión en la raíz y cada versión bajo su número. Las mismas páginas, tal como están en `main`, se encuentran en
 `docs/guide/` (en inglés) y en `docs/i18n/es/` (traducidas):
 
-- [Installation](docs/guide/installation.md) — `docker run`, Docker Compose y Kubernetes con el chart de Helm, y
+- [Instalación](docs/i18n/es/guide/installation.md) — `docker run`, Docker Compose y Kubernetes con el chart de Helm, y
   los recursos que darle
 - [Actualización](docs/i18n/es/guide/upgrading.md) — qué pide cada versión a un despliegue y cómo pasar a una más nueva
-- [Configuration](docs/guide/configuration.md) — cada variable de entorno, su valor por defecto y su efecto
-- [API reference](docs/guide/api.md) — los endpoints, los formatos aceptados, cada estado y su detalle
-- [Operations](docs/guide/operations.md) — el contenedor, las comprobaciones de salud, Kubernetes, la telemetría y
-  las métricas, los límites, el dimensionamiento y las fuentes
-- [Troubleshooting](docs/guide/troubleshooting.md) — cada respuesta de error y otros problemas, qué significa cada
-  uno y qué hacer
-- [Migrating from moalhaddar/docx-to-pdf](docs/guide/migration.md) — qué sigue igual, qué cambia un cliente o un
+- [Configuración](docs/i18n/es/guide/configuration.md) — cada variable de entorno, su valor por defecto y su efecto
+- [Referencia de la API](docs/i18n/es/guide/api.md) — los endpoints, los formatos aceptados, cada estado y su detalle
+- [Operaciones](docs/i18n/es/guide/operations.md) — el contenedor, las comprobaciones de salud, Kubernetes, la
+  telemetría y las métricas, los límites, el dimensionamiento y las fuentes
+- [Solución de problemas](docs/i18n/es/guide/troubleshooting.md) — cada respuesta de error y otros problemas, qué
+  significa cada uno y qué hacer
+- [Migrar desde moalhaddar/docx-to-pdf](docs/i18n/es/guide/migration.md) — qué sigue igual, qué cambia un cliente o un
   despliegue, y cada diferencia deliberada
 - [Changelog](CHANGELOG.md) — qué cambió cada versión y qué tiene que hacer un operador cuando una versión
   lo pide
-- [Compared with Gotenberg and moalhaddar/docx-to-pdf](docs/guide/comparison.md) — qué hace cada uno, velocidad,
-  memoria y documentos hostiles según las mediciones registradas, y los comandos que las repiten
+- [Comparación con Gotenberg y moalhaddar/docx-to-pdf](docs/i18n/es/guide/comparison.md) — qué hace cada uno,
+  velocidad, memoria y documentos hostiles según las mediciones registradas, y los comandos que las repiten
 
 ## Compilación y pruebas
 

@@ -30,18 +30,16 @@ actualización sustituye los contenedores y nada más, y una vuelta atrás es el
 1. Lea las secciones de abajo de cada versión más nueva que la suya y aplique sus cambios a su configuración, a los
    valores del chart o a sus clientes.
 2. Compruebe la nueva imagen o el nuevo chart, si verifica las versiones
-   ([Verifying a release](../../../guide/installation.md#verifying-a-release)).
+   ([Verificar una versión](installation.md#verificar-una-versión)).
 3. Sustituya los contenedores:
    - `docker run` o Docker Compose: cambie la etiqueta de la imagen (`quay.io/oxidestack/docx-to-pdf:<version>`) y
      vuelva a arrancarla (`docker compose up -d`).
-   - Helm: ejecute el mismo `helm upgrade --install` que en
-     [Installation](../../../guide/installation.md#with-helm), con el nuevo `--version` y su propio archivo de
-     valores. El chart arranca cada pod nuevo antes de parar uno antiguo; un pod nuevo acepta conversiones en cuanto
-     `/readyz` responde `200`, y uno antiguo termina las conversiones que tiene antes de pararse
-     ([Operations](../../../guide/operations.md#stopping)).
+   - Helm: ejecute el mismo `helm upgrade --install` que en [Instalación](installation.md#con-helm), con el nuevo
+     `--version` y su propio archivo de valores. El chart arranca cada pod nuevo antes de parar uno antiguo; un pod
+     nuevo acepta conversiones en cuanto `/readyz` responde `200`, y uno antiguo termina las conversiones que tiene
+     antes de pararse ([Operaciones](operations.md#parada)).
 4. Vigile los primeros minutos: `/readyz`, los estados de las respuestas y las métricas de conversión
-   ([Operations](../../../guide/operations.md#telemetry)). Para volver atrás, ejecute el paso 3 con la versión que
-   tenía.
+   ([Operaciones](operations.md#telemetría)). Para volver atrás, ejecute el paso 3 con la versión que tenía.
 
 ## Actualizar a 1.2.0
 
