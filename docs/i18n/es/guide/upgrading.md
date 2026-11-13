@@ -4,7 +4,7 @@
 [English](../../../guide/upgrading.md) · [Русский](../../ru/guide/upgrading.md) · [中文](../../zh/guide/upgrading.md)
 · **Español**
 <!-- languages:end -->
-<!-- translation of docs/guide/upgrading.md: 04008e025c0a -->
+<!-- translation of docs/guide/upgrading.md: d7a9626c0fc8 -->
 
 Cómo llevar un despliegue de la versión que ejecuta a una más nueva. Busque la sección de cada versión más nueva que
 la suya y aplíquelas empezando por la más antigua: pasar de 1.0.0 a 1.2.0 significa la sección de 1.1.0 y después
@@ -40,6 +40,10 @@ actualización sustituye los contenedores y nada más, y una vuelta atrás es el
      antes de pararse ([Operaciones](operations.md#parada)).
 4. Vigile los primeros minutos: `/readyz`, los estados de las respuestas y las métricas de conversión
    ([Operaciones](operations.md#telemetría)). Para volver atrás, ejecute el paso 3 con la versión que tenía.
+
+## Actualizar a 1.3.1
+
+Nada que cambiar: la imagen y el chart se actualizan en su sitio desde 1.3.0.
 
 ## Actualizar a 1.3.0
 

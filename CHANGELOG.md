@@ -14,6 +14,9 @@ its section below.
 
 ## [1.3.1] - 2026-11-13
 
+Nothing changes for the people who run the service: the commit-message check now refuses a release note that the
+release notes' draft would drop, as 1.3.0's access log entry was. The image and the chart upgrade in place from 1.3.0.
+
 [1.3.1]: https://github.com/oxidestack/docx-to-pdf/compare/v1.3.0...v1.3.1
 
 ## [1.3.0] - 2026-11-13
