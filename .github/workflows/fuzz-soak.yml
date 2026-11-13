@@ -49,7 +49,7 @@ jobs:
       || needs.visibility.outputs.public == 'true') }}
     runs-on: ubuntu-24.04
     # The image ci.yml's Rust jobs run in; the nightly and cargo-fuzz are pinned below.
-    container: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    container: rust:1.99.1-trixie@sha256:8a4e90c7946b74626488b1446f712c0fe0ed1a596cbd3d871684bc9c5433ae07
     timeout-minutes: 90
     permissions:
       contents: read  # actions/checkout reads the repository

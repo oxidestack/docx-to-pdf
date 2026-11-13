@@ -1,5 +1,5 @@
 #!/bin/sh
-# Turns a `rust:1.98.0-trixie` CI job container into the environment tools/instance-test/Dockerfile
+# Turns a `rust:1.99.1-trixie` CI job container into the environment tools/instance-test/Dockerfile
 # builds, so the `test` job runs every test the way `tools/instance-test/run.sh` does: the LibreOfficeKit tests
 # required (DOCX_TO_PDF_REQUIRE_LOK=1, set by the job), moalhaddar/docx-to-pdf scenarios converting for real, PDF
 # equivalence through poppler-utils. A private CI job cannot build or run a container (no Docker socket), so
