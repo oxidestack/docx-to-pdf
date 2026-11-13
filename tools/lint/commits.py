@@ -17,14 +17,19 @@ The rules (CONTRIBUTING.md's "Commit messages"), each a rule id the findings nam
   name and an address, which no trailer can fold: a bot's sign-off runs to 78), and lines in a fenced block other
   than the release note (a command);
 - breaking: `!` before the colon if and only if a `BREAKING-CHANGE:` footer; breaking-spelling: `BREAKING CHANGE:`
-  with a space, which git's trailer parser does not take;
+  with a space, which git's trailer parser does not take; footer-form: a footer is `Token: value`, never the
+  `Token #value` the Conventional Commits spec also allows, which git's trailer parser does not take either (so
+  `git commit -s` would put its sign-off in a paragraph of its own);
 - revert: `revert: <the reverted commit's header>` and a `Refs:` footer;
 - release-note-required: a ```release-note block on feat, fix, perf and every breaking commit; release-note-count: at
   most one; release-note-empty: not empty; release-note-none: never `NONE` on a breaking commit; release-note-hash:
-  no line starting with `#` (git's cleanup strips it); release-note-place: closed, and the body's last paragraph
-  before the footers;
+  no line starting with `#` (git's cleanup strips it); release-note-place: closed, the body's last paragraph
+  before the footers, and no paragraph before its end opening as a footer does in git-cliff's parser (FOOTER_START),
+  which would end the body there and drop the note from the release notes;
 - footers-split: the footers are the last paragraph, one block; footer-key: one of FOOTERS; footer-order: in FOOTERS'
-  order (so `Signed-off-by:` last); refs: a `Refs:` value is commit hashes or `#<n>`;
+  order (so `Signed-off-by:` last); refs: a `Refs:` value is commit hashes or `#<n>`; closes: a `Closes:` value is
+  one `#<n>`, an issue of this repository the merge closes (GitHub reads `Closes: #<n>`; another closing keyword,
+  `Fixes:` or `Resolves:`, is a footer-key finding that names `Closes:`);
 - merge: no merge commit (pull requests are rebased onto main);
 - signoff: the last footer is the author's `Signed-off-by:` (the DCO; a `--message` has no author, so any sign-off
   last). On by default, here, in the CI jobs and in the pre-push hook; COMMITS_SIGNOFF=0 turns it off, and the
@@ -37,6 +42,7 @@ The base: COMMITS_BASE, else BASE below: the commit the rule starts from (the pu
 request's base). BASE is empty until the public history starts, and empty (or COMMITS_BASE=none) checks the fixtures
 alone: every commit before it keeps its own style. A base with no parent (a root commit) is checked too. A shallow
 clone that lacks the base is deepened once from its default remote; a deepening that fails is exit 2 with git's error.
+A published commit a later rule finds is named in EXEMPT with that rule, rather than the history rewritten.
 
 Fixtures: tools/lint/commits/pass/*.txt pass; tools/lint/commits/fail/<rule>[.<n>].txt fail with that rule and no
 other. A new rule comes with both.
@@ -74,22 +80,37 @@ SCOPES = (
 )
 # The types whose commit carries a release note (so does every breaking commit).
 NOTE_REQUIRED = ("feat", "fix", "perf")
-# The footers, in their order: a human co-author's line before the sign-offs, `Signed-off-by:` last as `git commit -s`
-# appends it.
-FOOTERS = ("BREAKING-CHANGE", "Refs", "Co-authored-by", "Signed-off-by")
+# The footers, in their order: the references to other commits and issues first, `Closes:` (the issues the commit
+# resolves) after `Refs:` (those it only relates to), then the people, a human co-author's line before the sign-offs,
+# `Signed-off-by:` last as `git commit -s` appends it.
+FOOTERS = ("BREAKING-CHANGE", "Refs", "Closes", "Co-authored-by", "Signed-off-by")
+# GitHub's other closing keywords: each is spelt `Closes:` here, so one footer key closes an issue.
+CLOSING = ("close", "closed", "fix", "fixes", "fixed", "resolve", "resolves", "resolved")
 # The public history's root commit, set in the commit that starts it; COMMITS_BASE overrides it.
 BASE = "661021207ce6bbd9ad7d3fa760ca95254d709792"
+# Published commits a later rule finds, each with the rule it is exempt from: the history is not rewritten. 15737ae
+# puts `Closes #5` before its release note, so git-cliff dropped the note; its entry was written into CHANGELOG.md's
+# 1.3.0 section by hand.
+EXEMPT = {"15737aefa27a02830659975d11ac6b832dc10815": "release-note-place"}
 HEADER_MAX = 72
 BODY_MAX = 72
 
 HEADER = re.compile(r"^(?P<type>\w+)(?:\((?P<scope>[^()]*)\))?(?P<bang>!)?: (?P<desc>\S.*)$")
-# A trailer line as git reads one (a key without whitespace), and the spec's spelling with a space, kept apart so it
-# is named rather than splitting the block.
-TRAILER = re.compile(r"^(?P<key>[A-Za-z0-9][A-Za-z0-9-]*|BREAKING CHANGE): (?P<value>.*)$")
+# A trailer line as git reads one (a key without whitespace), and the spec's spellings git does not take, kept apart
+# so they are named rather than splitting the block: `BREAKING CHANGE` with a space, and `Token #value`.
+TRAILER = re.compile(r"^(?P<key>[A-Za-z0-9][A-Za-z0-9-]*|BREAKING CHANGE)(?P<sep>: | #)(?P<value>.*)$")
+# Where git-cliff's parser (git-conventional 0.12.9, git-cliff 2.10.1's) starts the footers: the first line of the
+# body that opens a paragraph (the body's first line, or one after a blank line, fenced or not) with a token and a
+# separator. The token is `BREAKING CHANGE`, or any run of characters but whitespace, parentheses, `:` and `!`; the
+# separator `:` or ` #`. Everything from there on is footers, so git-cliff's `commit.body`, where cliff.toml looks for
+# the release note, ends before it.
+# https://github.com/crate-ci/git-conventional/blob/v0.12.9/src/parser.rs
+FOOTER_START = re.compile(r"^(?P<token>BREAKING CHANGE|[^\s():!]+)(?P<sep>:| #)")
 FENCE = re.compile(r"^(`{3,})(.*)$")
 # A trailer naming a person or a bot: exempt from the body width, since it cannot be wrapped.
 IDENTITY = re.compile(r"^(?:Signed-off-by|Co-authored-by): ")
 REF = re.compile(r"^(?:[0-9a-f]{7,40}|#[0-9]+)$")
+ISSUE = re.compile(r"^#[0-9]+$")
 # A capitalised plain word (`Add`, `Fix`): a name with a capital inside, all capitals, a digit or `_` is not one.
 CAPITALISED = re.compile(r"^[A-Z][a-z]+[,:;]?$")
 
@@ -179,19 +200,60 @@ def check_message(message, signoff=False, author=None):
             paragraphs = paragraphs[:-1]
     keys = [t["key"] for _, t in trailers]
 
+    # Where git-cliff ends the body: a release-note block that does not end before it is lost from the release notes.
+    # The line that finding names is not named again as a footer outside the footers.
+    lost, cut = None, footers_start(lines)
+    if cut is not None and notes and notes[-1][2]:
+        n, opening = cut
+        start, text, _ = notes[-1]
+        if n <= start + len(text):
+            lost = n
+        if n < start:
+            findings.append(
+                (
+                    "release-note-place",
+                    f"line {n}: `{opening}` opens a paragraph, so git-cliff reads the footers from there and the"
+                    " release-note block after it is dropped from the release notes; move an issue reference into"
+                    " the footers after the block (`Closes: #<n>`), or reword the paragraph's start",
+                )
+            )
+        elif n <= start + len(text):
+            findings.append(
+                (
+                    "release-note-place",
+                    f"line {n}: `{opening}` opens a paragraph of the release note, so git-cliff reads the footers"
+                    " from there and the note is cut short in the release notes; reword the paragraph's start",
+                )
+            )
+
     for p in paragraphs:
         for n, line in p:
             t = TRAILER.match(line)
-            if t and n not in fenced and t["key"] in FOOTERS + ("BREAKING CHANGE",):
-                findings.append(("footers-split", f"line {n}: `{t['key']}:` outside the footers, the last paragraph"))
+            if t and n not in fenced and n != lost and t["key"] in FOOTERS + ("BREAKING CHANGE",):
+                findings.append(
+                    (
+                        "footers-split",
+                        f"line {n}: `{t['key']}{t['sep'].rstrip()}` outside the footers, the last paragraph",
+                    )
+                )
     rank = -1
     for n, t in trailers:
         key = t["key"]
+        value = t["value"].strip()
         if key == "BREAKING CHANGE":
             findings.append(("breaking-spelling", f"line {n}: `BREAKING CHANGE:` is spelt `BREAKING-CHANGE:`"))
             key = "BREAKING-CHANGE"
+        if t["sep"] == " #":
+            findings.append(
+                (
+                    "footer-form",
+                    f"line {n}: `{key} #{value}` is written `{key}: #{value}`, the form git's trailers take",
+                )
+            )
+            value = "#" + value
         if key not in FOOTERS:
-            findings.append(("footer-key", f"line {n}: `{key}:` is not one of {', '.join(FOOTERS)}"))
+            hint = "; GitHub's closing keywords are spelt `Closes:` here" if key.lower() in CLOSING else ""
+            findings.append(("footer-key", f"line {n}: `{key}:` is not one of {', '.join(FOOTERS)}{hint}"))
             continue
         if FOOTERS.index(key) < rank:
             findings.append(
@@ -199,9 +261,11 @@ def check_message(message, signoff=False, author=None):
             )
         rank = max(rank, FOOTERS.index(key))
         if key == "Refs":
-            bad = [r for r in re.split(r"[,\s]+", t["value"].strip()) if r and not REF.match(r)]
-            if bad or not t["value"].strip():
+            bad = [r for r in re.split(r"[,\s]+", value) if r and not REF.match(r)]
+            if bad or not value:
                 findings.append(("refs", f"line {n}: `Refs:` names commit hashes or `#<n>`, not `{' '.join(bad)}`"))
+        if key == "Closes" and not ISSUE.match(value):
+            findings.append(("closes", f"line {n}: `Closes:` names one issue, `#<n>` (a line for each), not `{value}`"))
 
     has_footer = any(k in ("BREAKING-CHANGE", "BREAKING CHANGE") for k in keys)
     if breaking and not has_footer:
@@ -248,6 +312,21 @@ def check_message(message, signoff=False, author=None):
         ]:
             findings.append(("signoff", f"no `Signed-off-by: {author}`, the author's"))
     return findings
+
+
+def footers_start(lines):
+    """Where git-cliff's parser starts the footers (FOOTER_START): (line number, the opening token and separator), or
+    None when the message has none."""
+    body = 1
+    while body < len(lines) and lines[body].strip() == "":
+        body += 1
+    prior_empty = True
+    for i in range(body, len(lines)):
+        m = FOOTER_START.match(lines[i])
+        if prior_empty and m:
+            return i + 1, m[0]
+        prior_empty = lines[i].strip() == ""
+    return None
 
 
 def check_fixtures():
@@ -311,7 +390,11 @@ def check_commits(shas, signoff):
         if len(parents.split()) > 1:
             findings.append(f"{where}: merge: a merge commit; rebase onto the base instead")
             continue
-        findings += [f"{where}: {rule}: {text}" for rule, text in check_message(message, signoff, author)]
+        findings += [
+            f"{where}: {rule}: {text}"
+            for rule, text in check_message(message, signoff, author)
+            if EXEMPT.get(sha) != rule
+        ]
     return findings, len(shas)
 
 

@@ -1,0 +1,11 @@
+feat(telemetry): log one line for every request
+
+Each request now leaves one event when it ends.
+
+Closes #5
+
+```release-note
+Every request leaves one info line on standard output.
+```
+
+Signed-off-by: Jane Doe <jane@example.org>

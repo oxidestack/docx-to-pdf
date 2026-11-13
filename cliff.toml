@@ -1,7 +1,9 @@
 # git-cliff's configuration: `make release-notes` (tools/release/release-notes.sh) drafts the next release's section of
 # CHANGELOG.md from the commits since the last tag. Each commit's release-note block, the last paragraph of its body
 # (CONTRIBUTING.md, "Commit messages"), is the entry; the commit's type picks the section; `NONE` and a commit without
-# a block give none. The draft is edited by hand before the tag (tools/release/README.md).
+# a block give none. The draft is edited by hand before the tag (tools/release/README.md). The body ends at the first
+# paragraph opening as a footer does (`Token: value` or `Token #value`, `Closes #5` among them), so a block after one
+# is not in `commit.body`; the commit gate's release-note-place rule (tools/lint/commits.py) refuses that order.
 #
 # The tests of tools/release/ run this file on a fixture history (tools/release/fixture.py) and compare the draft with
 # tools/release/expected-*.txt: a change to the template changes those in the same commit.

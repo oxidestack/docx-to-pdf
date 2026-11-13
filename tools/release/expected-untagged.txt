@@ -13,6 +13,7 @@
 
 - A LibreOffice instance that dies while starting is replaced, so the service no longer runs with one instance fewer than configured. (pool, 5110ebe)
 - An upload over the size limit is answered 413 instead of 400. (74a1619)
+- An error answer names the request's trace_id, as its log line does. (api, 12c1001)
 
 ### Performance
 

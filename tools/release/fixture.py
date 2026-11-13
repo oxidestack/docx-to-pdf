@@ -8,6 +8,7 @@ on every machine. `--untagged` leaves out the tag: the history of a first releas
 """
 
 import os
+import re
 import subprocess
 import sys
 import tomllib
@@ -74,6 +75,22 @@ COMMITS = [
         None,
     ),
     ("test(convert): cover the empty document", None),
+    # An issue reference is a footer after the block (`Closes: #<n>`), and the entry is drafted.
+    (
+        "fix(api): name the request's trace in an error answer\n\n"
+        "```release-note\nAn error answer names the request's trace_id, as its log line does.\n```\n\n"
+        "Closes: #3",
+        None,
+    ),
+    # The same reference as a paragraph before the block: git-cliff's parser starts the footers there (`Token #value`
+    # is a footer too), so the block is not in the body and the draft has no entry. The commit gate refuses this one
+    # (release-note-place); the fixture holds git-cliff to the behaviour the rule guards against.
+    (
+        "fix(api): answer 415 for a file that is not a document\n\n"
+        "Closes #4\n\n"
+        "```release-note\nA file that is not a document is answered 415 instead of 500.\n```",
+        None,
+    ),
 ]
 
 
@@ -104,8 +121,9 @@ def build(repo, tagged=True):
         with open(os.path.join(repo, name), "w", encoding="utf-8") as out:
             out.write(changelog if n == 0 else f"{n}\n")
         git(repo, "add", name)
-        # The sign-off joins a footer block the message ends with, as `git commit -s` does.
-        sep = "\n" if message.rsplit("\n\n", 1)[-1].startswith("BREAKING-CHANGE:") else "\n\n"
+        # The sign-off joins a footer block the message's body ends with, as `git commit -s` does.
+        footers = "\n\n" in message and re.match(r"[A-Za-z-]+: ", message.rsplit("\n\n", 1)[-1])
+        sep = "\n" if footers else "\n\n"
         git(repo, "commit", "-q", "--cleanup=verbatim", "-m", f"{message}{sep}{SIGN_OFF}", when=when)
         if tag and tagged:
             git(repo, "tag", tag, when=when)

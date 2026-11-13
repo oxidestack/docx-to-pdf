@@ -38,6 +38,7 @@ class Fixtures(unittest.TestCase):
             "body-width",
             "breaking",
             "breaking-spelling",
+            "footer-form",
             "revert",
             "release-note-required",
             "release-note-count",
@@ -49,6 +50,7 @@ class Fixtures(unittest.TestCase):
             "footer-key",
             "footer-order",
             "refs",
+            "closes",
         }
         self.assertEqual(rules, documented)
         for rule in documented:

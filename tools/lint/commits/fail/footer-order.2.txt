@@ -1,0 +1,5 @@
+docs(chart): describe the values
+
+Co-authored-by: John Roe <john@example.org>
+Closes: #8
+Signed-off-by: Jane Doe <jane@example.org>
