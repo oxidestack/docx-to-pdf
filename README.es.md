@@ -3,7 +3,7 @@
 <!-- languages:begin -->
 [English](README.md) · [Русский](README.ru.md) · [中文](README.zh-CN.md) · **Español**
 <!-- languages:end -->
-<!-- translation of README.md: d65571b295f3 -->
+<!-- translation of README.md: 67cf3a864fb4 -->
 
 ![logotipo de docx-to-pdf](site/src/assets/docx-to-pdf-mark.svg)
 
@@ -27,7 +27,7 @@ en Rust, incluye un LibreOffice actual e informa de lo que hace mediante OpenTel
 ## Inicio rápido
 
 ```sh
-docker run --rm -p 8080:8080 quay.io/oxidestack/docx-to-pdf:1.3.0
+docker run --rm -p 8080:8080 quay.io/oxidestack/docx-to-pdf:1.3.1
 ```
 
 En otra terminal, una vez que haya arrancado:

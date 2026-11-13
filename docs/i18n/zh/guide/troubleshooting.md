@@ -4,7 +4,7 @@
 [English](../../../guide/troubleshooting.md) · [Русский](../../ru/guide/troubleshooting.md) · **中文** ·
 [Español](../../es/guide/troubleshooting.md)
 <!-- languages:end -->
-<!-- translation of docs/guide/troubleshooting.md: b8d7b921a213 -->
+<!-- translation of docs/guide/troubleshooting.md: eae72539ff84 -->
 
 出现问题时客户端或运维人员会遇到什么、它意味着什么，以及应该改什么。第一部分为服务返回的每种错误各列一个条目，
 标题是其状态码和 `detail`，因此你可以在本页中搜索你收到的响应里的那句话。第二部分涵盖不是错误响应的问题：
@@ -337,7 +337,7 @@ Times New Roman、Courier New 和 Arial Narrow 字宽相同的替代字体，因
 要查看 PDF 使用了哪些字体，请对它运行 `pdffonts`（来自 Poppler）；要查看某个字体名在镜像中会解析成什么：
 
 ```sh
-docker run --rm --entrypoint fc-match quay.io/oxidestack/docx-to-pdf:1.3.0 'Segoe UI'
+docker run --rm --entrypoint fc-match quay.io/oxidestack/docx-to-pdf:1.3.1 'Segoe UI'
 ```
 
 解决办法是把字体提供给服务：把你持有许可证的字体文件挂载到 `/usr/share/fonts/custom`，

@@ -4,7 +4,7 @@
 [English](../../../guide/operations.md) · **Русский** · [中文](../../zh/guide/operations.md) ·
 [Español](../../es/guide/operations.md)
 <!-- languages:end -->
-<!-- translation of docs/guide/operations.md: 0f8d3d60a1ac -->
+<!-- translation of docs/guide/operations.md: 902758f256e4 -->
 
 Как запустить сервис в контейнере или в Kubernetes, наблюдать за ним, ограничить, во что может обойтись документ,
 рассчитать ресурсы развёртывания и дать ему шрифты. Каждая настройка, упомянутая здесь, — переменная окружения,
@@ -35,7 +35,7 @@ LibreOffice убит, ничего не остаётся. Он слушает п
 docker run --rm -p 8080:8080 \
   --user 10001:10001 --read-only --cap-drop ALL --security-opt no-new-privileges \
   --mount type=volume,dst=/tmp \
-  quay.io/oxidestack/docx-to-pdf:1.3.0
+  quay.io/oxidestack/docx-to-pdf:1.3.1
 ```
 
 ### `/tmp`: на диске или в памяти
@@ -114,7 +114,7 @@ spec:
       terminationGracePeriodSeconds: 225
       containers:
         - name: docx-to-pdf
-          image: quay.io/oxidestack/docx-to-pdf:1.3.0
+          image: quay.io/oxidestack/docx-to-pdf:1.3.1
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
@@ -421,7 +421,7 @@ LibreOffice подставляет другой, и текст переверс�
 docker run --rm -p 8080:8080 --user 10001:10001 --read-only --cap-drop ALL \
   --mount type=volume,dst=/tmp \
   -v "$PWD/fonts:/usr/share/fonts/custom:ro" \
-  quay.io/oxidestack/docx-to-pdf:1.3.0
+  quay.io/oxidestack/docx-to-pdf:1.3.1
 ```
 
 В Kubernetes смонтируйте Secret, ConfigMap или любой том по тому же пути (это делает значение `fonts` чарта Helm).

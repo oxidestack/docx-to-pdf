@@ -54,7 +54,7 @@ ships a current LibreOffice, and reports what it does over OpenTelemetry.
 ## Quick start
 
 ```sh
-docker run --rm -p 8080:8080 quay.io/oxidestack/docx-to-pdf:1.3.0
+docker run --rm -p 8080:8080 quay.io/oxidestack/docx-to-pdf:1.3.1
 ```
 
 In another terminal, once it has started:

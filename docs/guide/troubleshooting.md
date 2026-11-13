@@ -365,7 +365,7 @@ To see which fonts a PDF uses, run `pdffonts` (from Poppler) on it; to see what 
 image:
 
 ```sh
-docker run --rm --entrypoint fc-match quay.io/oxidestack/docx-to-pdf:1.3.0 'Segoe UI'
+docker run --rm --entrypoint fc-match quay.io/oxidestack/docx-to-pdf:1.3.1 'Segoe UI'
 ```
 
 The fix is to give the service the font: mount the font files you hold a licence for at `/usr/share/fonts/custom`,

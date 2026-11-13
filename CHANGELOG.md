@@ -12,6 +12,10 @@ required, Features, Bug fixes, Performance and Other changes. The versions follo
 The changes since the last release are the release notes of the commits after its tag; a release gathers them into
 its section below.
 
+## [1.3.1] - 2026-11-13
+
+[1.3.1]: https://github.com/oxidestack/docx-to-pdf/compare/v1.3.0...v1.3.1
+
 ## [1.3.0] - 2026-11-13
 
 A log line for every request without OTLP, and an image rebuilt on Debian's fixes for apt and zlib. Nothing to change in

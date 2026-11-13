@@ -4,7 +4,7 @@
 [English](../../../guide/troubleshooting.md) · **Русский** · [中文](../../zh/guide/troubleshooting.md) ·
 [Español](../../es/guide/troubleshooting.md)
 <!-- languages:end -->
-<!-- translation of docs/guide/troubleshooting.md: b8d7b921a213 -->
+<!-- translation of docs/guide/troubleshooting.md: eae72539ff84 -->
 
 С чем сталкивается клиент или оператор, когда что-то идёт не так, что это значит и что изменить. В первой части по
 одной записи на каждую ошибку, которой отвечает сервис, с заголовком из её статуса и её `detail`, так что по этой
@@ -378,7 +378,7 @@ PDF использует шрифты, которые называет доку�
 образа превращается имя шрифта:
 
 ```sh
-docker run --rm --entrypoint fc-match quay.io/oxidestack/docx-to-pdf:1.3.0 'Segoe UI'
+docker run --rm --entrypoint fc-match quay.io/oxidestack/docx-to-pdf:1.3.1 'Segoe UI'
 ```
 
 Решение — дать сервису шрифт: смонтируйте файлы шрифтов, на которые у вас есть лицензия, в `/usr/share/fonts/custom`,
