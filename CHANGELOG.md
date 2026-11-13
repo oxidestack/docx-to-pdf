@@ -12,6 +12,14 @@ required, Features, Bug fixes, Performance and Other changes. The versions follo
 The changes since the last release are the release notes of the commits after its tag; a release gathers them into
 its section below.
 
+## [1.2.2] - 2026-11-13
+
+### Other changes
+
+- The image's Debian packages come from the snapshot of 9 November 2026, which fixes the advisories in apt and zlib, and its LibreOffice is 26.8.2. (deps, 45eeebc)
+
+[1.2.2]: https://github.com/oxidestack/docx-to-pdf/compare/v1.2.1...v1.2.2
+
 ## [1.2.1] - 2026-11-01
 
 The whole guide in Russian, Chinese and Spanish, and the chart's logo and recommendations on Artifact Hub. Nothing to

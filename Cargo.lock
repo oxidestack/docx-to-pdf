@@ -207,7 +207,7 @@ dependencies = [
 
 [[package]]
 name = "docx-to-pdf"
-version = "1.2.1"
+version = "1.2.2"
 dependencies = [
  "axum",
  "bytes",
