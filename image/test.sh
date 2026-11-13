@@ -22,7 +22,7 @@ OUT=${OUT:-$ROOT/target/image-test}
 CJK_DOC=${CJK_DOC:-$ROOT/tests/corpus/documents/features/chinese-spec.docx}
 READY_TIMEOUT=${READY_TIMEOUT:-300}
 # A free font that is not in the image (OFL-1.1), from the image's own snapshot, pinned by hash.
-LOBSTER_URL=https://snapshot.debian.org/archive/debian/20261026T202550Z/pool/main/f/fonts-lobstertwo/fonts-lobster_2.0-3_all.deb
+LOBSTER_URL=https://snapshot.debian.org/archive/debian/20261109T224401Z/pool/main/f/fonts-lobstertwo/fonts-lobster_2.0-3_all.deb
 LOBSTER_SHA256=e7874c5504678ca13675c684878189baa7e5396d2cc40a933da4fd326e30ebd6
 mkdir -p "$OUT" && OUT=$(cd "$OUT" && pwd)
 
