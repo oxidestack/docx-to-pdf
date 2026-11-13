@@ -4,7 +4,7 @@
 [English](../../../guide/operations.md) · [Русский](../../ru/guide/operations.md) ·
 [中文](../../zh/guide/operations.md) · **Español**
 <!-- languages:end -->
-<!-- translation of docs/guide/operations.md: 90936084b4bb -->
+<!-- translation of docs/guide/operations.md: 9049996cad58 -->
 
 Cómo ejecutar el servicio en un contenedor o en Kubernetes, vigilarlo, acotar lo que puede costar un documento,
 dimensionar un despliegue y darle fuentes. Cada ajuste que se nombra aquí es una variable de entorno descrita en
@@ -213,6 +213,27 @@ Un objeto JSON por línea en la salida estándar (texto legible cuando la salida
 `RUST_LOG`, `info` por defecto. Cada línea dentro de una petición lleva su `trace_id` y su `span_id`, de modo que una
 línea de log lleva a su traza. Un ajuste que el servicio ignora, como un service link de Kubernetes, es una línea
 `warn` al arrancar.
+
+Cada petición deja una línea `info` al terminar, el log de acceso, sin necesidad de OTLP: cuando su respuesta se ha
+enviado hasta el último byte, ha fallado o el cliente se ha ido. Su `target` es `docx_to_pdf::access_log`, su mensaje
+`request`, y sus campos llevan los nombres de las convenciones HTTP de OpenTelemetry, como en la traza y las métricas:
+
+```json
+{"timestamp":"2026-11-12T14:02:07.412039Z","level":"INFO","message":"request","http.request.method":"POST","http.route":"/pdf","http.response.status_code":200,"http.server.request.duration":0.912043,"http.request.body.size":48213,"http.response.body.size":30744,"target":"docx_to_pdf::access_log","span":{"http.request.method":"POST","http.response.status_code":200,"http.route":"/pdf","network.protocol.version":"1.1","otel.kind":"server","otel.name":"POST /pdf","url.path":"/pdf","url.scheme":"http","name":"http.server.request"},"trace_id":"4bf92f3577b34da6a3ce929d0e0e4736","span_id":"b5406989157e633b"}
+```
+
+`http.server.request.duration` está en segundos, desde la llegada de la petición hasta el último byte de la
+respuesta, el mismo tiempo que cuenta la métrica del mismo nombre. `http.request.body.size` son los bytes del cuerpo
+de la petición que el servicio leyó, así que un documento rechazado con 413 mientras llega muestra cuánto se leyó
+antes del rechazo; `http.response.body.size` son los bytes del cuerpo de la respuesta enviados. `error.type` aparece
+solo en una petición que falló: un estado 5xx, o `client_disconnected`, `shutdown_grace_exceeded`, `_OTHER` (falló el
+cuerpo de la respuesta). Una petición que no corresponde a ninguna ruta no tiene `http.route`. Los campos propios del
+span van bajo `span`.
+
+Las comprobaciones de salud y la recogida de métricas (`/livez`, `/readyz`, `/metrics`) se registran en `debug`, no
+en `info`: una línea por comprobación cada pocos segundos ahogaría las peticiones.
+`RUST_LOG=info,docx_to_pdf::access_log=debug` las muestra también; `RUST_LOG=info,docx_to_pdf::access_log=off`, como
+`DOCX_TO_PDF_ACCESS_LOG` a `false`, no registra ninguna petición.
 
 ### Trazas
 

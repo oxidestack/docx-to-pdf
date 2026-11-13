@@ -202,6 +202,26 @@ One JSON object per line on standard output (human-readable text when standard o
 `RUST_LOG`, `info` by default. Each line inside a request carries its `trace_id` and `span_id`, so a log line leads to
 its trace. A setting the service ignores, such as a Kubernetes service link, is a `warn` line at start.
 
+Every request leaves one `info` line when it ends, the access log, with no OTLP needed: when its answer has been
+sent to its last byte, has failed, or the client went away. Its `target` is `docx_to_pdf::access_log`, its message
+`request`, and its fields are named as the OpenTelemetry HTTP conventions name them, as on the trace and the metrics:
+
+```json
+{"timestamp":"2026-11-12T14:02:07.412039Z","level":"INFO","message":"request","http.request.method":"POST","http.route":"/pdf","http.response.status_code":200,"http.server.request.duration":0.912043,"http.request.body.size":48213,"http.response.body.size":30744,"target":"docx_to_pdf::access_log","span":{"http.request.method":"POST","http.response.status_code":200,"http.route":"/pdf","network.protocol.version":"1.1","otel.kind":"server","otel.name":"POST /pdf","url.path":"/pdf","url.scheme":"http","name":"http.server.request"},"trace_id":"4bf92f3577b34da6a3ce929d0e0e4736","span_id":"b5406989157e633b"}
+```
+
+`http.server.request.duration` is in seconds, from the request's arrival to the answer's last byte, the same time
+the metric of that name counts. `http.request.body.size` is the bytes of the request's body the service read, so a
+document refused with 413 as it arrives shows how much was read before the refusal; `http.response.body.size` is
+the bytes of the answer's body sent. `error.type` appears only on a request that failed: a 5xx status, or
+`client_disconnected`, `shutdown_grace_exceeded`, `_OTHER` (the answer's body failed). A request to no route has no
+`http.route`. The span's own fields are under `span`.
+
+The health checks and the metrics scrape (`/livez`, `/readyz`, `/metrics`) are logged at `debug`, not `info`: a
+line for each probe every few seconds would drown the requests. `RUST_LOG=info,docx_to_pdf::access_log=debug` shows
+them too; `RUST_LOG=info,docx_to_pdf::access_log=off`, like `DOCX_TO_PDF_ACCESS_LOG` set to `false`, logs no
+request.
+
 ### Traces
 
 When an OTLP endpoint is set (`OTEL_EXPORTER_OTLP_ENDPOINT`, see [Configuration](configuration.md#logs-and-telemetry)),

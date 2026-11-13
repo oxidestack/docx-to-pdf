@@ -91,6 +91,10 @@ pub const DEFAULT_INSTANCE_START_TIMEOUT: Duration = Duration::from_secs(30);
 /// are not read, and whether that one should become an alias is an open decision.
 pub const MAX_DOCUMENT_SIZE_VARIABLES: &[&str] = &["DOCX_TO_PDF_MAX_DOCUMENT_SIZE"];
 
+/// Whether a line is logged for every request when nothing sets it: on, so a deployment that collects only
+/// standard output still sees its requests.
+pub const DEFAULT_ACCESS_LOG: bool = true;
+
 /// What the service reads at start.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Config {
@@ -140,6 +144,9 @@ pub struct Config {
     /// `DOCX_TO_PDF_PDF_MAX_IMAGE_DPI`: a picture above this resolution is reduced to it in the PDF; unset,
     /// pictures are embedded as they are (reducing costs the typical report two thirds of its CPU).
     pub pdf_max_image_dpi: Option<u32>,
+    /// `DOCX_TO_PDF_ACCESS_LOG`, `true` or `false`, else [`DEFAULT_ACCESS_LOG`]: one `info` line on standard
+    /// output when a request ends; the probes' lines are `debug`.
+    pub access_log: bool,
     /// Where each instance's temporary profile directory is made: the system's temporary directory
     /// (`TMPDIR`).
     pub profiles_dir: PathBuf,
@@ -388,8 +395,17 @@ impl Config {
             None => None,
         };
 
+        let access_log = match get("DOCX_TO_PDF_ACCESS_LOG") {
+            Some((variable, value)) => parse_bool(&value).ok_or_else(|| ConfigError {
+                variable,
+                reason: format!("{value:?} is not true or false"),
+            })?,
+            None => DEFAULT_ACCESS_LOG,
+        };
+
         Ok(Self {
             port,
+            access_log,
             probe_port,
             pdf_max_image_dpi,
             shutdown_grace,
@@ -428,6 +444,17 @@ fn parse_port(variable: &'static str, value: &str) -> Result<u16, ConfigError> {
             variable,
             reason: format!("{value:?} is not a port number (1-65535)"),
         }),
+    }
+}
+
+/// `true` or `false`, case-insensitive, as `OTEL_SDK_DISABLED` reads them; `None` for anything else.
+fn parse_bool(value: &str) -> Option<bool> {
+    if value.eq_ignore_ascii_case("true") {
+        Some(true)
+    } else if value.eq_ignore_ascii_case("false") {
+        Some(false)
+    } else {
+        None
     }
 }
 
@@ -492,6 +519,24 @@ mod tests {
             .map(|(k, v)| (k.to_string(), v.to_string()))
             .collect();
         Config::from_lookup(|name| vars.get(name).cloned())
+    }
+
+    #[test]
+    fn the_access_log_is_on_unless_set_to_false() {
+        assert!(config(&[]).unwrap().access_log);
+        for (value, on) in [("false", false), ("FALSE", false), ("True", true)] {
+            assert_eq!(
+                config(&[("DOCX_TO_PDF_ACCESS_LOG", value)])
+                    .unwrap()
+                    .access_log,
+                on,
+                "{value}"
+            );
+        }
+        for bad in ["0", "yes", "off"] {
+            let e = config(&[("DOCX_TO_PDF_ACCESS_LOG", bad)]).unwrap_err();
+            assert_eq!(e.variable, "DOCX_TO_PDF_ACCESS_LOG");
+        }
     }
 
     #[test]

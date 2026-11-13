@@ -27,6 +27,10 @@ use crate::readiness::Readiness;
 use crate::telemetry::{Telemetry, render_prometheus};
 use crate::upload::Upload;
 
+/// The probe routes: the health checks and the metrics scrape, logged at `debug`, not `info`, since a line
+/// for each every few seconds would drown the requests.
+pub const PROBE_ROUTES: [&str; 3] = ["/livez", "/readyz", "/metrics"];
+
 /// What every handler can reach.
 #[derive(Clone)]
 pub struct AppState {
@@ -74,7 +78,7 @@ impl AppState {
         Self {
             readiness,
             metrics: telemetry.prometheus_registry(),
-            http: HttpTelemetry::new(telemetry),
+            http: HttpTelemetry::new(telemetry).with_probe_routes(&PROBE_ROUTES),
             upload: Upload::new(crate::config::DEFAULT_MAX_DOCUMENT_SIZE),
             document_size: telemetry
                 .meter()
@@ -103,9 +107,11 @@ impl AppState {
         let pictures = Pictures::new(&telemetry.meter(), config.picture_max_bitmap)
             .with_hard_memory(config.instance_hard_memory)
             .with_concurrency(config.pool_size, config.pool_wait_timeout);
+        let state = Self::new(readiness, telemetry).with_upload(upload);
         Self {
             pictures,
-            ..Self::new(readiness, telemetry).with_upload(upload)
+            http: state.http.clone().with_access_log(config.access_log),
+            ..state
         }
     }
 

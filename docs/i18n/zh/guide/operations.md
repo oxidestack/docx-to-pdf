@@ -4,7 +4,7 @@
 [English](../../../guide/operations.md) · [Русский](../../ru/guide/operations.md) · **中文** ·
 [Español](../../es/guide/operations.md)
 <!-- languages:end -->
-<!-- translation of docs/guide/operations.md: 90936084b4bb -->
+<!-- translation of docs/guide/operations.md: 9049996cad58 -->
 
 如何在容器中或 Kubernetes 上运行服务、监控它、限制一份文档可能造成的开销、规划部署容量以及为它提供字体。
 这里提到的每个设置都是一个环境变量，在[配置](configuration.md)中有说明；本页说明它们如何配合。
@@ -198,6 +198,23 @@ spec:
 在标准输出上每行一个 JSON 对象（标准输出是终端时输出人类可读的文本），由 `RUST_LOG` 过滤，默认为 `info`。
 请求内的每一行都带有该请求的 `trace_id` 和 `span_id`，因此一条日志可以引向它的 trace。
 服务忽略的设置，例如 Kubernetes service link，会在启动时输出一条 `warn` 日志。
+
+每个请求结束时都会留下一行 `info` 日志，即访问日志，无需 OTLP：在响应发送到最后一个字节、发送失败或客户端离开时。
+它的 `target` 是 `docx_to_pdf::access_log`，消息是 `request`，字段按 OpenTelemetry HTTP 约定命名，与 trace 和指标一致：
+
+```json
+{"timestamp":"2026-11-12T14:02:07.412039Z","level":"INFO","message":"request","http.request.method":"POST","http.route":"/pdf","http.response.status_code":200,"http.server.request.duration":0.912043,"http.request.body.size":48213,"http.response.body.size":30744,"target":"docx_to_pdf::access_log","span":{"http.request.method":"POST","http.response.status_code":200,"http.route":"/pdf","network.protocol.version":"1.1","otel.kind":"server","otel.name":"POST /pdf","url.path":"/pdf","url.scheme":"http","name":"http.server.request"},"trace_id":"4bf92f3577b34da6a3ce929d0e0e4736","span_id":"b5406989157e633b"}
+```
+
+`http.server.request.duration` 以秒为单位，从请求到达到响应的最后一个字节，与同名指标计算的时间相同。
+`http.request.body.size` 是服务读取的请求体字节数，因此一个在上传途中被 413 拒绝的文档会显示拒绝前读取了多少；
+`http.response.body.size` 是已发送的响应体字节数。`error.type` 只出现在失败的请求上：5xx 状态，
+或 `client_disconnected`、`shutdown_grace_exceeded`、`_OTHER`（响应体发送失败）。没有匹配任何路由的请求没有
+`http.route`。span 自身的字段位于 `span` 之下。
+
+健康检查和指标抓取（`/livez`、`/readyz`、`/metrics`）以 `debug` 而不是 `info` 级别记录：每隔几秒每次探测一行会淹没真正的请求。
+`RUST_LOG=info,docx_to_pdf::access_log=debug` 也会显示它们；`RUST_LOG=info,docx_to_pdf::access_log=off`
+与把 `DOCX_TO_PDF_ACCESS_LOG` 设为 `false` 一样，不记录任何请求。
 
 ### 链路追踪
 

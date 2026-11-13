@@ -4,7 +4,7 @@
 [English](../../../guide/operations.md) · **Русский** · [中文](../../zh/guide/operations.md) ·
 [Español](../../es/guide/operations.md)
 <!-- languages:end -->
-<!-- translation of docs/guide/operations.md: 90936084b4bb -->
+<!-- translation of docs/guide/operations.md: 9049996cad58 -->
 
 Как запустить сервис в контейнере или в Kubernetes, наблюдать за ним, ограничить, во что может обойтись документ,
 рассчитать ресурсы развёртывания и дать ему шрифты. Каждая настройка, упомянутая здесь, — переменная окружения,
@@ -209,6 +209,26 @@ spec:
 `RUST_LOG`, по умолчанию `info`. Каждая строка внутри запроса несёт его `trace_id` и `span_id`, так что от строки
 лога можно перейти к её трассе. Настройка, которую сервис игнорирует, например service link Kubernetes, — это строка
 `warn` при старте.
+
+Каждый запрос оставляет одну строку `info`, когда он завершается, — журнал доступа, без всякого OTLP: когда ответ
+отправлен до последнего байта, когда он сломался или когда клиент ушёл. Её `target` — `docx_to_pdf::access_log`,
+сообщение — `request`, а поля названы так, как их называют HTTP-соглашения OpenTelemetry, как в трассе и в метриках:
+
+```json
+{"timestamp":"2026-11-12T14:02:07.412039Z","level":"INFO","message":"request","http.request.method":"POST","http.route":"/pdf","http.response.status_code":200,"http.server.request.duration":0.912043,"http.request.body.size":48213,"http.response.body.size":30744,"target":"docx_to_pdf::access_log","span":{"http.request.method":"POST","http.response.status_code":200,"http.route":"/pdf","network.protocol.version":"1.1","otel.kind":"server","otel.name":"POST /pdf","url.path":"/pdf","url.scheme":"http","name":"http.server.request"},"trace_id":"4bf92f3577b34da6a3ce929d0e0e4736","span_id":"b5406989157e633b"}
+```
+
+`http.server.request.duration` — в секундах, от прихода запроса до последнего байта ответа, то же время, что считает
+одноимённая метрика. `http.request.body.size` — сколько байт тела запроса сервис прочитал, так что у документа,
+отклонённого с 413 ещё в пути, видно, сколько успело прийти до отказа; `http.response.body.size` — сколько байт тела
+ответа отправлено. `error.type` есть только у запроса, который завершился ошибкой: статус 5xx, либо
+`client_disconnected`, `shutdown_grace_exceeded`, `_OTHER` (сломалось тело ответа). У запроса ни к какому маршруту нет
+`http.route`. Собственные поля спана — под `span`.
+
+Проверки здоровья и сбор метрик (`/livez`, `/readyz`, `/metrics`) пишутся на уровне `debug`, а не `info`: строка на
+каждую проверку раз в несколько секунд утопила бы в себе запросы. `RUST_LOG=info,docx_to_pdf::access_log=debug`
+показывает и их; `RUST_LOG=info,docx_to_pdf::access_log=off`, как и `DOCX_TO_PDF_ACCESS_LOG`, равный `false`, не
+пишет ни одного запроса.
 
 ### Трассы
 

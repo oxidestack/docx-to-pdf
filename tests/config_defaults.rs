@@ -207,7 +207,8 @@ fn check(variable: &str, cell: &str) -> Result<(), String> {
         | "DOCX_TO_PDF_INSTANCE_MAX_MEMORY"
         | "DOCX_TO_PDF_INSTANCE_HARD_MEMORY"
         | "DOCX_TO_PDF_MAX_DOCUMENT_SIZE"
-        | "DOCX_TO_PDF_PICTURE_MAX_BITMAP" => same_as_unset(variable, only_value(cell)?),
+        | "DOCX_TO_PDF_PICTURE_MAX_BITMAP"
+        | "DOCX_TO_PDF_ACCESS_LOG" => same_as_unset(variable, only_value(cell)?),
 
         "SERVER_PORT" => alias_of(variable, "DOCX_TO_PDF_PORT", "9090", cell),
         "POOL_SIZE" | "pool.size" => alias_of(variable, "DOCX_TO_PDF_POOL_SIZE", "3", cell),
