@@ -4,7 +4,7 @@
 [English](../../../guide/upgrading.md) · [Русский](../../ru/guide/upgrading.md) · **中文** ·
 [Español](../../es/guide/upgrading.md)
 <!-- languages:end -->
-<!-- translation of docs/guide/upgrading.md: 6c9f1a238e3b -->
+<!-- translation of docs/guide/upgrading.md: 04008e025c0a -->
 
 如何把部署从当前运行的版本迁移到更新的版本。找到比你的版本更新的每个版本的章节，从最旧的开始依次应用：
 从 1.0.0 升级到 1.2.0，就是先应用 1.1.0 的章节，再应用 1.2.0 的章节。不需要任何改动的版本会明确说明。
@@ -35,7 +35,7 @@ docx-to-pdf 在两次转换之间不保存任何东西：它没有数据库，�
 4. 观察最初几分钟：`/readyz`、响应的状态码和转换指标
    （[运维](operations.md#遥测)）。要回滚，请用原来的版本执行第 3 步。
 
-## 升级到 1.2.2
+## 升级到 1.3.0
 
 无需任何改动：镜像和 chart 可以从 1.2.1 原地升级。现在每个请求结束时都会向标准输出写一行 `info` 日志；
 如需保持原来的日志，请设置 `DOCX_TO_PDF_ACCESS_LOG=false`。

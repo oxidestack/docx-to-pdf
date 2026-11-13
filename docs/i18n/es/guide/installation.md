@@ -4,7 +4,7 @@
 [English](../../../guide/installation.md) · [Русский](../../ru/guide/installation.md) ·
 [中文](../../zh/guide/installation.md) · **Español**
 <!-- languages:end -->
-<!-- translation of docs/guide/installation.md: 5a3ecef40570 -->
+<!-- translation of docs/guide/installation.md: 5b3d96762d16 -->
 
 Cómo ejecutar el servicio: con `docker run` para probarlo, con Docker Compose en una sola máquina y en Kubernetes con
 el chart de Helm. Cada forma termina con el servicio respondiendo a `POST /pdf` en el puerto `8080`; la
@@ -21,7 +21,7 @@ propia prueba del chart.
 ## Docker
 
 ```sh
-docker run --rm -p 8080:8080 quay.io/oxidestack/docx-to-pdf:1.2.2
+docker run --rm -p 8080:8080 quay.io/oxidestack/docx-to-pdf:1.3.0
 ```
 
 La imagen y el chart se publican en quay.io. `ghcr.io/oxidestack/docx-to-pdf` y
@@ -32,7 +32,7 @@ red que no puede alcanzar quay.io.
 pueden llamarlo. Para limitarlo a la propia máquina, vincule el puerto a `127.0.0.1`:
 
 ```sh
-docker run --rm -p 127.0.0.1:8080:8080 quay.io/oxidestack/docx-to-pdf:1.2.2
+docker run --rm -p 127.0.0.1:8080:8080 quay.io/oxidestack/docx-to-pdf:1.3.0
 ```
 
 Una vez que haya arrancado (`/readyz` responde `200`, normalmente en pocos segundos), convierta un documento:
@@ -55,7 +55,7 @@ necesita una conversión a la vez:
 # docx-to-pdf on this machine only: http://127.0.0.1:8080 (docs/guide/installation.md).
 services:
   docx-to-pdf:
-    image: quay.io/oxidestack/docx-to-pdf:1.2.2
+    image: quay.io/oxidestack/docx-to-pdf:1.3.0
     ports:
       - "127.0.0.1:8080:8080"
     environment:
@@ -93,7 +93,7 @@ OpenTelemetry Collector los recibe e imprime una línea por cada lote, `examples
 # docx-to-pdf sending its traces, logs and metrics to an OpenTelemetry Collector (docs/guide/installation.md).
 services:
   docx-to-pdf:
-    image: quay.io/oxidestack/docx-to-pdf:1.2.2
+    image: quay.io/oxidestack/docx-to-pdf:1.3.0
     ports:
       - "127.0.0.1:8080:8080"
     environment:
@@ -170,7 +170,7 @@ El chart se publica en `oci://quay.io/oxidestack/charts`. Con sus valores por de
 documento a la vez:
 
 ```sh
-helm install docx-to-pdf oci://quay.io/oxidestack/charts/docx-to-pdf --version 1.2.2 \
+helm install docx-to-pdf oci://quay.io/oxidestack/charts/docx-to-pdf --version 1.3.0 \
   --namespace docx-to-pdf --create-namespace
 ```
 
@@ -192,7 +192,7 @@ networkPolicy:
 ```
 
 ```sh
-helm upgrade --install docx-to-pdf oci://quay.io/oxidestack/charts/docx-to-pdf --version 1.2.2 \
+helm upgrade --install docx-to-pdf oci://quay.io/oxidestack/charts/docx-to-pdf --version 1.3.0 \
   --namespace docx-to-pdf --create-namespace --values values.yaml
 ```
 
@@ -218,7 +218,7 @@ Para desplegar con manifiestos simples —`kubectl apply`, Kustomize o una herra
 renderice el chart una vez con los mismos valores y conserve el resultado:
 
 ```sh
-helm template docx-to-pdf oci://quay.io/oxidestack/charts/docx-to-pdf --version 1.2.2 \
+helm template docx-to-pdf oci://quay.io/oxidestack/charts/docx-to-pdf --version 1.3.0 \
   --namespace docx-to-pdf --values values.yaml --skip-tests > docx-to-pdf.yaml
 kubectl create namespace docx-to-pdf
 kubectl apply --namespace docx-to-pdf -f docx-to-pdf.yaml
@@ -282,7 +282,7 @@ URL de abajo sirve siempre el de la última release:
 
 ```sh
 helm repo add docx-to-pdf https://github.com/oxidestack/docx-to-pdf/releases/latest/download
-helm install docx-to-pdf docx-to-pdf/docx-to-pdf --version 1.2.2 --namespace docx-to-pdf --create-namespace
+helm install docx-to-pdf docx-to-pdf/docx-to-pdf --version 1.3.0 --namespace docx-to-pdf --create-namespace
 ```
 
 El chart figura en [Artifact Hub](https://artifacthub.io/) a partir de su repositorio de quay.io. Una versión
@@ -298,11 +298,11 @@ registrada en el registro público de transparencia de Sigstore. Para comprobar 
 versión:
 
 ```sh
-cosign verify quay.io/oxidestack/docx-to-pdf:1.2.2 \
-  --certificate-identity https://github.com/oxidestack/docx-to-pdf/.github/workflows/release.yml@refs/tags/v1.2.2 \
+cosign verify quay.io/oxidestack/docx-to-pdf:1.3.0 \
+  --certificate-identity https://github.com/oxidestack/docx-to-pdf/.github/workflows/release.yml@refs/tags/v1.3.0 \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com
-cosign verify quay.io/oxidestack/charts/docx-to-pdf:1.2.2 \
-  --certificate-identity https://github.com/oxidestack/docx-to-pdf/.github/workflows/release.yml@refs/tags/v1.2.2 \
+cosign verify quay.io/oxidestack/charts/docx-to-pdf:1.3.0 \
+  --certificate-identity https://github.com/oxidestack/docx-to-pdf/.github/workflows/release.yml@refs/tags/v1.3.0 \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com
 ```
 
@@ -311,8 +311,8 @@ commit, qué ejecución del workflow) en la imagen multiarquitectura, y un SBOM 
 crates que contiene, en la imagen de cada arquitectura. La [CLI de GitHub](https://cli.github.com/) las comprueba:
 
 ```sh
-gh attestation verify oci://quay.io/oxidestack/docx-to-pdf:1.2.2 --repo oxidestack/docx-to-pdf
-gh attestation verify oci://quay.io/oxidestack/charts/docx-to-pdf:1.2.2 --repo oxidestack/docx-to-pdf
+gh attestation verify oci://quay.io/oxidestack/docx-to-pdf:1.3.0 --repo oxidestack/docx-to-pdf
+gh attestation verify oci://quay.io/oxidestack/charts/docx-to-pdf:1.3.0 --repo oxidestack/docx-to-pdf
 ```
 
 Para un SBOM, indique la imagen de una arquitectura por su digest (`docker buildx imagetools inspect` los enumera) y su
@@ -320,16 +320,16 @@ tipo de predicado, `--predicate-type https://spdx.dev/Document/v2.3`. Los SBOM t
 GitHub como archivos, en SPDX y CycloneDX, uno por arquitectura, junto con el chart y los ejemplos de Compose.
 
 Cada archivo adjunto a la release de GitHub está firmado de la misma manera, con su bundle de Sigstore adjunto al lado
-como `<file>.sigstore.json`, y `docx-to-pdf-1.2.2.intoto.jsonl` es la procedencia de compilación de todos ellos. Los
+como `<file>.sigstore.json`, y `docx-to-pdf-1.3.0.intoto.jsonl` es la procedencia de compilación de todos ellos. Los
 bundles están en el formato de bundle actual de Sigstore, que `cosign verify-blob` lee por defecto a partir de cosign
 3. cosign 2 solo los lee cuando se añade `--new-bundle-format` al comando; sin él, responde
 `bundle does not contain cert for verification`. Descargue el archivo y su bundle y compruebe uno de los dos, o ambos:
 
 ```sh
-cosign verify-blob docx-to-pdf-1.2.2.tgz --bundle docx-to-pdf-1.2.2.tgz.sigstore.json \
-  --certificate-identity https://github.com/oxidestack/docx-to-pdf/.github/workflows/release.yml@refs/tags/v1.2.2 \
+cosign verify-blob docx-to-pdf-1.3.0.tgz --bundle docx-to-pdf-1.3.0.tgz.sigstore.json \
+  --certificate-identity https://github.com/oxidestack/docx-to-pdf/.github/workflows/release.yml@refs/tags/v1.3.0 \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com
-gh attestation verify docx-to-pdf-1.2.2.tgz --repo oxidestack/docx-to-pdf
+gh attestation verify docx-to-pdf-1.3.0.tgz --repo oxidestack/docx-to-pdf
 ```
 
 Lo mismo vale para los SBOM, los ejemplos de Compose y el `index.yaml` del repositorio de Helm. Los archivos de la
@@ -337,5 +337,5 @@ primera versión, 1.0.0, se adjuntaron antes de que la release los firmara, así
 se aplican a partir de 1.1.0.
 
 La réplica en ghcr.io lleva los mismos digests con las mismas firmas y atestaciones, copiadas con la imagen, así que
-los mismos comandos verifican `ghcr.io/oxidestack/docx-to-pdf:1.2.2` y `ghcr.io/oxidestack/charts/docx-to-pdf:1.2.2`
+los mismos comandos verifican `ghcr.io/oxidestack/docx-to-pdf:1.3.0` y `ghcr.io/oxidestack/charts/docx-to-pdf:1.3.0`
 (añada `--bundle-from-oci` a `gh attestation verify` para leer las atestaciones del propio registro).

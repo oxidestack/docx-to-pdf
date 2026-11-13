@@ -12,7 +12,7 @@ required, Features, Bug fixes, Performance and Other changes. The versions follo
 The changes since the last release are the release notes of the commits after its tag; a release gathers them into
 its section below.
 
-## [1.2.2] - 2026-11-13
+## [1.3.0] - 2026-11-13
 
 A log line for every request without OTLP, and an image rebuilt on Debian's fixes for apt and zlib. Nothing to change in
 a deployment; the image and the chart upgrade in place from 1.2.1.
@@ -29,7 +29,7 @@ a deployment; the image and the chart upgrade in place from 1.2.1.
 - The image's Debian packages come from the snapshot of 9 November 2026, which fixes the advisories in apt and zlib,
   and its LibreOffice is 26.8.2. (deps, 45eeebc)
 
-[1.2.2]: https://github.com/oxidestack/docx-to-pdf/compare/v1.2.1...v1.2.2
+[1.3.0]: https://github.com/oxidestack/docx-to-pdf/compare/v1.2.1...v1.3.0
 
 ## [1.2.1] - 2026-11-01
 

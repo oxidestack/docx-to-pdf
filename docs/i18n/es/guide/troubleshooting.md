@@ -4,7 +4,7 @@
 [English](../../../guide/troubleshooting.md) · [Русский](../../ru/guide/troubleshooting.md) ·
 [中文](../../zh/guide/troubleshooting.md) · **Español**
 <!-- languages:end -->
-<!-- translation of docs/guide/troubleshooting.md: 3e6392e2b84a -->
+<!-- translation of docs/guide/troubleshooting.md: b8d7b921a213 -->
 
 Lo que encuentra un cliente o un operador cuando algo va mal, lo que significa y lo que hay que cambiar. La primera
 parte tiene una entrada por cada error que responde el servicio, encabezada por su estado y su `detail`, para que
@@ -393,7 +393,7 @@ Para ver qué fuentes usa un PDF, ejecute `pdffonts` (de Poppler) sobre él; par
 una fuente dentro de la imagen:
 
 ```sh
-docker run --rm --entrypoint fc-match quay.io/oxidestack/docx-to-pdf:1.2.2 'Segoe UI'
+docker run --rm --entrypoint fc-match quay.io/oxidestack/docx-to-pdf:1.3.0 'Segoe UI'
 ```
 
 La solución es darle la fuente al servicio: monte los archivos de fuentes para los que tenga licencia en
