@@ -4,7 +4,7 @@
 [English](../../../guide/configuration.md) · [Русский](../../ru/guide/configuration.md) ·
 [中文](../../zh/guide/configuration.md) · **Español**
 <!-- languages:end -->
-<!-- translation of docs/guide/configuration.md: e87a3a075dd4 -->
+<!-- translation of docs/guide/configuration.md: 5325aabd7af2 -->
 
 Cada ajuste es una variable de entorno, que se lee una sola vez cuando arranca el servicio. Esta página las enumera
 todas; una prueba compara sus tablas con las variables que lee el código, de modo que no puede existir un ajuste sin
@@ -89,6 +89,7 @@ protocolo de OpenTelemetry, en cuanto se define un endpoint; sin él no se expor
 | Variable | Valor | Por defecto | Efecto |
 | --- | --- | --- | --- |
 | `RUST_LOG` | un filtro: un nivel (`error`, `warn`, `info`, `debug`, `trace`), o destinos y niveles como `docx_to_pdf=debug,info` | `info` | Qué líneas de log llegan a la salida estándar. No cambia lo que se exporta por OTLP, que es `info` y superior. |
+| `DOCX_TO_PDF_ACCESS_LOG` | `true` o `false`, sin distinguir mayúsculas | `true` | Una línea `info` cuando termina una petición, dentro de la petición, de modo que lleva su `trace_id` y su `span_id`: el método, la ruta, el código de estado, la duración, los tamaños del cuerpo de la petición y del de la respuesta, y `error.type` cuando la petición falló (ver [Operación](operations.md#logs)). Las comprobaciones de salud y la recogida de métricas (`/livez`, `/readyz`, `/metrics`) se registran en `debug`, así que quedan fuera salvo que `RUST_LOG` las pida con `docx_to_pdf::access_log=debug`. `false` no registra ninguna petición. |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | URL | sin definir: sin exportación | El colector al que enviar las tres señales, p. ej. `http://otel-collector:4318` (HTTP) o `http://otel-collector:4317` (gRPC). Por HTTP se le añade la ruta de cada señal (`/v1/traces`, `/v1/logs`, `/v1/metrics`). |
 | `OTEL_EXPORTER_OTLP_<SIGNAL>_ENDPOINT` | URL | sin definir | El colector de una señal, siendo `<SIGNAL>` `TRACES`, `LOGS` o `METRICS`. Activa la exportación de esa señal incluso sin el endpoint general, y se usa tal cual, ruta incluida (`http://collector:4318/v1/traces`). |
 | `OTEL_EXPORTER_OTLP_PROTOCOL` | `grpc`, `http/protobuf` o `http/json` | `http/protobuf` | Cómo se envían las señales. |

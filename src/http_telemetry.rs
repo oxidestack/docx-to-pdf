@@ -2,10 +2,14 @@
 //! `http.server.request.duration` and `http.server.active_requests` instruments, labelled by route, never by raw
 //! path. A request ends when its response body has been sent, failed or been dropped, not when its handler returns:
 //! with the PDF streamed from its file, the body's transfer is most of a large conversion's answer.
+//!
+//! When a request ends, one event inside its span, the access log, says how it ended: `info` for a request,
+//! `debug` for a probe route, so standard output shows every request without OTLP and without the probes.
 
 use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::task::{Context, Poll};
 use std::time::Instant;
 
@@ -30,12 +34,18 @@ use tracing_opentelemetry::OpenTelemetrySpanExt as _;
 
 use crate::telemetry::Telemetry;
 
-/// What the instrumentation layer needs: the propagator and the HTTP instruments.
+/// The target of the access log's events: `RUST_LOG` names it to change their level, `…=debug` to add the
+/// probes, `…=off` to drop them all.
+pub const ACCESS_LOG_TARGET: &str = "docx_to_pdf::access_log";
+
+/// What the instrumentation layer needs: the propagator, the HTTP instruments and the access log's settings.
 #[derive(Clone)]
 pub struct HttpTelemetry {
     propagator: Arc<dyn TextMapPropagator + Send + Sync>,
     duration: Histogram<f64>,
     active: UpDownCounter<i64>,
+    access_log: bool,
+    probe_routes: &'static [&'static str],
 }
 
 impl HttpTelemetry {
@@ -55,8 +65,47 @@ impl HttpTelemetry {
                 .with_unit("{request}")
                 .with_description("Number of active HTTP server requests.")
                 .build(),
+            access_log: true,
+            probe_routes: &[],
         }
     }
+
+    /// The same instrumentation, with the access log on or off (`DOCX_TO_PDF_ACCESS_LOG`); on by default.
+    #[must_use]
+    pub fn with_access_log(self, on: bool) -> Self {
+        Self {
+            access_log: on,
+            ..self
+        }
+    }
+
+    /// The same instrumentation, logging requests to these routes at `debug` rather than `info`: the probes,
+    /// which would otherwise drown the requests in a line every few seconds.
+    #[must_use]
+    pub fn with_probe_routes(self, routes: &'static [&'static str]) -> Self {
+        Self {
+            probe_routes: routes,
+            ..self
+        }
+    }
+
+    fn access(&self, route: Option<&str>) -> Access {
+        if !self.access_log {
+            Access::Off
+        } else if route.is_some_and(|route| self.probe_routes.contains(&route)) {
+            Access::Probe
+        } else {
+            Access::Request
+        }
+    }
+}
+
+/// Whether and at which level a request's end is logged.
+#[derive(Clone, Copy)]
+enum Access {
+    Off,
+    Request,
+    Probe,
 }
 
 /// Wraps every route of `router` in the request instrumentation.
@@ -74,7 +123,7 @@ const DURATION_BUCKETS: [f64; 18] = [
     120.0, 300.0,
 ];
 
-async fn track(State(http): State<HttpTelemetry>, request: Request, next: Next) -> Response {
+async fn track(State(http): State<HttpTelemetry>, mut request: Request, next: Next) -> Response {
     let method = method_attribute(request.method());
     let route = request
         .extensions()
@@ -108,6 +157,16 @@ async fn track(State(http): State<HttpTelemetry>, request: Request, next: Next) 
         attributes.push(KeyValue::new(HTTP_ROUTE, route.clone()));
     }
     let active = ActiveGuard::new(http.active.clone(), attributes.clone());
+    let access = http.access(route.as_deref());
+    let received = Arc::new(AtomicU64::new(0));
+    if !matches!(access, Access::Off) {
+        request = request.map(|body| {
+            Body::new(CountedBody {
+                inner: body,
+                count: received.clone(),
+            })
+        });
+    }
     let mut outcome = Outcome {
         duration: http.duration.clone(),
         span: span.clone(),
@@ -116,6 +175,11 @@ async fn track(State(http): State<HttpTelemetry>, request: Request, next: Next) 
         grace,
         status: None,
         recorded: false,
+        access,
+        method,
+        route,
+        received,
+        sent: 0,
     };
 
     let response = next.run(request).instrument(span).await;
@@ -176,6 +240,11 @@ impl HttpBody for TrackedBody {
             let _entered = this.outcome.span.enter();
             Pin::new(&mut this.inner).poll_frame(cx)
         };
+        if let Poll::Ready(Some(Ok(frame))) = &polled
+            && let Some(data) = frame.data_ref()
+        {
+            this.outcome.sent += data.len() as u64;
+        }
         match &polled {
             Poll::Ready(None) => this.outcome.finish(),
             Poll::Ready(Some(Ok(_))) if this.inner.is_end_stream() => this.outcome.finish(),
@@ -204,8 +273,41 @@ impl Drop for TrackedBody {
     }
 }
 
-/// Records the request's duration and its span's outcome exactly once: at the end of the
-/// response body, when the body fails, or when the request future or the body is dropped first.
+/// The request body, counting the bytes the service has read of it for the access log. It forwards
+/// `size_hint` and `is_end_stream`, so the upload's limits see the body as the client sent it.
+struct CountedBody {
+    inner: Body,
+    count: Arc<AtomicU64>,
+}
+
+impl HttpBody for CountedBody {
+    type Data = Bytes;
+    type Error = axum::Error;
+
+    fn poll_frame(
+        mut self: Pin<&mut Self>,
+        cx: &mut Context<'_>,
+    ) -> Poll<Option<Result<Frame<Bytes>, axum::Error>>> {
+        let polled = Pin::new(&mut self.inner).poll_frame(cx);
+        if let Poll::Ready(Some(Ok(frame))) = &polled
+            && let Some(data) = frame.data_ref()
+        {
+            self.count.fetch_add(data.len() as u64, Ordering::Relaxed);
+        }
+        polled
+    }
+
+    fn is_end_stream(&self) -> bool {
+        self.inner.is_end_stream()
+    }
+
+    fn size_hint(&self) -> SizeHint {
+        self.inner.size_hint()
+    }
+}
+
+/// Records the request's duration, its span's outcome and its access-log event exactly once: at the end of
+/// the response body, when the body fails, or when the request future or the body is dropped first.
 struct Outcome {
     duration: Histogram<f64>,
     span: tracing::Span,
@@ -215,6 +317,13 @@ struct Outcome {
     /// The answer's status, once the handler has produced one and hyper is sending it.
     status: Option<StatusCode>,
     recorded: bool,
+    access: Access,
+    /// The span's `http.request.method` and `http.route`, for the access log.
+    method: &'static str,
+    route: Option<String>,
+    /// Bytes of the request body read, of the response body sent.
+    received: Arc<AtomicU64>,
+    sent: u64,
 }
 
 impl Outcome {
@@ -224,33 +333,61 @@ impl Outcome {
             .status
             .filter(StatusCode::is_server_error)
             .map(|status| status.as_u16().to_string());
-        self.record(self.status, error);
+        self.record(self.status, error.as_deref());
     }
 
     /// The answer's status was sent, but the request ended with `error`.
     fn fail(&mut self, error: &str) {
-        self.record(self.status, Some(error.to_owned()));
+        self.record(self.status, Some(error));
     }
 
     /// `status` only when one was sent; `error` whenever the request ended with an error.
-    fn record(&mut self, status: Option<StatusCode>, error: Option<String>) {
+    fn record(&mut self, status: Option<StatusCode>, error: Option<&str>) {
         if self.recorded {
             return;
         }
         self.recorded = true;
+        let duration = self.started.elapsed().as_secs_f64();
+        let code = status.map(|status| i64::from(status.as_u16()));
         let mut attributes = std::mem::take(&mut self.attributes);
-        if let Some(status) = status {
-            let code = i64::from(status.as_u16());
+        if let Some(code) = code {
             self.span.record("http.response.status_code", code);
             attributes.push(KeyValue::new(HTTP_RESPONSE_STATUS_CODE, code));
         }
         if let Some(error) = error {
-            self.span.record("error.type", error.as_str());
+            self.span.record("error.type", error);
             self.span.record("otel.status_code", "error");
-            attributes.push(KeyValue::new(ERROR_TYPE, error));
+            attributes.push(KeyValue::new(ERROR_TYPE, error.to_owned()));
         }
-        self.duration
-            .record(self.started.elapsed().as_secs_f64(), &attributes);
+        self.duration.record(duration, &attributes);
+        self.log(duration, code, error);
+    }
+
+    /// The access log's event, inside the request's span so it carries its `trace_id` and `span_id`; the
+    /// span's own fields are under `span` in the JSON line, and the outcome is in the event's fields.
+    fn log(&self, duration: f64, code: Option<i64>, error: Option<&str>) {
+        macro_rules! event {
+            ($level:expr) => {
+                tracing::event!(
+                    target: ACCESS_LOG_TARGET,
+                    $level,
+                    http.request.method = self.method,
+                    http.route = self.route.as_deref(),
+                    http.response.status_code = code,
+                    error.type = error,
+                    http.server.request.duration = duration,
+                    http.request.body.size = self.received.load(Ordering::Relaxed),
+                    http.response.body.size = self.sent,
+                    "request"
+                )
+            };
+        }
+        let _entered = self.span.enter();
+        match self.access {
+            Access::Off => {}
+            Access::Request => event!(tracing::Level::INFO),
+            Access::Probe => event!(tracing::Level::DEBUG),
+        }
     }
 }
 
@@ -261,9 +398,9 @@ impl Drop for Outcome {
         // went away and hyper dropped the request future or the body.
         if self.grace.as_ref().is_some_and(GraceExpiry::expired) {
             let status = self.status.or(Some(StatusCode::SERVICE_UNAVAILABLE));
-            self.record(status, Some(SHUTDOWN_GRACE_EXCEEDED.to_owned()));
+            self.record(status, Some(SHUTDOWN_GRACE_EXCEEDED));
         } else {
-            self.record(self.status, Some(CLIENT_DISCONNECTED.to_owned()));
+            self.record(self.status, Some(CLIENT_DISCONNECTED));
         }
     }
 }

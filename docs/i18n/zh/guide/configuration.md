@@ -4,7 +4,7 @@
 [English](../../../guide/configuration.md) · [Русский](../../ru/guide/configuration.md) · **中文** ·
 [Español](../../es/guide/configuration.md)
 <!-- languages:end -->
-<!-- translation of docs/guide/configuration.md: e87a3a075dd4 -->
+<!-- translation of docs/guide/configuration.md: 5325aabd7af2 -->
 
 每个设置都是一个环境变量，在服务启动时读取一次。本页列出了全部设置；有一个测试会把本页的表格与代码读取的变量进行比对，
 因此任何设置都不可能在这里没有对应的行。
@@ -82,6 +82,7 @@
 | 变量 | 取值 | 默认值 | 作用 |
 | --- | --- | --- | --- |
 | `RUST_LOG` | 一个过滤器：级别（`error`、`warn`、`info`、`debug`、`trace`），或目标与级别，如 `docx_to_pdf=debug,info` | `info` | 哪些日志行会到达标准输出。它不改变通过 OTLP 导出的内容，后者为 `info` 及以上。 |
+| `DOCX_TO_PDF_ACCESS_LOG` | `true` 或 `false`，不区分大小写 | `true` | 每个请求结束时输出一行 `info` 日志，位于该请求之内，因此带有它的 `trace_id` 和 `span_id`：方法、路由、状态码、耗时、请求体与响应体的大小，以及请求失败时的 `error.type`（见[运维](operations.md#日志)）。健康检查和指标抓取（`/livez`、`/readyz`、`/metrics`）以 `debug` 级别记录，因此除非 `RUST_LOG` 用 `docx_to_pdf::access_log=debug` 要求，否则不会出现。`false` 不记录任何请求。 |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | URL | 未设置：不导出 | 接收全部三种信号的 collector，例如 `http://otel-collector:4318`（HTTP）或 `http://otel-collector:4317`（gRPC）。通过 HTTP 时，会在其后加上每种信号的路径（`/v1/traces`、`/v1/logs`、`/v1/metrics`）。 |
 | `OTEL_EXPORTER_OTLP_<SIGNAL>_ENDPOINT` | URL | 未设置 | 某一种信号的 collector，`<SIGNAL>` 为 `TRACES`、`LOGS` 或 `METRICS`。即使没有通用 endpoint，也会开启该信号的导出，并且按原样使用，包括路径（`http://collector:4318/v1/traces`）。 |
 | `OTEL_EXPORTER_OTLP_PROTOCOL` | `grpc`、`http/protobuf` 或 `http/json` | `http/protobuf` | 信号的发送方式。 |

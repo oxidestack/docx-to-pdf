@@ -4,7 +4,7 @@
 [English](../../../guide/configuration.md) · **Русский** · [中文](../../zh/guide/configuration.md) ·
 [Español](../../es/guide/configuration.md)
 <!-- languages:end -->
-<!-- translation of docs/guide/configuration.md: e87a3a075dd4 -->
+<!-- translation of docs/guide/configuration.md: 5325aabd7af2 -->
 
 Каждая настройка — это переменная окружения, которая читается один раз при запуске сервиса. Эта страница перечисляет
 их все; тест сверяет её таблицы с переменными, которые читает код, поэтому настройки без строки здесь быть не может.
@@ -87,6 +87,7 @@
 | Переменная | Значение | По умолчанию | Действие |
 | --- | --- | --- | --- |
 | `RUST_LOG` | фильтр: уровень (`error`, `warn`, `info`, `debug`, `trace`) или цели и уровни, например `docx_to_pdf=debug,info` | `info` | Какие строки лога попадают в стандартный вывод. Не меняет того, что экспортируется по OTLP, — это `info` и выше. |
+| `DOCX_TO_PDF_ACCESS_LOG` | `true` или `false`, без учёта регистра | `true` | Одна строка `info`, когда запрос завершается, внутри запроса, так что она несёт его `trace_id` и `span_id`: метод, маршрут, код статуса, длительность, размеры тела запроса и тела ответа и `error.type`, если запрос завершился ошибкой (см. [Эксплуатацию](operations.md#логи)). Проверки здоровья и сбор метрик (`/livez`, `/readyz`, `/metrics`) пишутся на уровне `debug`, поэтому их нет в логе, пока `RUST_LOG` не попросит их через `docx_to_pdf::access_log=debug`. `false` не пишет ни одного запроса. |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | URL | не задана: без экспорта | Коллектор, которому отправляются все три сигнала, например `http://otel-collector:4318` (HTTP) или `http://otel-collector:4317` (gRPC). По HTTP к нему добавляется путь каждого сигнала (`/v1/traces`, `/v1/logs`, `/v1/metrics`). |
 | `OTEL_EXPORTER_OTLP_<SIGNAL>_ENDPOINT` | URL | не задана | Коллектор для одного сигнала, где `<SIGNAL>` — `TRACES`, `LOGS` или `METRICS`. Включает экспорт этого сигнала даже без общего эндпоинта и используется как задан, вместе с путём (`http://collector:4318/v1/traces`). |
 | `OTEL_EXPORTER_OTLP_PROTOCOL` | `grpc`, `http/protobuf` или `http/json` | `http/protobuf` | Как отправляются сигналы. |
