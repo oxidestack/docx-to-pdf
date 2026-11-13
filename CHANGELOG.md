@@ -14,9 +14,20 @@ its section below.
 
 ## [1.2.2] - 2026-11-13
 
+A log line for every request without OTLP, and an image rebuilt on Debian's fixes for apt and zlib. Nothing to change in
+a deployment; the image and the chart upgrade in place from 1.2.1.
+
+### Features
+
+- Every request now leaves one `info` line on standard output when it ends, without OTLP: the method, the route, the
+  status code, the duration, the request's and the answer's body sizes, and `error.type` when it failed, with the
+  request's `trace_id` and `span_id`. The probes (`/livez`, `/readyz`, `/metrics`) are logged at `debug` only. Set
+  `DOCX_TO_PDF_ACCESS_LOG=false` to turn the line off. (telemetry, 15737ae)
+
 ### Other changes
 
-- The image's Debian packages come from the snapshot of 9 November 2026, which fixes the advisories in apt and zlib, and its LibreOffice is 26.8.2. (deps, 45eeebc)
+- The image's Debian packages come from the snapshot of 9 November 2026, which fixes the advisories in apt and zlib,
+  and its LibreOffice is 26.8.2. (deps, 45eeebc)
 
 [1.2.2]: https://github.com/oxidestack/docx-to-pdf/compare/v1.2.1...v1.2.2
 
