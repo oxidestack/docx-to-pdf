@@ -125,6 +125,20 @@
       groupName: 'rust crates',
     },
     {
+      // Held on purpose (Cargo.toml says why): idna_adapter 1.1 and later bring Unicode-3.0 crates, outside the CNCF
+      // allowlist.
+      matchManagers: ['cargo'],
+      matchPackageNames: ['idna_adapter'],
+      enabled: false,
+    },
+    {
+      // reqwest 0.13, under the OTLP exporter, asks for tower-http ^0.6; the service moves to 0.7 with it, as two
+      // versions of one crate fail the deny gate.
+      matchManagers: ['cargo'],
+      matchPackageNames: ['tower-http'],
+      allowedVersions: '<0.7',
+    },
+    {
       // A new snapshot moves LibreOffice and every package of the image: a monthly pull request, whose CI (the
       // image job, the corpus) says whether the rendering moved.
       matchPackageNames: ['debian-snapshot'],

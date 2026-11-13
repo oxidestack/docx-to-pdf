@@ -82,9 +82,9 @@ tower-http = { version = "0.6.11", features = ["cors"] }
 tracing = "0.1.44"
 tracing-opentelemetry = "0.34.0"
 tracing-subscriber = { version = "0.3.23", features = ["env-filter", "json", "fmt", "registry"] }
-crc32fast = "1.4.2"
+crc32fast = "1.5.5"
 png = "0.18.1"
-flate2 = "1.1.10"
+flate2 = "1.1.11"
 # Named only to hold it: idna_adapter 1.0 is idna's ASCII-only backend, so url (under reqwest and tower-http) links no
 # ICU4X crate, whose licence, Unicode-3.0, is outside the CNCF allowlist. Its cost is an internationalised hostname
 # in an OTLP endpoint, which http::Uri refused before url ever saw it; punycode (xn--) still parses. 1.1 does not
@@ -99,7 +99,7 @@ ignored = ["idna_adapter"]
 http-body-util = "0.1.5"
 opentelemetry_sdk = { version = "0.33.1", features = ["testing"] }
 serde = { version = "1.0.229", features = ["derive"] }
-zip = { version = "9.1.2", default-features = false, features = ["deflate-flate2"] }
+zip = { version = "9.5.1", default-features = false, features = ["deflate-flate2"] }
 # An independent JPEG decoder to check the service's JPEG downscale against and an encoder to make test pictures.
 jpeg-decoder = { version = "0.3.2", default-features = false }
 jpeg-encoder = "0.7.1"
