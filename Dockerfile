@@ -46,7 +46,7 @@ RUN --mount=type=cache,id=docx-to-pdf-cargo-registry,target=/usr/local/cargo/reg
 
 # debian:13-slim (trixie-slim), by digest: the base the LibreOfficeKit instance and the font substitutions were
 # proven on.
-FROM debian@sha256:62bd423aeee912639ca8ee681c2b762cb3e25137e0a92b20be455898a9f034ad
+FROM debian@sha256:a72b4433de1cf7d6bae0c4cee74d0547f58601a643b3375f070c51600d63b6b2
 ARG SNAPSHOT
 ARG EXTRA_FONTS=1
 # Packages from one dated snapshot: trixie, its updates, its security updates and its backports. Trivy found fixed
