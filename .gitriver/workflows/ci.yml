@@ -86,7 +86,7 @@ jobs:
   image:
     # The image the cargo jobs use; tools/ci/image-job.sh adds the Docker CLI and starts its second container from
     # this same image.
-    image: rust:1.98.0-trixie
+    image: rust:1.99.1-trixie
     # `image-builder`, the label of the one runner with the socket, named for what it is for. Not
     # `docker`: every runner already carries that label, and none of the others has a socket. A job whose
     # `runs-on:` no runner has does not fail at once: it sits pending until the server's deadline (a server setting,
@@ -137,7 +137,7 @@ jobs:
   test:
     # The rust image of the `lint-clippy` job, by tag; tools/ci/test-deps.sh turns it into
     # tools/instance-test/Dockerfile's environment.
-    image: rust:1.98.0-trixie
+    image: rust:1.99.1-trixie
     needs: [lockhash]
     # A cold build of the dependency tree and the suite, the LibreOffice packages, and real conversions.
     timeout: 60m
@@ -158,7 +158,7 @@ jobs:
   # The quality gates (tools/lint/lint.sh). Each image is the gate's pinned ref in tools/lint/images.Dockerfile,
   # character for character; a tool bump there changes it here in the same commit (check-pins.rb).
   lint-fmt:
-    image: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    image: rust:1.99.1-trixie@sha256:8a4e90c7946b74626488b1446f712c0fe0ed1a596cbd3d871684bc9c5433ae07
     timeout: 10m
     steps:
       - run: make lint-run GATE=fmt
@@ -166,7 +166,7 @@ jobs:
   lint-clippy:
     # The image the service's binary is built in (Dockerfile pins the same digest), so clippy is that toolchain's.
     # The library compiles without the submodule, so it is not fetched.
-    image: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    image: rust:1.99.1-trixie@sha256:8a4e90c7946b74626488b1446f712c0fe0ed1a596cbd3d871684bc9c5433ae07
     needs: [lockhash]
     timeout: 30m
     cache:
@@ -288,7 +288,7 @@ jobs:
   # rust image and checked against tools/lint/tools.txt's sha256 (tools/lint/fetch-tool.sh).
   lint-typos:
     # Misspellings in the tracked files; _typos.toml says what is not one.
-    image: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    image: rust:1.99.1-trixie@sha256:8a4e90c7946b74626488b1446f712c0fe0ed1a596cbd3d871684bc9c5433ae07
     timeout: 5m
     steps:
       - run: make lint-run GATE=typos
@@ -299,21 +299,21 @@ jobs:
   lint-actions:
     # actionlint and zizmor on .github/workflows/, GitHub Actions' dialect; it passes saying so while there is no
     # .github/workflows/. This file is GitRiver's dialect, which the `workflows` gate checks.
-    image: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    image: rust:1.99.1-trixie@sha256:8a4e90c7946b74626488b1446f712c0fe0ed1a596cbd3d871684bc9c5433ae07
     timeout: 5m
     steps:
       - run: make lint-run GATE=actions
 
   lint-shell:
     # shellcheck at every severity and shfmt's layout (.editorconfig) on every tracked shell script.
-    image: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    image: rust:1.99.1-trixie@sha256:8a4e90c7946b74626488b1446f712c0fe0ed1a596cbd3d871684bc9c5433ae07
     timeout: 5m
     steps:
       - run: make lint-run GATE=shell
 
   lint-ruff:
     # ruff's lint and format check on the tracked Python (ruff.toml).
-    image: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    image: rust:1.99.1-trixie@sha256:8a4e90c7946b74626488b1446f712c0fe0ed1a596cbd3d871684bc9c5433ae07
     timeout: 5m
     steps:
       - run: make lint-run GATE=ruff
@@ -347,14 +347,14 @@ jobs:
     # The repository's own links and anchors in the Markdown, offline: no request leaves the job, so a site being down
     # never fails a push. The external ones are `make lint ONLY=links LINKS_EXTERNAL=1`: by hand, and on GitHub Actions'
     # schedule once .github/workflows/ exists; never on a push.
-    image: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    image: rust:1.99.1-trixie@sha256:8a4e90c7946b74626488b1446f712c0fe0ed1a596cbd3d871684bc9c5433ae07
     timeout: 5m
     steps:
       - run: make lint-run GATE=links
 
   lint-editorconfig:
     # Every tracked text file against .editorconfig (editorconfig-checker).
-    image: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    image: rust:1.99.1-trixie@sha256:8a4e90c7946b74626488b1446f712c0fe0ed1a596cbd3d871684bc9c5433ae07
     timeout: 5m
     steps:
       - run: make lint-run GATE=editorconfig
@@ -363,14 +363,14 @@ jobs:
     # Credentials in the commits the clone has and in the tree. The runner clones `--depth=1`, so here that is the
     # pushed commit; the history before it was checked when each of its commits was pushed, and a laptop's
     # `make lint ONLY=gitleaks` checks all of it.
-    image: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    image: rust:1.99.1-trixie@sha256:8a4e90c7946b74626488b1446f712c0fe0ed1a596cbd3d871684bc9c5433ae07
     timeout: 5m
     steps:
       - run: make lint-run GATE=gitleaks
 
   lint-machete:
     # A dependency in Cargo.toml or fuzz/Cargo.toml that no source names.
-    image: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    image: rust:1.99.1-trixie@sha256:8a4e90c7946b74626488b1446f712c0fe0ed1a596cbd3d871684bc9c5433ae07
     timeout: 5m
     steps:
       - run: make lint-run GATE=machete
@@ -378,7 +378,7 @@ jobs:
   lint-deny:
     # cargo-deny on the service and on fuzz/: RustSec advisories, licences, bans, sources (deny.toml). A new advisory
     # fails a push that changed nothing, which is the point: it is news about what ships.
-    image: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    image: rust:1.99.1-trixie@sha256:8a4e90c7946b74626488b1446f712c0fe0ed1a596cbd3d871684bc9c5433ae07
     needs: [lockhash]
     timeout: 10m
     cache:
@@ -391,7 +391,7 @@ jobs:
 
   lint-doc:
     # cargo doc --no-deps with rustdoc's warnings denied, private items included.
-    image: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    image: rust:1.99.1-trixie@sha256:8a4e90c7946b74626488b1446f712c0fe0ed1a596cbd3d871684bc9c5433ae07
     needs: [lockhash]
     timeout: 30m
     cache:
@@ -420,7 +420,7 @@ jobs:
     # target runs every seed once and a panic fails the job. The fuzzing itself, nightly and long, is not a push gate
     # (fuzz/README.md). fuzz/ is a workspace of its own, so its Cargo.lock is not lockhash's; the registry cache keyed
     # on the service's lock still holds most of its crates.
-    image: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    image: rust:1.99.1-trixie@sha256:8a4e90c7946b74626488b1446f712c0fe0ed1a596cbd3d871684bc9c5433ae07
     needs: [lockhash]
     # A cold release build of the library and libFuzzer; the replay itself takes seconds.
     timeout: 30m
@@ -436,7 +436,7 @@ jobs:
     # The unit and integration tests under cargo llvm-cov, in the `test` job's environment (the gate installs it with
     # tools/ci/test-deps.sh), failing below the floor in tools/lint/lint.sh. The report is the job's artifact; GitRiver
     # keeps none from a failed job, and the log prints the summary either way.
-    image: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    image: rust:1.99.1-trixie@sha256:8a4e90c7946b74626488b1446f712c0fe0ed1a596cbd3d871684bc9c5433ae07
     needs: [lockhash]
     # The `test` job's cold build and suite, instrumented.
     timeout: 90m

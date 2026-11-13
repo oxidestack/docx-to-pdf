@@ -132,7 +132,7 @@ jobs:
           IMAGE_SOURCE: ${{ github.server_url }}/${{ github.repository }}
           IMAGE_SAVE: >-
             ${{ github.event_name == 'push' && format('{0}/docx-to-pdf-{1}.tar', github.workspace, matrix.arch) || '' }}
-        run: sh tools/ci/image-job.sh host rust:1.98.0-trixie
+        run: sh tools/ci/image-job.sh host rust:1.99.1-trixie
       - if: ${{ github.event_name == 'push' }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
         with:

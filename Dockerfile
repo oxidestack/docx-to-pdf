@@ -14,8 +14,8 @@
 # moalhaddar/docx-to-pdf's substitutions (only to measure its cost).
 ARG SNAPSHOT=20261109T224401Z
 
-# rust:1.98.0-trixie, by digest (an index: the build platform's manifest is picked).
-FROM --platform=$BUILDPLATFORM rust@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959 AS build
+# rust:1.99.1-trixie, by digest (an index: the build platform's manifest is picked).
+FROM --platform=$BUILDPLATFORM rust@sha256:8a4e90c7946b74626488b1446f712c0fe0ed1a596cbd3d871684bc9c5433ae07 AS build
 ARG TARGETARCH
 ARG BUILDARCH
 # DL3008: the cross toolchain is whatever rust's trixie base resolves; the build stage ships nothing of it.

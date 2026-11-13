@@ -6,7 +6,7 @@
 # .gitriver/workflows/ci.yml names that runner). No other runner gives one, and nothing is pushed
 # anywhere: a release saves the tested image to a file (IMAGE_SAVE) for another job to push.
 #
-#   sh tools/ci/image-job.sh                 from the repository root, in the job's container (`rust:1.98.0-trixie`)
+#   sh tools/ci/image-job.sh                 from the repository root, in the job's container (`rust:1.99.1-trixie`)
 #   sh tools/ci/image-job.sh host <image>    from the repository root, on a CI host that runs Docker itself (GitHub's
 #                                            runner, .github/workflows/ci.yml): the same second container, of <image>
 #

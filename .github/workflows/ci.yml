@@ -94,7 +94,7 @@ jobs:
             .cargo/registry/cache
           key: cargo-${{ hashFiles('Cargo.lock') }}
       # The image GitRiver's `image` job runs in.
-      - run: sh tools/ci/image-job.sh host rust:1.98.0-trixie
+      - run: sh tools/ci/image-job.sh host rust:1.99.1-trixie
 
   release-notes:
     # tools/release's tests with their drafts, which run git-cliff in its pinned container: on the runner itself,
@@ -133,7 +133,7 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: read  # actions/checkout reads the repository
-    container: rust:1.98.0-trixie
+    container: rust:1.99.1-trixie
     timeout-minutes: 90
     env:
       DOCX_TO_PDF_REQUIRE_LOK: "1"
@@ -181,7 +181,7 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: read  # actions/checkout reads the repository
-    container: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    container: rust:1.99.1-trixie@sha256:8a4e90c7946b74626488b1446f712c0fe0ed1a596cbd3d871684bc9c5433ae07
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
@@ -195,7 +195,7 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: read  # actions/checkout reads the repository
-    container: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    container: rust:1.99.1-trixie@sha256:8a4e90c7946b74626488b1446f712c0fe0ed1a596cbd3d871684bc9c5433ae07
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
@@ -336,7 +336,7 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: read  # actions/checkout reads the repository
-    container: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    container: rust:1.99.1-trixie@sha256:8a4e90c7946b74626488b1446f712c0fe0ed1a596cbd3d871684bc9c5433ae07
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
@@ -350,7 +350,7 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: read  # actions/checkout reads the repository
-    container: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    container: rust:1.99.1-trixie@sha256:8a4e90c7946b74626488b1446f712c0fe0ed1a596cbd3d871684bc9c5433ae07
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
@@ -364,7 +364,7 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: read  # actions/checkout reads the repository
-    container: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    container: rust:1.99.1-trixie@sha256:8a4e90c7946b74626488b1446f712c0fe0ed1a596cbd3d871684bc9c5433ae07
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
@@ -378,7 +378,7 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: read  # actions/checkout reads the repository
-    container: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    container: rust:1.99.1-trixie@sha256:8a4e90c7946b74626488b1446f712c0fe0ed1a596cbd3d871684bc9c5433ae07
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
@@ -437,7 +437,7 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: read  # actions/checkout reads the repository
-    container: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    container: rust:1.99.1-trixie@sha256:8a4e90c7946b74626488b1446f712c0fe0ed1a596cbd3d871684bc9c5433ae07
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
@@ -451,7 +451,7 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: read  # actions/checkout reads the repository
-    container: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    container: rust:1.99.1-trixie@sha256:8a4e90c7946b74626488b1446f712c0fe0ed1a596cbd3d871684bc9c5433ae07
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
@@ -465,7 +465,7 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: read  # actions/checkout reads the repository
-    container: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    container: rust:1.99.1-trixie@sha256:8a4e90c7946b74626488b1446f712c0fe0ed1a596cbd3d871684bc9c5433ae07
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
@@ -479,7 +479,7 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: read  # actions/checkout reads the repository
-    container: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    container: rust:1.99.1-trixie@sha256:8a4e90c7946b74626488b1446f712c0fe0ed1a596cbd3d871684bc9c5433ae07
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
@@ -493,7 +493,7 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: read  # actions/checkout reads the repository
-    container: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    container: rust:1.99.1-trixie@sha256:8a4e90c7946b74626488b1446f712c0fe0ed1a596cbd3d871684bc9c5433ae07
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
@@ -513,7 +513,7 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: read  # actions/checkout reads the repository
-    container: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    container: rust:1.99.1-trixie@sha256:8a4e90c7946b74626488b1446f712c0fe0ed1a596cbd3d871684bc9c5433ae07
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
@@ -553,7 +553,7 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: read  # actions/checkout reads the repository
-    container: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    container: rust:1.99.1-trixie@sha256:8a4e90c7946b74626488b1446f712c0fe0ed1a596cbd3d871684bc9c5433ae07
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
@@ -573,7 +573,7 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: read  # actions/checkout reads the repository
-    container: rust:1.98.0-trixie@sha256:620dbcd124499c59e2406d3741574b5c5838cf9eb9656f0c3a03948f79b02959
+    container: rust:1.99.1-trixie@sha256:8a4e90c7946b74626488b1446f712c0fe0ed1a596cbd3d871684bc9c5433ae07
     timeout-minutes: 120
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
