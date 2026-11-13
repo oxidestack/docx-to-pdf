@@ -73,6 +73,7 @@ from the commits' release-note blocks.
 ```
 
 BREAKING-CHANGE: <what changes and what to do>
+Closes: #<issue>
 Signed-off-by: Your Name <you@example.org>
 ````
 
@@ -92,6 +93,27 @@ Signed-off-by: Your Name <you@example.org>
 - **Breaking** — a client or a deployment must change to keep working (an HTTP path or answer, a setting, a chart
   value, the image's user or paths, a metric's name): `!` before the colon, a `BREAKING-CHANGE:` footer, and a
   release note saying what to do.
+- **Footers**: the message's last paragraph, one block, in this order: `BREAKING-CHANGE:`, `Refs:`, `Closes:`,
+  `Co-authored-by:`, `Signed-off-by:`. Each is written `Token: value`, the form git's trailers take.
+- **Issues**: an issue the commit resolves is a `Closes: #<n>` footer, one line for each issue, after the release
+  note and before the sign-off; GitHub closes it when the commit lands. Never put it, or any paragraph opening with
+  `Word:` or `Word #`, before the release note: the release notes are drafted with a parser that reads the footers
+  from such a paragraph on, so the note after it would be left out. The commit check (`make lint ONLY=commits`)
+  names the line to move.
+
+  ````text
+  fix(pool): replace an instance that dies during start
+
+  A failed start was retried once and then left the slot empty.
+
+  ```release-note
+  A LibreOffice instance that dies while starting is replaced.
+  ```
+
+  Closes: #42
+  Signed-off-by: Your Name <you@example.org>
+  ````
+
 - **Sign-off**: `git commit -s` adds `Signed-off-by:` as the last line. It certifies the
   [Developer Certificate of Origin](https://developercertificate.org/).
 - **Reverts**: `revert: <the reverted commit's first line>`, the reason, and `Refs: <hash>`.

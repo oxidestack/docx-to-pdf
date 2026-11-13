@@ -1,0 +1,4 @@
+docs(chart): describe the values
+
+Closes: #8, #9
+Signed-off-by: Jane Doe <jane@example.org>

@@ -1,0 +1,11 @@
+fix(pool): replace an instance that dies during start
+
+A failed start was retried once and then left the slot empty.
+
+```release-note
+A LibreOffice instance that dies while starting is replaced.
+```
+
+Refs: 1a2b3c4
+Closes: #8
+Signed-off-by: Jane Doe <jane@example.org>

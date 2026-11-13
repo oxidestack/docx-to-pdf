@@ -41,6 +41,8 @@ class Changes(unittest.TestCase):
             ' runs with one instance fewer than configured."\n'
             "- kind: fixed\n"
             '  description: "An upload over the size limit is answered 413 instead of 400."\n'
+            "- kind: fixed\n"
+            '  description: "An error answer names the request\'s trace_id, as its log line does."\n'
             "- kind: changed\n"
             '  description: "A document with large photographs converts faster and in less memory."\n'
             "- kind: changed\n"
