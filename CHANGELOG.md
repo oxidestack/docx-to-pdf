@@ -12,6 +12,19 @@ required, Features, Bug fixes, Performance and Other changes. The versions follo
 The changes since the last release are the release notes of the commits after its tag; a release gathers them into
 its section below.
 
+## [1.3.2] - 2026-11-23
+
+### Bug fixes
+
+- A PDF answer the client received in full is recorded as a success: every successful conversion was measured as `error.type=client_disconnected` (the server span's error status, the `error_type` label of `http.server.request.duration`, and since 1.2.2 the access log), so an error-rate alert on that metric read 100 %. (telemetry, bbe6cf1)
+
+### Other changes
+
+- The url crate is 2.5.9, which fixes RUSTSEC-2026-0592, a stack overflow on nested `blob:` URLs. (deps, e1adb9c)
+- The image's Debian packages come from the snapshot of 22 November 2026, which fixes the advisories in krb5. (deps, 28f24ae)
+
+[1.3.2]: https://github.com/oxidestack/docx-to-pdf/compare/v1.3.1...v1.3.2
+
 ## [1.3.1] - 2026-11-13
 
 Nothing changes for the people who run the service: the commit-message check now refuses a release note that the
