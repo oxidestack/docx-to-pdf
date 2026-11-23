@@ -1,14 +1,17 @@
 //! The request's telemetry ends with its response body, not when the handler returns, since a streamed PDF
 //! is sent after it: `http.server.request.duration` covers the body's transfer, `http.server.active_requests` counts the
 //! request until the body is gone, and the server span ends with it. A body that the client stops reading
-//! keeps the status that was sent and gets `error.type` = `client_disconnected`.
+//! keeps the status that was sent and gets `error.type` = `client_disconnected`. A stream with a
+//! `content-length`, which hyper drops once that many bytes are sent without polling it to its end, was
+//! sent in full.
 
 use std::io;
 use std::time::Duration;
 
 use axum::Router;
 use axum::body::{Body, Bytes};
-use axum::http::{Request, StatusCode};
+use axum::http::header::CONTENT_LENGTH;
+use axum::http::{HeaderName, Request, StatusCode};
 use axum::routing::get;
 use docx_to_pdf::http_telemetry::{HttpTelemetry, instrument};
 use docx_to_pdf::telemetry::{Telemetry, TelemetryBuilder};
@@ -96,6 +99,21 @@ fn endless_body() -> Body {
     }))
 }
 
+/// A stream with its length in `content-length`, as the PDF is sent: hyper writes that many bytes and
+/// drops the body without polling it to its end.
+fn sized_body() -> ([(HeaderName, &'static str); 1], Body) {
+    let chunks = stream::iter([
+        Ok::<_, io::Error>(Bytes::from_static(b"first")),
+        Ok(Bytes::from_static(b"second")),
+    ]);
+    ([(CONTENT_LENGTH, "11")], Body::from_stream(chunks))
+}
+
+/// A stream that declares more bytes in `content-length` than it sends before it stalls.
+fn short_sized_body() -> ([(HeaderName, &'static str); 1], Body) {
+    ([(CONTENT_LENGTH, "1000")], stalled_body())
+}
+
 fn app(h: &Harness) -> Router {
     let routes = Router::new()
         .route("/slow/{id}", get(|| async { slow_body() }))
@@ -103,6 +121,8 @@ fn app(h: &Harness) -> Router {
         .route("/failing/{id}", get(|| async { failing_body() }))
         .route("/endless/{id}", get(|| async { endless_body() }))
         .route("/fixed/{id}", get(|| async { "hello" }))
+        .route("/sized/{id}", get(|| async { sized_body() }))
+        .route("/short/{id}", get(|| async { short_sized_body() }))
         .route("/empty/{id}", get(|| async { StatusCode::NO_CONTENT }));
     instrument(routes, HttpTelemetry::new(&h.telemetry))
 }
@@ -376,4 +396,94 @@ async fn over_tcp_a_fixed_body_keeps_its_content_length_and_is_a_success() {
     assert_eq!(counts.len(), 1, "{counts:?}");
     assert!(!counts[0].contains("error_type"), "{counts:?}");
     assert_eq!(active(&h, "/fixed/{id}"), 0.0);
+}
+
+/// Reads the head of an answer; returns it and the body bytes that came with it.
+async fn read_head(client: &mut TcpStream) -> (String, Vec<u8>) {
+    let mut read = Vec::new();
+    let mut buf = [0_u8; 4096];
+    loop {
+        if let Some(end) = read.windows(4).position(|w| w == b"\r\n\r\n") {
+            let body = read.split_off(end + 4);
+            return (String::from_utf8(read).unwrap(), body);
+        }
+        let n = client.read(&mut buf).await.unwrap();
+        assert!(n > 0, "the connection closed before the head");
+        read.extend_from_slice(&buf[..n]);
+    }
+}
+
+#[tokio::test(flavor = "current_thread")]
+async fn over_tcp_a_stream_with_a_content_length_read_in_full_is_a_success() {
+    let h = harness();
+    let addr = serve(app(&h)).await;
+
+    // The connection stays open, as a proxy keeps it alive: the client reads the declared length.
+    let mut client = TcpStream::connect(addr).await.unwrap();
+    client
+        .write_all(b"GET /sized/1 HTTP/1.1\r\nhost: test\r\n\r\n")
+        .await
+        .unwrap();
+    let (head, mut body) = read_head(&mut client).await;
+    assert!(head.starts_with("HTTP/1.1 200"), "{head}");
+    assert!(
+        head.to_ascii_lowercase().contains("content-length: 11"),
+        "{head}"
+    );
+    let mut buf = [0_u8; 64];
+    while body.len() < 11 {
+        let n = client.read(&mut buf).await.unwrap();
+        assert!(n > 0, "the connection closed mid-body");
+        body.extend_from_slice(&buf[..n]);
+    }
+    assert_eq!(&body[..], b"firstsecond");
+
+    assert!(
+        eventually(|| !counts(&h, "/sized/{id}").is_empty()).await,
+        "the request was never recorded"
+    );
+    let counts = counts(&h, "/sized/{id}");
+    assert_eq!(counts.len(), 1, "{counts:?}");
+    assert!(!counts[0].contains("error_type"), "{counts:?}");
+    assert!(
+        counts[0].contains(r#"http_response_status_code="200""#),
+        "{counts:?}"
+    );
+    assert_eq!(active(&h, "/sized/{id}"), 0.0);
+    let spans = server_spans(&h);
+    assert_eq!(spans.len(), 1);
+    assert_eq!(spans[0].status, Status::Unset);
+    assert_eq!(attr(&spans[0], "error.type"), None);
+    drop(client);
+}
+
+#[tokio::test(flavor = "current_thread")]
+async fn over_tcp_a_stream_with_a_content_length_cut_short_is_client_disconnected() {
+    let h = harness();
+    let addr = serve(app(&h)).await;
+
+    let mut client = TcpStream::connect(addr).await.unwrap();
+    client
+        .write_all(b"GET /short/1 HTTP/1.1\r\nhost: test\r\n\r\n")
+        .await
+        .unwrap();
+    let (head, _) = read_head(&mut client).await;
+    assert!(head.starts_with("HTTP/1.1 200"), "{head}");
+    drop(client);
+
+    assert!(
+        eventually(|| !counts(&h, "/short/{id}").is_empty()).await,
+        "the request was never recorded"
+    );
+    let counts = counts(&h, "/short/{id}");
+    assert_eq!(counts.len(), 1, "{counts:?}");
+    assert!(
+        counts[0].contains(r#"error_type="client_disconnected""#),
+        "{counts:?}"
+    );
+    assert!(
+        counts[0].contains(r#"http_response_status_code="200""#),
+        "{counts:?}"
+    );
+    assert_eq!(active(&h, "/short/{id}"), 0.0);
 }

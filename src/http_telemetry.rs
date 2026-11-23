@@ -16,7 +16,8 @@ use std::time::Instant;
 use axum::Router;
 use axum::body::{Body, Bytes, HttpBody};
 use axum::extract::{MatchedPath, Request, State};
-use axum::http::{Method, StatusCode, Version};
+use axum::http::header::CONTENT_LENGTH;
+use axum::http::{HeaderMap, Method, StatusCode, Version};
 use axum::middleware::{self, Next};
 use axum::response::Response;
 use http_body::{Frame, SizeHint};
@@ -189,26 +190,49 @@ async fn track(State(http): State<HttpTelemetry>, mut request: Request, next: Ne
         .grace
         .as_ref()
         .map(|grace| Box::pin(grace.turned()) as GraceTurned);
+    let length = response
+        .body()
+        .size_hint()
+        .exact()
+        .or_else(|| content_length(response.headers()));
     response.map(|body| {
         Body::new(TrackedBody {
             inner: body,
+            length,
             outcome,
             cut,
+            stopped: false,
             _active: active,
         })
     })
 }
 
+/// The answer's `content-length`, when it has exactly one valid value.
+fn content_length(headers: &HeaderMap) -> Option<u64> {
+    let mut values = headers.get_all(CONTENT_LENGTH).iter();
+    let value = values.next()?;
+    if values.next().is_some() {
+        return None;
+    }
+    value.to_str().ok()?.trim().parse().ok()
+}
+
 /// The response body, carrying the request's [`Outcome`] and its place in `http.server.active_requests` until
 /// it has been sent to its end, has failed, or has been dropped. It enters the request's span while polled,
 /// and forwards `size_hint` and `is_end_stream`, so `content-length` and hyper's handling of an empty body
-/// are unchanged. When the shutdown grace period runs out mid-body, the body ends with an error at once, so
-/// hyper closes the connection and the request is recorded as `shutdown_grace_exceeded` before the telemetry flush.
+/// are unchanged. A body of a known length is sent in full once that many bytes are: hyper's HTTP/1 connection
+/// stops polling it there and drops it, so a stream never gets to say it has ended. When the shutdown grace
+/// period runs out mid-body, the body ends with an error at once, so hyper closes the connection and the
+/// request is recorded as `shutdown_grace_exceeded` before the telemetry flush.
 struct TrackedBody {
     inner: Body,
+    /// The length hyper frames the answer with: the body's exact size, or else its `content-length`.
+    length: Option<u64>,
     outcome: Outcome,
     /// Resolves when the grace period runs out; `None` outside `server::serve`, or once the body was cut.
     cut: Option<GraceTurned>,
+    /// The body was cut short or failed: it ends without polling the inner body again.
+    stopped: bool,
     _active: ActiveGuard,
 }
 
@@ -227,13 +251,15 @@ impl HttpBody for TrackedBody {
             && cut.as_mut().poll(cx).is_ready()
         {
             this.cut = None;
+            this.stopped = true;
             this.outcome.fail(SHUTDOWN_GRACE_EXCEEDED);
             return Poll::Ready(Some(Err(axum::Error::new(
                 "the shutdown grace period ran out while the body was being sent",
             ))));
         }
-        if this.outcome.recorded {
-            // Cut short: nothing more is sent.
+        if this.stopped {
+            // Cut short or failed: nothing more is sent. A body recorded as sent in full is still polled, so
+            // a stream reaches its end and lets go of what it holds (the PDF's file and directory).
             return Poll::Ready(None);
         }
         let polled = {
@@ -247,8 +273,11 @@ impl HttpBody for TrackedBody {
         }
         match &polled {
             Poll::Ready(None) => this.outcome.finish(),
-            Poll::Ready(Some(Ok(_))) if this.inner.is_end_stream() => this.outcome.finish(),
-            Poll::Ready(Some(Err(_))) => this.outcome.fail(BODY_FAILED),
+            Poll::Ready(Some(Ok(_))) if this.sent_in_full() => this.outcome.finish(),
+            Poll::Ready(Some(Err(_))) => {
+                this.stopped = true;
+                this.outcome.fail(BODY_FAILED);
+            }
             _ => {}
         }
         polled
@@ -263,11 +292,23 @@ impl HttpBody for TrackedBody {
     }
 }
 
+impl TrackedBody {
+    /// Whether the whole answer has been handed to hyper: the body says it is at its end, or as many bytes
+    /// as its length were sent.
+    fn sent_in_full(&self) -> bool {
+        self.inner.is_end_stream()
+            || self
+                .length
+                .is_some_and(|length| self.outcome.sent >= length)
+    }
+}
+
 impl Drop for TrackedBody {
     fn drop(&mut self) {
-        // hyper drops a body that says it is at its end without polling it (an empty body); that is a
-        // body sent in full. Any other body dropped before its end lets `Outcome`'s drop decide.
-        if self.inner.is_end_stream() {
+        // hyper drops a body that says it is at its end without polling it (an empty body), and a body of a
+        // known length once that length is written; either was sent in full. Any other body dropped
+        // before its end lets `Outcome`'s drop decide.
+        if self.sent_in_full() {
             self.outcome.finish();
         }
     }
