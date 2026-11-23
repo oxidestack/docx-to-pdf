@@ -14,6 +14,10 @@ its section below.
 
 ## [1.3.2] - 2026-11-23
 
+If you alert on the error rate of `http.server.request.duration`, this release is the one to take: every
+successful conversion was counted as `client_disconnected`, so that rate read 100 %. The image also gets krb5's
+security fixes and the url crate 2.5.9. The image and the chart upgrade in place from 1.3.1.
+
 ### Bug fixes
 
 - A PDF answer the client received in full is recorded as a success: every successful conversion was measured as `error.type=client_disconnected` (the server span's error status, the `error_type` label of `http.server.request.duration`, and since 1.2.2 the access log), so an error-rate alert on that metric read 100 %. (telemetry, bbe6cf1)
