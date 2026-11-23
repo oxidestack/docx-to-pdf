@@ -108,11 +108,7 @@ fn anchors(page: &str) -> BTreeSet<String> {
         };
         let base = slug(heading.trim());
         let n = seen.entry(base.clone()).or_insert(0);
-        out.insert(if *n == 0 {
-            base.clone()
-        } else {
-            format!("{base}-{n}")
-        });
+        out.insert(if *n == 0 { base } else { format!("{base}-{n}") });
         *n += 1;
     }
     out

@@ -666,8 +666,8 @@ mod tests {
                 }
             };
             let mut p = blocky(colour, depth, sample);
-            p.palette = palette.clone();
-            p.trns = trns.clone();
+            p.palette = palette;
+            p.trns = trns;
             let (done, info, pixels) = shrink(&p.encode(), bound(4, 3, bits));
             let what = format!("{colour:?} {depth:?}");
             assert_eq!(done.factor, 2, "{what}");
