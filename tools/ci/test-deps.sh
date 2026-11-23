@@ -24,7 +24,7 @@
 set -eu
 
 MODE=${1:-full}
-SNAPSHOT=${SNAPSHOT:-20261109T224401Z}
+SNAPSHOT=${SNAPSHOT:-20261122T203011Z}
 case "$MODE" in base | full) ;; *)
 	echo "usage: sh tools/ci/test-deps.sh [base|full]" >&2
 	exit 2

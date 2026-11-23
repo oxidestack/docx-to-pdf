@@ -12,7 +12,7 @@
 # Build arguments: SNAPSHOT moves LibreOffice and every package together, so a bump is a deliberate change, never a
 # side effect of a rebuild; EXTRA_FONTS=0 leaves out the broad free set beyond the packages that match
 # moalhaddar/docx-to-pdf's substitutions (only to measure its cost).
-ARG SNAPSHOT=20261109T224401Z
+ARG SNAPSHOT=20261122T203011Z
 
 # rust:1.99.1-trixie, by digest (an index: the build platform's manifest is picked).
 FROM --platform=$BUILDPLATFORM rust@sha256:8a4e90c7946b74626488b1446f712c0fe0ed1a596cbd3d871684bc9c5433ae07 AS build
