@@ -10,7 +10,7 @@
 # The snapshot, the packages, the fonts and the fontconfig files are tools/ci/test-deps.sh's, the one list the CI
 # `test` job runs as well, so the two cannot drift apart. The paths it reads are assembled under /deps from the named
 # build contexts run.sh passes (`ci`, `fonts`, `image-fontconfig`) and this directory, and it runs there as root.
-FROM rust:1.99.1-trixie@sha256:8a4e90c7946b74626488b1446f712c0fe0ed1a596cbd3d871684bc9c5433ae07
+FROM rust:1.100.0-trixie@sha256:223cc32ddca8f3ee90c436dbc94b6b5f052ea7f9653c5201e9612f08ad7d21b8
 # DL3022 (three times): `ci`, `fonts` and `image-fontconfig` are named build contexts (run.sh), not stages.
 # hadolint ignore=DL3022
 COPY --from=ci test-deps.sh /deps/tools/ci/

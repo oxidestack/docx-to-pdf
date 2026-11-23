@@ -10,7 +10,7 @@
 # reads its stages here the same way, and `make image-ci` runs them in the private CI's `image` job.
 
 # cargo, rustfmt, clippy and rustdoc, and the Rust gates' release binaries (tools.txt): the toolchain the service is built with (Dockerfile pins the same digest).
-FROM rust:1.99.1-trixie@sha256:8a4e90c7946b74626488b1446f712c0fe0ed1a596cbd3d871684bc9c5433ae07 AS rust
+FROM rust:1.100.0-trixie@sha256:223cc32ddca8f3ee90c436dbc94b6b5f052ea7f9653c5201e9612f08ad7d21b8 AS rust
 
 # The `msrv` gate: Cargo.toml's rust-version, exactly (a bump of rust-version moves this pin in the same commit).
 FROM rust:1.89.0-trixie@sha256:57407b378b2b6e07b48a6135a20c87cc22ea6e249c0acf6cb1833ead3cf116e9 AS msrv
