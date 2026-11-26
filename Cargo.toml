@@ -4,9 +4,9 @@ version = "1.3.2"
 edition = "2024"
 default-run = "docx-to-pdf"
 license = "Apache-2.0"
-# The oldest toolchain that builds the crate: tonic and zopfli ask for 1.88, and the `msrv` gate
+# The oldest toolchain that builds the crate: zip asks for 1.89, and the `msrv` gate
 # (tools/lint/lint.sh) checks every target on exactly that toolchain. Raising it is a decision, not a side effect.
-rust-version = "1.88"
+rust-version = "1.89"
 description = "Office documents to PDF over HTTP with LibreOffice: fast, bounded in memory, safe against hostile documents"
 
 # The lints every target is held to. The `clippy` gate runs with `-D warnings`, so a `warn` here fails
