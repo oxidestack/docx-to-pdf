@@ -180,6 +180,7 @@ fn pictures_counted(telemetry: &Telemetry, outcome: &str) -> f64 {
 
 #[tokio::test(flavor = "multi_thread")]
 async fn a_picture_libreoffice_would_drop_is_replaced_and_the_answer_says_so() {
+    let (logs, _guard) = Logs::capture();
     let service = Service::start().await;
     let (status, headers, converted) = service.post(&docx(&png(18919, 18919, 2))).await;
     assert_eq!(status, StatusCode::OK);
@@ -194,6 +195,19 @@ async fn a_picture_libreoffice_would_drop_is_replaced_and_the_answer_says_so() {
     assert_eq!(entry(&converted, "word/media/image1.png"), PNG_PLACEHOLDER);
     assert_eq!(entry(&converted, "word/document.xml"), b"<w:document/>");
     assert_eq!(pictures_counted(&service.telemetry, "replaced"), 1.0);
+    let logs = logs.text();
+    let line = logs
+        .lines()
+        .find(|l| l.contains("WARN") && l.contains("outcome=\"replaced\""))
+        .unwrap_or_else(|| panic!("no replaced line in {logs}"));
+    for field in [
+        "entry=word/media/image1.png",
+        "width=18919",
+        "height=18919",
+        "why=",
+    ] {
+        assert!(line.contains(field), "{field} in {line}");
+    }
 }
 
 #[tokio::test(flavor = "multi_thread")]
@@ -224,6 +238,7 @@ fn real_png(width: u32, height: u32) -> Vec<u8> {
 #[tokio::test(flavor = "multi_thread")]
 async fn a_png_past_the_threshold_is_downscaled_and_the_answer_says_so() {
     // RGB 400 × 300 holds 360 000 bytes; under 100 000 a half (90 000) is enough.
+    let (logs, _guard) = Logs::capture();
     let service = Service::with_threshold(100_000).await;
     let (status, headers, converted) = service.post(&docx(&real_png(400, 300))).await;
     assert_eq!(status, StatusCode::OK);
@@ -233,6 +248,22 @@ async fn a_png_past_the_threshold_is_downscaled_and_the_answer_says_so() {
     assert_eq!((reader.info().width, reader.info().height), (200, 150));
     assert_eq!(pictures_counted(&service.telemetry, "downscaled"), 1.0);
     assert_eq!(pictures_counted(&service.telemetry, "replaced"), 0.0);
+    let logs = logs.text();
+    let line = logs
+        .lines()
+        .find(|l| l.contains("WARN") && l.contains("outcome=\"downscaled\""))
+        .unwrap_or_else(|| panic!("no downscaled line in {logs}"));
+    for field in [
+        "entry=word/media/image1.png",
+        "width=400",
+        "height=300",
+        "bitmap_bytes=360000",
+        "max_bitmap_bytes=100000",
+        "downscaled_width=200",
+        "downscaled_height=150",
+    ] {
+        assert!(line.contains(field), "{field} in {line}");
+    }
 }
 
 /// A real 4:2:0 JPEG of `width × height`, a gradient, at quality `quality`: baseline or progressive, RGB or CMYK.
@@ -333,6 +364,19 @@ impl Write for Logs {
 }
 
 impl Logs {
+    /// The log of this thread, in the service's line format, until the guard drops.
+    fn capture() -> (Self, tracing::subscriber::DefaultGuard) {
+        let logs = Self::default();
+        let writer = logs.clone();
+        let guard = tracing::subscriber::set_default(
+            tracing_subscriber::fmt()
+                .with_writer(move || writer.clone())
+                .with_ansi(false)
+                .finish(),
+        );
+        (logs, guard)
+    }
+
     fn text(&self) -> String {
         String::from_utf8_lossy(&self.0.lock().unwrap()).into_owned()
     }
@@ -355,14 +399,7 @@ async fn a_panic_anywhere_in_the_pictures_step_converts_the_document_as_it_was_r
     fn summary(stage: Stage) {
         assert!(stage != Stage::Summary, "a forced panic");
     }
-    let logs = Logs::default();
-    let writer = logs.clone();
-    let _guard = tracing::subscriber::set_default(
-        tracing_subscriber::fmt()
-            .with_writer(move || writer.clone())
-            .with_ansi(false)
-            .finish(),
-    );
+    let (logs, _guard) = Logs::capture();
     let document = docx(&real_png(400, 300));
     for (stage, fault) in [
         ("listing", listing as Fault),
@@ -471,9 +508,24 @@ async fn a_document_whose_pictures_pass_the_memory_budget_is_413_before_any_is_d
 /// 1 GiB.
 #[tokio::test(flavor = "multi_thread")]
 async fn kept_pictures_count_and_alpha_costs_more() {
+    let (logs, _guard) = Logs::capture();
     let service = Service::start().await;
     let (status, _, _) = service.post(&docx_many(&vec![png(8192, 8192, 6); 4])).await;
     assert_eq!(status, StatusCode::PAYLOAD_TOO_LARGE);
+    let logs = logs.text();
+    let line = logs
+        .lines()
+        .find(|l| l.contains("WARN") && l.contains("outcome=\"over_budget\""))
+        .unwrap_or_else(|| panic!("no over_budget line in {logs}"));
+    for field in [
+        "pictures=4",
+        "oversized=0",
+        "held_bytes=",
+        "budget_bytes=",
+        "hard_memory_bytes=",
+    ] {
+        assert!(line.contains(field), "{field} in {line}");
+    }
     let (status, headers, _) = service.post(&docx_many(&vec![png(8192, 8192, 2); 4])).await;
     assert_eq!(status, StatusCode::OK);
     assert!(headers.get("docx-to-pdf-pictures").is_none());
