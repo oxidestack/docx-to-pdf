@@ -14,6 +14,9 @@ its section below.
 
 ## [1.3.3] - 2026-11-27
 
+A security update of the image: it fixes CVE-2026-124851 (HIGH) in zstd, which image scanners report in 1.3.2.
+Nothing else changes for a running service. The image and the chart upgrade in place from 1.3.2.
+
 ### Other changes
 
 - The image's Debian packages come from the snapshot of 25 November 2026, which fixes CVE-2026-124851 in zstd. (deps, a70deed)
