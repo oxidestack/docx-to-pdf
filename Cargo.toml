@@ -59,7 +59,18 @@ option_if_let_else = "allow"
 significant_drop_tightening = "allow"
 
 [dependencies]
-axum = "0.8.9"
+# axum's defaults but `tower-log`: it turns on tracing's `log` feature, whose fallback copy of every event's fields,
+# run only when no subscriber was ever set, the service never takes, and the coverage gate counts as unrun lines.
+axum = { version = "0.8.9", default-features = false, features = [
+    "form",
+    "http1",
+    "json",
+    "matched-path",
+    "original-uri",
+    "query",
+    "tokio",
+    "tracing",
+] }
 bytes = "1.12.1"
 futures-util = "0.3.34"
 http-body = "1.1.0"
