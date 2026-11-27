@@ -3,7 +3,7 @@
 <!-- languages:begin -->
 [English](README.md) · **Русский** · [中文](README.zh-CN.md) · [Español](README.es.md)
 <!-- languages:end -->
-<!-- translation of README.md: 1f2f373a0765 -->
+<!-- translation of README.md: edec4fd0e5d6 -->
 
 ![логотип docx-to-pdf](site/src/assets/docx-to-pdf-mark.svg)
 
@@ -28,7 +28,7 @@ OpenTelemetry.
 ## Быстрый старт
 
 ```sh
-docker run --rm -p 8080:8080 quay.io/oxidestack/docx-to-pdf:1.3.2
+docker run --rm -p 8080:8080 quay.io/oxidestack/docx-to-pdf:1.3.3
 ```
 
 В другом терминале, когда сервис запустится:

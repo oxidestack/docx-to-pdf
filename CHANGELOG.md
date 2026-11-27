@@ -12,6 +12,15 @@ required, Features, Bug fixes, Performance and Other changes. The versions follo
 The changes since the last release are the release notes of the commits after its tag; a release gathers them into
 its section below.
 
+## [1.3.3] - 2026-11-27
+
+### Other changes
+
+- The image's Debian packages come from the snapshot of 25 November 2026, which fixes CVE-2026-124851 in zstd. (deps, a70deed)
+- Building from source needs Rust 1.89 or newer (was 1.88). (deps, 4f471ac)
+
+[1.3.3]: https://github.com/oxidestack/docx-to-pdf/compare/v1.3.2...v1.3.3
+
 ## [1.3.2] - 2026-11-23
 
 If you alert on the error rate of `http.server.request.duration`, this release is the one to take: every
