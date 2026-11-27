@@ -98,8 +98,9 @@
       enabled: false,
     },
     {
+      // The msrv stage's toolchain, Cargo.toml's rust-version: a bump of rust-version moves this version too.
       matchPackageNames: ['rust'],
-      matchCurrentValue: '/^1\\.88\\./',
+      matchCurrentValue: '/^1\\.89\\./',
       enabled: false,
     },
     {

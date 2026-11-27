@@ -5,7 +5,8 @@ edition = "2024"
 default-run = "docx-to-pdf"
 license = "Apache-2.0"
 # The oldest toolchain that builds the crate: zip asks for 1.89, and the `msrv` gate
-# (tools/lint/lint.sh) checks every target on exactly that toolchain. Raising it is a decision, not a side effect.
+# (tools/lint/lint.sh) checks every target on exactly that toolchain. Raising it is a decision, not a side effect;
+# the msrv pins (tools/lint/images.Dockerfile, both ci.yml) and Renovate's hold on them move with it.
 rust-version = "1.89"
 description = "Office documents to PDF over HTTP with LibreOffice: fast, bounded in memory, safe against hostile documents"
 
