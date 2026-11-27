@@ -8,9 +8,6 @@
 #
 #   ruby tools/lint/check-pins.rb [workflow]      (default .github/workflows/ci.yml)
 #
-# The `workflows` gate runs it on .gitriver/workflows/ci.yml and on the default: the two CI definitions carry the
-# same jobs, so a gate cannot drift between them.
-#
 # Run on the default, it also holds every workflow of .github/workflows/ to GitHub's hardening rules, which zizmor
 # checks only in part: `permissions: {}` at the top, so each job is granted only what it uses, and every `uses:` of
 # another repository's action or workflow pinned by its full commit with the release in a comment (`@<40 hex>  # v1.2.3`),
@@ -60,7 +57,7 @@ gates.each do |gate, ref|
     findings << "#{workflow}: no job `#{name}` for the gate `#{gate}`"
     next
   end
-  # GitRiver names a job's image `image:`; GitHub Actions `container:`, a string or a mapping with `image:`.
+  # GitHub Actions names a job's image `container:`, a string or a mapping with `image:`.
   container = job["container"]
   image = job.key?("image") ? job["image"] : (container.is_a?(Hash) ? container["image"] : container)
   if image != ref
@@ -75,7 +72,7 @@ end
   findings << "#{workflow}: job `#{name}` is no gate of tools/lint/lint.sh (`sh tools/lint/lint.sh --list`)"
 end
 
-# GitHub's hardening rules, on every workflow of .github/workflows/ (the default run only: GitRiver's has neither).
+# GitHub's hardening rules, on every workflow of .github/workflows/ (the default run only).
 if ARGV[0].nil?
   PINNED = /\A[\w.-]+\/[\w.\/-]+@[0-9a-f]{40}\z/
   Dir.glob(".github/workflows/*.{yml,yaml}").sort.each do |file|

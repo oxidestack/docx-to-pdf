@@ -151,19 +151,10 @@ gate_run() {
 		return $rc
 		;;
 	workflows)
-		# GitRiver's rule for every job (vendored, never edited here), then ours: each CI workflow runs these gates in
-		# their pinned images through `make lint-run` (tools/lint/check-pins.rb) — GitRiver's, and GitHub's once it
-		# exists. And GitRiver's is one workflow: each file there is a pipeline of its own on every push, so a second
-		# one splits the push in two and its jobs belong in ci.yml's DAG. All run, so one's
-		# finding does not hide another's.
+		# The CI workflow runs these gates in their pinned images through `make lint-run` (tools/lint/check-pins.rb),
+		# and every workflow keeps GitHub's hardening rules; then check-pins.rb's own tests. Both run, so one's finding
+		# does not hide the other's.
 		rc=0
-		for f in .gitriver/workflows/*; do
-			[ "$f" = .gitriver/workflows/ci.yml ] && continue
-			echo "$f: a second GitRiver workflow, a second pipeline per push — its jobs go into ci.yml" >&2
-			rc=1
-		done
-		ruby tools/ci/lint-gitriver-workflows || rc=1
-		ruby tools/lint/check-pins.rb .gitriver/workflows/ci.yml || rc=1
 		ruby tools/lint/check-pins.rb || rc=1
 		ruby tools/lint/test_check_pins.rb || rc=1
 		return $rc
@@ -259,9 +250,7 @@ gate_run() {
 	actions)
 		# GitHub Actions' workflows: actionlint (syntax, expressions, the `run:` scripts through shellcheck)
 		# and zizmor (template injection, over-broad `permissions`, unpinned actions, persisted credentials), offline so
-		# a push never waits on GitHub's API. Not .gitriver/workflows/: GitRiver's dialect is GitHub's in shape only
-		# (`image:`, `timeout:`, jobs without `runs-on:`), both tools report its own keys as errors, and the vendored lint
-		# of the `workflows` gate is the one that knows it. Until .github/workflows/ holds a workflow there is nothing
+		# a push never waits on GitHub's API. Until .github/workflows/ holds a workflow there is nothing
 		# to check (.github/'s issue, pull request and discussion templates are no input for either tool, and zizmor
 		# fails on "no inputs collected"), which the gate says and passes on; the day one lands, these run on it.
 		# Any one file of either extension is a workflow (`ls` of both patterns fails when either matches nothing).
@@ -407,7 +396,7 @@ tracked() {
 }
 
 # A gate whose file list came out empty fails rather than pass on nothing: the tree is then no git checkout with an
-# index (a copy, or `make ci-job`'s snapshot), not a repository without such files.
+# index (a copy), not a repository without such files.
 some_files() {
 	[ "$2" -gt 0 ] && return 0
 	echo "$1: no tracked file to check: is this a git checkout with its index?" >&2

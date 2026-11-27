@@ -179,15 +179,10 @@ corpus-record: oracle ## record the corpus goldens from the oracle (tests/corpus
 	DOCX_TO_PDF_RECORD_ORACLE=http://localhost:$(ORACLE_PORT) $(if $(ONLY),DOCX_TO_PDF_RECORD_ONLY=$(ONLY)) \
 		cargo test --test corpus corpus -- --exact --nocapture
 
-# CI: one workflow, .gitriver/workflows/ci.yml on the private mirror's GitRiver and .github/workflows/ci.yml on GitHub
-# Actions, the same jobs in both, so a gate cannot drift between them; one pipeline per push, so a push has one
-# result. Its image job is `make image-ci`, run where a Docker daemon, cargo and curl are; on GitRiver that is the job
-# on the runner whose jobs get a Docker socket (the other runners give none), in parallel with the others. No registry: nothing is
-# pushed.
-.PHONY: ci-job image-ci image-quickstart image-installation
-
-ci-job: ## run one GitRiver CI job (JOB=lint-<gate>|test|lockhash) in its image on a copy of the working tree; the image job is `make image-ci`
-	ruby tools/ci/run-job.rb $(JOB)
+# CI: one workflow, .github/workflows/ci.yml on GitHub Actions; one run per push, so a push has one result. Its
+# image job is `make image-ci`, run where a Docker daemon, cargo and curl are (tools/ci/image-job.sh), in parallel with
+# the others. No registry: nothing is pushed.
+.PHONY: image-ci image-quickstart image-installation
 
 image-ci: ## the image job: build IMAGE for the host's architecture, then image-test, image-quickstart, image-installation, image-egress, image-scenarios, image-corpus, chart-kind, image-lint
 	$(MAKE) image IMAGE=$(IMAGE)

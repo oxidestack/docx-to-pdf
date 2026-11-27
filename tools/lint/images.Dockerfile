@@ -35,14 +35,13 @@ FROM goodwithtech/dockle:v0.4.15@sha256:eade932f793742de0aa8755406c7677cd7696f86
 FROM anchore/syft:v1.42.0@sha256:19ed45c8f4bf846390b072966a2fec52279d09f9e47650830ffabec7eebaf0fe AS syft
 
 # The chart's gates: chart-testing's image carries ct, Helm 3, yamllint and yamale, and its ENTRYPOINT is
-# empty, so a GitRiver job can run in it (GitRiver keeps an image's ENTRYPOINT and hands it the job's `sh -c`, which
-# kubeconform's, kube-linter's, helm-unittest's and helm-docs' own images would answer with an error). Those four are
-# release binaries pinned by sha256 in tools/lint/tools.txt and fetched into it (tools/lint/fetch-tool.sh).
+# empty, so a CI job can run in it (kubeconform's, kube-linter's, helm-unittest's and helm-docs' own images have the
+# tool as their ENTRYPOINT). Those four are release binaries pinned by sha256 in tools/lint/tools.txt and fetched into it (tools/lint/fetch-tool.sh).
 FROM quay.io/helmpack/chart-testing:v3.15.0@sha256:54317f2d93730ea9ca1236e3d79cd95d74110b8d733b6ab124e5829209b5f4e4 AS chart-testing
 
 # The `markdownlint` gate: markdownlint-cli2, installed by `npm ci` from tools/lint/markdownlint/'s
 # lockfile, so every package of its tree is pinned by version and integrity hash. Its own image has the tool as its
-# ENTRYPOINT, which GitRiver keeps; node's entrypoint runs a command it is given.
+# ENTRYPOINT; node's entrypoint runs a command it is given.
 FROM node:24.22.1-alpine3.24@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53 AS node
 
 # `make release-notes` (tools/release/release-notes.sh): git-cliff drafts the next CHANGELOG.md section from the

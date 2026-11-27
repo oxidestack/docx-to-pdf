@@ -16,8 +16,6 @@ extend-exclude = [
     "README.ru.md",
     "README.zh-CN.md",
     "README.es.md",
-    # The GitRiver workflow lint, vendored and never edited here.
-    "tools/ci/lint-gitriver-workflows",
 ]
 
 [default]

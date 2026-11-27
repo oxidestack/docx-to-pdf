@@ -1,19 +1,16 @@
-# The gate for docx-to-pdf on GitHub Actions: .gitriver/workflows/ci.yml (the private mirror's GitRiver), job for job.
-# A gate change goes to both files in the same commit, and tools/lint/check-pins.rb (the `workflows` gate) holds the
-# `lint-*` jobs of both to the pinned images of tools/lint/images.Dockerfile, so a gate cannot drift between them.
+# The gate for docx-to-pdf on GitHub Actions. tools/lint/check-pins.rb (the `workflows` gate) holds the `lint-*` jobs
+# to the pinned images of tools/lint/images.Dockerfile, so a job runs exactly what `make lint` runs.
 #
-# One workflow, so one run per push: the jobs in parallel, no `needs:`, every failure of a push in one run. Where this
-# file differs from GitRiver's, it is GitHub's dialect or GitHub's runners, not the gate:
-# - `container:` names a job's image (GitRiver's `image:`), and `timeout-minutes:` its deadline. The runners are
-#   GitHub-hosted, two vCPUs on a private repository, four on a public one, so the jobs that compile get more time.
-# - The lint and test jobs run on x64 (`ubuntu-24.04`): GitRiver's runners are arm64, so between the two forges the
-#   tests run on both architectures. x64 also because the runner starts a JavaScript action (checkout, cache) in an
+# One workflow, so one run per push: the jobs in parallel, no `needs:`, every failure of a push in one run.
+# - `container:` names a job's image, and `timeout-minutes:` its deadline. The runners are GitHub-hosted, two vCPUs
+#   on a private repository, four on a public one, so the jobs that compile get more time.
+# - The lint and test jobs run on x64 (`ubuntu-24.04`): the runner starts a JavaScript action (checkout, cache) in an
 #   Alpine container on x64 only.
 # - The image job is a matrix, amd64 on `ubuntu-24.04` and arm64 on `ubuntu-24.04-arm`, each native: never emulated.
 #   The runner's VM has its own Docker, so tools/ci/image-job.sh starts its second container from the host (`host`).
-# - No `lockhash` job: actions/cache keys on `hashFiles('Cargo.lock')` itself. Only the cargo registry is cached, and
-#   only from a job that passed, as on GitRiver.
-# - `actions/checkout` clones depth 1, as GitRiver's runner does; `lint-commits` takes the whole history instead,
+# - actions/cache keys on `hashFiles('Cargo.lock')`. Only the cargo registry is cached, and only from a job that
+#   passed.
+# - `actions/checkout` clones depth 1; `lint-commits` takes the whole history instead,
 #   and the image job the submodule.
 # - The `site` job is site.yml, a reusable workflow, called here so that it is no second run; it deploys GitHub Pages
 #   on a push to `main` of the public repository alone.
@@ -93,7 +90,7 @@ jobs:
             .cargo/registry/index
             .cargo/registry/cache
           key: cargo-${{ hashFiles('Cargo.lock') }}
-      # The image GitRiver's `image` job runs in.
+      # The image the second container of the image job runs in.
       - run: sh tools/ci/image-job.sh host rust:1.100.0-trixie
 
   release-notes:
@@ -241,7 +238,7 @@ jobs:
       - run: make tools-test
 
   lint-workflows:
-    # GitRiver's vendored lint on .gitriver/workflows/, then check-pins.rb on both workflows.
+    # check-pins.rb on the workflows, then its own tests.
     if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
     runs-on: ubuntu-24.04
     permissions:
@@ -460,7 +457,7 @@ jobs:
       - run: make lint-run GATE=editorconfig
 
   lint-gitleaks:
-    # Credentials in the commits the clone has (the pushed one: depth 1, as on GitRiver) and in the tree.
+    # Credentials in the commits the clone has (the pushed one: depth 1) and in the tree.
     if: ${{ github.event_name == 'workflow_dispatch' || !github.event.repository.private }}
     runs-on: ubuntu-24.04
     permissions:

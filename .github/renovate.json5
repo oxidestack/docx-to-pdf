@@ -8,7 +8,7 @@
 // self-hosted Renovate signs off as its own git author instead.
 //
 // The tool images and binaries of tools/lint/ are not here, but for the rust image: each moves with the gate it
-// serves, by hand, and tools/lint/check-pins.rb holds the CI jobs (both ci.yml and its GitRiver twin) to them. The
+// serves, by hand, and tools/lint/check-pins.rb holds the CI jobs of ci.yml to them. The
 // rust image moves everywhere at once, in one pull request; the msrv stage's toolchain (Cargo.toml's rust-version) is
 // a decision, never an update.
 {
@@ -50,14 +50,11 @@
       datasourceTemplate: 'docker',
     },
     {
-      // The rust image: the image job's, named by its tag in an argument, and the GitRiver jobs' `image:`, a key the
-      // github-actions manager does not read.
+      // The rust image of the image job, named by its tag in an argument, which the github-actions manager does not
+      // read.
       customType: 'regex',
-      managerFilePatterns: ['/^\\.github/workflows/[^/]+\\.ya?ml$/', '/^\\.gitriver/workflows/[^/]+\\.ya?ml$/'],
-      matchStrings: [
-        'image-job\\.sh host (?<depName>rust):(?<currentValue>[^\\s@]+)',
-        'image: (?<depName>rust):(?<currentValue>[^\\s@]+)(?:@(?<currentDigest>sha256:[a-f0-9]{64}))?',
-      ],
+      managerFilePatterns: ['/^\\.github/workflows/[^/]+\\.ya?ml$/'],
+      matchStrings: ['image-job\\.sh host (?<depName>rust):(?<currentValue>[^\\s@]+)'],
       datasourceTemplate: 'docker',
     },
     {

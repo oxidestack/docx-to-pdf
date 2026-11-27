@@ -27,8 +27,8 @@ What the seeds are:
 
 ## The soak: cargo-fuzz on nightly, by hand
 
-Not in the private CI: GitRiver 1.1.0 has no scheduled trigger, and a soak on every push is the flaky gate above. The
-scheduled one is to be a weekly GitHub workflow. Locally:
+Not in the CI of every push: a soak there is the flaky gate above. It runs weekly as its own GitHub workflow
+(.github/workflows/fuzz-soak.yml). Locally:
 
 ```sh
 rustup toolchain install nightly

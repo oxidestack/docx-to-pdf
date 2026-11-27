@@ -2,7 +2,7 @@
 # https://oxidestack.github.io/docx-to-pdf/.
 #
 # A reusable workflow, not a pipeline of its own: GitHub's CI is one workflow, .github/workflows/ci.yml, one run per
-# push, and that workflow calls this one as its `site` job, the twin of .gitriver/workflows/ci.yml's:
+# push, and that workflow calls this one as its `site` job:
 #
 #   site:
 #     uses: ./.github/workflows/site.yml

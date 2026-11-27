@@ -14,7 +14,7 @@ rules:
     allow-non-breakable-inline-mappings: true
   # One-document files: a leading `---` would say nothing.
   document-start: disable
-  # GitHub's and GitRiver's workflows key their triggers `on:`, which YAML 1.1 reads as a boolean; the keys are the
+  # GitHub's workflows key their triggers `on:`, which YAML 1.1 reads as a boolean; the keys are the
   # tools' and not ours to rename. Values still have to be true or false.
   truthy:
     check-keys: false
