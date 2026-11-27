@@ -13,7 +13,7 @@
 FROM rust:1.100.0-trixie@sha256:223cc32ddca8f3ee90c436dbc94b6b5f052ea7f9653c5201e9612f08ad7d21b8 AS rust
 
 # The `msrv` gate: Cargo.toml's rust-version, exactly (a bump of rust-version moves this pin in the same commit).
-FROM rust:1.89.0-trixie@sha256:57407b378b2b6e07b48a6135a20c87cc22ea6e249c0acf6cb1833ead3cf116e9 AS msrv
+FROM rust:1.99.1-trixie@sha256:8a4e90c7946b74626488b1446f712c0fe0ed1a596cbd3d871684bc9c5433ae07 AS msrv
 
 # the forge's workflow lint and check-pins.rb (Ruby stdlib).
 FROM ruby:3.3.12-alpine@sha256:ac11166d133f476b0c3b4ae6fa6c6301cfc9a6f4e03c0761c482f00808c96cad AS ruby
